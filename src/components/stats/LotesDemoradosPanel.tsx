@@ -1,7 +1,6 @@
 "use client";
 
 import { TriangleAlert } from "lucide-react";
-import { BATCH_ESTADO_LABELS } from "@/lib/constants";
 import type { StatsLoteDemorado } from "@/lib/types";
 
 interface LotesDemoradosPanelProps {
@@ -22,7 +21,6 @@ export function LotesDemoradosPanel({ lotes }: LotesDemoradosPanelProps) {
         >
           <TriangleAlert className="size-4 shrink-0 text-destructive" />
           <span className="font-medium">{lote.numeroLote}</span>
-          <span className="text-muted-foreground">({BATCH_ESTADO_LABELS[lote.estado]})</span>
           <span className="ml-auto font-medium text-destructive">
             +{lote.diasDeDemora} día(s)
           </span>

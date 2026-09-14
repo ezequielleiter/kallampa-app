@@ -1,69 +1,58 @@
 import { differenceInCalendarDays } from "date-fns";
-import type { BatchEstado } from "@/models/Batch";
+import type { JarEstado } from "@/models/Jar";
+import type { RecipienteEstado } from "@/models/Recipiente";
 
 /**
- * Estas funciones operan sobre batches ya traidos con `.lean()` (objetos
- * planos, no documentos de Mongoose), por eso los tipos de abajo describen
- * la forma "plana" minima que necesitamos, no el Document completo.
+ * v2: ya no hay un unico Batch-documento con todas las etapas embebidas.
+ * Estas funciones operan sobre listas de frascos (Jar) y recipientes
+ * (Recipiente) ya traidos con `.lean()` (objetos planos, no documentos de
+ * Mongoose) asociados a un batch, por eso los tipos de abajo describen la
+ * forma "plana" minima que necesitamos, no el Document completo.
  */
 
 export interface LeanOleada {
   _id?: unknown;
-  numero: number;
   fecha: Date | string;
   pesoKg: number;
   notas?: string;
 }
 
-export interface LeanHistorialEstado {
-  estado: string;
-  fecha: Date | string;
-}
-
-export interface LeanRecipiente {
+export interface LeanJar {
   _id?: unknown;
-  codigo: string;
-  pesoKg: number;
-  notas?: string;
+  batchId?: unknown;
+  numeroGuia: string;
+  estado: JarEstado;
 }
 
 export interface LeanBatch {
   _id?: unknown;
   numeroLote: string;
   fungusTypeId: unknown;
-  estado: BatchEstado;
-  descartado: boolean;
-  motivoDescarte?: string;
   inoculacionGrano: {
     tipoGranoId: unknown;
     pesoGranoKg: number;
     precioPorKg: number;
     cantidadFrascos: number;
     fechaInicio: Date | string;
-    fechaFin?: Date | string;
     diasEsperados: number;
   };
-  crecimientoSustrato?: {
-    tipoSustratoId?: unknown;
-    kilosSustrato?: number;
-    precioPorKg?: number;
-    fechaInicio?: Date | string;
-    fechaFin?: Date | string;
-    diasEsperados?: number;
-  };
-  fructificacion?: {
-    fechaInicio?: Date | string;
-    fechaFin?: Date | string;
-    diasEsperados?: number;
-    recipientes?: LeanRecipiente[];
-  };
-  cosecha?: {
-    fechaInicio?: Date | string;
-    fechaFin?: Date | string;
-    diasEsperados?: number;
-  };
+}
+
+export interface LeanRecipiente {
+  _id?: unknown;
+  batchId?: unknown;
+  numeroSeguimiento?: string;
+  origenFrascoIds?: unknown[];
+  tipoSustratoId: unknown;
+  pesoSustratoKg: number;
+  precioPorKg: number;
+  fechaInicioIncubacion: Date | string;
+  diasEsperadosIncubacion: number;
+  fechaInicioFructificacion?: Date | string;
+  diasEsperadosFructificacion?: number;
+  estado: RecipienteEstado;
   oleadas?: LeanOleada[];
-  historialEstados?: LeanHistorialEstado[];
+  updatedAt?: Date | string;
 }
 
 function toDate(d: Date | string | undefined | null): Date | undefined {
@@ -82,88 +71,90 @@ export function diasEnEtapa(
   return differenceInCalendarDays(fin, inicio);
 }
 
-/**
- * Desde inoculacionGrano.fechaInicio hasta cosecha.fechaFin ?? hoy, o hasta
- * la fecha del historialEstados 'finalizado'/'descartado' si el lote ya
- * cerro por esa via.
- */
-export function diasTotalesLote(batch: LeanBatch): number | null {
-  const inicio = toDate(batch.inoculacionGrano?.fechaInicio);
-  if (!inicio) return null;
+/** Fecha de la ultima oleada de un recipiente (o undefined si no tiene). */
+function ultimaOleadaFecha(recipiente: LeanRecipiente): Date | undefined {
+  const fechas = (recipiente.oleadas ?? [])
+    .map((o) => toDate(o.fecha))
+    .filter((d): d is Date => !!d);
+  if (fechas.length === 0) return undefined;
+  return new Date(Math.max(...fechas.map((d) => d.getTime())));
+}
 
-  const cierreHistorial = (batch.historialEstados ?? []).find(
-    (h) => h.estado === "finalizado" || h.estado === "descartado"
+/**
+ * Estado del lote, 100% calculado (nunca persistido): 'en_progreso' si
+ * queda algun frasco colonizando/colonizado o algun recipiente
+ * incubando/fructificando, o si todavia no se creo ningun recipiente.
+ * 'finalizado' solo cuando ya no queda nada activo.
+ */
+export function estadoLote(
+  frascos: LeanJar[],
+  recipientes: LeanRecipiente[]
+): "en_progreso" | "finalizado" {
+  const frascoActivo = frascos.some(
+    (f) => f.estado === "colonizando" || f.estado === "colonizado"
   );
-
-  const fin =
-    toDate(batch.cosecha?.fechaFin) ??
-    toDate(cierreHistorial?.fecha) ??
-    new Date();
-
-  return differenceInCalendarDays(fin, inicio);
+  const recipienteActivo = recipientes.some(
+    (r) => r.estado === "incubando" || r.estado === "fructificando"
+  );
+  if (frascoActivo || recipienteActivo || recipientes.length === 0) return "en_progreso";
+  return "finalizado";
 }
 
-export interface DiasPorEtapa {
-  inoculacionGrano: number | null;
-  crecimientoSustrato: number | null;
-  fructificacion: number | null;
-  cosecha: number | null;
+/** Un frasco esta demorado si sigue 'colonizando' mas alla de lo esperado. */
+export function alertaFrasco(batch: LeanBatch, frasco: LeanJar): boolean {
+  if (frasco.estado !== "colonizando") return false;
+  const dias = diasEnEtapa(batch.inoculacionGrano?.fechaInicio);
+  return dias !== null && dias > (batch.inoculacionGrano?.diasEsperados ?? 0);
 }
 
-export function diasPorEtapa(batch: LeanBatch): DiasPorEtapa {
-  return {
-    inoculacionGrano: diasEnEtapa(
-      batch.inoculacionGrano?.fechaInicio,
-      batch.inoculacionGrano?.fechaFin
-    ),
-    crecimientoSustrato: batch.crecimientoSustrato?.fechaInicio
-      ? diasEnEtapa(
-          batch.crecimientoSustrato.fechaInicio,
-          batch.crecimientoSustrato.fechaFin
-        )
-      : null,
-    fructificacion: batch.fructificacion?.fechaInicio
-      ? diasEnEtapa(
-          batch.fructificacion.fechaInicio,
-          batch.fructificacion.fechaFin
-        )
-      : null,
-    cosecha: batch.cosecha?.fechaInicio
-      ? diasEnEtapa(batch.cosecha.fechaInicio, batch.cosecha.fechaFin)
-      : null,
-  };
+/** Un recipiente esta demorado si su etapa activa se paso de lo esperado. */
+export function alertaRecipiente(recipiente: LeanRecipiente): boolean {
+  if (recipiente.estado === "incubando") {
+    const dias = diasEnEtapa(recipiente.fechaInicioIncubacion);
+    return dias !== null && dias > (recipiente.diasEsperadosIncubacion ?? 0);
+  }
+  if (recipiente.estado === "fructificando") {
+    const dias = diasEnEtapa(recipiente.fechaInicioFructificacion);
+    return dias !== null && dias > (recipiente.diasEsperadosFructificacion ?? 0);
+  }
+  return false;
 }
 
-/** Suma de oleadas[].pesoKg. */
-export function pesoTotalCosechado(batch: LeanBatch): number {
-  return (batch.oleadas ?? []).reduce((acc, o) => acc + (o.pesoKg || 0), 0);
+/** Cuantos dias de demora tiene un frasco 'colonizando' en su etapa activa (0 si no aplica). */
+function overrunFrasco(batch: LeanBatch, frasco: LeanJar): number {
+  if (!alertaFrasco(batch, frasco)) return 0;
+  const dias = diasEnEtapa(batch.inoculacionGrano?.fechaInicio) ?? 0;
+  return Math.max(0, dias - (batch.inoculacionGrano?.diasEsperados ?? 0));
+}
+
+/** Cuantos dias de demora tiene un recipiente en su etapa activa (0 si no aplica). */
+function overrunRecipiente(recipiente: LeanRecipiente): number {
+  if (!alertaRecipiente(recipiente)) return 0;
+  if (recipiente.estado === "incubando") {
+    const dias = diasEnEtapa(recipiente.fechaInicioIncubacion) ?? 0;
+    return Math.max(0, dias - (recipiente.diasEsperadosIncubacion ?? 0));
+  }
+  const dias = diasEnEtapa(recipiente.fechaInicioFructificacion) ?? 0;
+  return Math.max(0, dias - (recipiente.diasEsperadosFructificacion ?? 0));
+}
+
+/** Suma de oleadas[].pesoKg de un recipiente. */
+export function pesoCosechadoRecipiente(recipiente: LeanRecipiente): number {
+  return (recipiente.oleadas ?? []).reduce((acc, o) => acc + (o.pesoKg || 0), 0);
 }
 
 /**
- * Eficiencia biologica = pesoTotalCosechado / kilosSustrato * 100.
- * Se calcula sobre el peso de sustrato (convencion del dominio), no sobre
- * el grano. Devuelve null si no hay crecimientoSustrato o kilosSustrato es 0.
+ * Eficiencia biologica del recipiente = pesoCosechado / pesoSustratoKg * 100.
+ * Devuelve null si pesoSustratoKg es 0 (evita Infinity/NaN).
  */
-export function eficienciaBiologica(batch: LeanBatch): number | null {
-  const kilosSustrato = batch.crecimientoSustrato?.kilosSustrato;
-  if (!kilosSustrato) return null;
-  const total = pesoTotalCosechado(batch);
-  return (total / kilosSustrato) * 100;
+export function eficienciaBiologicaRecipiente(recipiente: LeanRecipiente): number | null {
+  if (!recipiente.pesoSustratoKg) return null;
+  return (pesoCosechadoRecipiente(recipiente) / recipiente.pesoSustratoKg) * 100;
 }
 
-export interface RendimientoOleada {
-  numero: number;
-  pesoKg: number;
-  porcentajeDelTotal: number;
-}
-
-export function rendimientoPorOleada(batch: LeanBatch): RendimientoOleada[] {
-  const total = pesoTotalCosechado(batch);
-  return (batch.oleadas ?? []).map((o) => ({
-    numero: o.numero,
-    pesoKg: o.pesoKg,
-    porcentajeDelTotal: total > 0 ? (o.pesoKg / total) * 100 : 0,
-  }));
+/** Costo del sustrato de un recipiente. */
+export function costoRecipiente(recipiente: LeanRecipiente): number {
+  return (recipiente.pesoSustratoKg || 0) * (recipiente.precioPorKg || 0);
 }
 
 export interface CostoProduccion {
@@ -173,113 +164,119 @@ export interface CostoProduccion {
   costoPorKgProducido: number | null;
 }
 
-export function costoProduccion(batch: LeanBatch): CostoProduccion {
-  const costoGrano =
-    (batch.inoculacionGrano?.pesoGranoKg || 0) *
-    (batch.inoculacionGrano?.precioPorKg || 0);
-
-  const costoSustrato =
-    (batch.crecimientoSustrato?.kilosSustrato || 0) *
-    (batch.crecimientoSustrato?.precioPorKg || 0);
-
-  const costoTotal = costoGrano + costoSustrato;
-  const total = pesoTotalCosechado(batch);
-
-  return {
-    costoGrano,
-    costoSustrato,
-    costoTotal,
-    costoPorKgProducido: total > 0 ? costoTotal / total : null,
-  };
-}
-
-export interface AlertaEtapaActual {
-  demorado: boolean;
-  diasTranscurridos: number;
-  diasEsperados: number;
-  diasDeDemora: number;
-}
-
-/**
- * Compara los dias transcurridos en la etapa activa contra su diasEsperados.
- * Para 'finalizado'/'descartado' siempre demorado: false.
- */
-export function alertaEtapaActual(batch: LeanBatch): AlertaEtapaActual {
-  const estado = batch.estado;
-
-  if (estado === "finalizado" || estado === "descartado") {
-    return {
-      demorado: false,
-      diasTranscurridos: 0,
-      diasEsperados: 0,
-      diasDeDemora: 0,
-    };
-  }
-
-  let fechaInicio: Date | string | undefined;
-  let diasEsperados = 0;
-
-  switch (estado) {
-    case "inoculacion_grano":
-      fechaInicio = batch.inoculacionGrano?.fechaInicio;
-      diasEsperados = batch.inoculacionGrano?.diasEsperados ?? 0;
-      break;
-    case "crecimiento_sustrato":
-      fechaInicio = batch.crecimientoSustrato?.fechaInicio;
-      diasEsperados = batch.crecimientoSustrato?.diasEsperados ?? 0;
-      break;
-    case "fructificacion":
-      fechaInicio = batch.fructificacion?.fechaInicio;
-      diasEsperados = batch.fructificacion?.diasEsperados ?? 0;
-      break;
-    case "cosecha":
-      fechaInicio = batch.cosecha?.fechaInicio;
-      diasEsperados = batch.cosecha?.diasEsperados ?? 0;
-      break;
-  }
-
-  const diasTranscurridos = diasEnEtapa(fechaInicio) ?? 0;
-  const diasDeDemora = Math.max(0, diasTranscurridos - diasEsperados);
-
-  return {
-    demorado: diasDeDemora > 0,
-    diasTranscurridos,
-    diasEsperados,
-    diasDeDemora,
-  };
+function average(values: number[]): number | null {
+  if (values.length === 0) return null;
+  return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
 export interface ResumenLote {
   numeroLote: string;
-  estado: BatchEstado;
+  estadoDerivado: "en_progreso" | "finalizado";
   diasTotales: number | null;
-  diasPorEtapa: DiasPorEtapa;
   pesoTotalCosechado: number;
   eficienciaBiologica: number | null;
-  rendimientoPorOleada: RendimientoOleada[];
   costoProduccion: CostoProduccion;
-  alertaEtapaActual: AlertaEtapaActual;
+  alertas: number;
+  // Peor demora (en dias) entre todos los frascos/recipientes con alerta
+  // activa del lote. 0 si no hay ninguno demorado.
+  diasDeDemora: number;
+  diasIncubacionPromedio: number | null;
+  diasFructificacionPromedio: number | null;
 }
 
-export function resumenLote(batch: LeanBatch): ResumenLote {
+/**
+ * Rollup de metricas de un lote a partir de sus frascos y recipientes.
+ */
+export function resumenLote(
+  batch: LeanBatch,
+  frascos: LeanJar[],
+  recipientes: LeanRecipiente[]
+): ResumenLote {
+  const estadoDerivado = estadoLote(frascos, recipientes);
+
+  // diasTotales: desde inoculacionGrano.fechaInicio hasta la fecha de la
+  // ULTIMA oleada entre todos los recipientes, o hasta hoy si no hay
+  // ninguna (o el lote sigue activo).
+  const fechasUltimaOleada = recipientes
+    .map((r) => ultimaOleadaFecha(r))
+    .filter((d): d is Date => !!d);
+  const fechaUltimaOleadaGlobal =
+    fechasUltimaOleada.length > 0
+      ? new Date(Math.max(...fechasUltimaOleada.map((d) => d.getTime())))
+      : undefined;
+  const diasTotales = diasEnEtapa(
+    batch.inoculacionGrano?.fechaInicio,
+    estadoDerivado === "en_progreso" ? undefined : fechaUltimaOleadaGlobal
+  );
+
+  const pesoTotalCosechado = recipientes.reduce(
+    (acc, r) => acc + pesoCosechadoRecipiente(r),
+    0
+  );
+
+  const sumaSustrato = recipientes.reduce((acc, r) => acc + (r.pesoSustratoKg || 0), 0);
+  const eficienciaBiologica = sumaSustrato > 0 ? (pesoTotalCosechado / sumaSustrato) * 100 : null;
+
+  const costoGrano =
+    (batch.inoculacionGrano?.pesoGranoKg || 0) * (batch.inoculacionGrano?.precioPorKg || 0);
+  const costoSustrato = recipientes.reduce((acc, r) => acc + costoRecipiente(r), 0);
+  const costoTotal = costoGrano + costoSustrato;
+  const costoProduccion: CostoProduccion = {
+    costoGrano,
+    costoSustrato,
+    costoTotal,
+    costoPorKgProducido: pesoTotalCosechado > 0 ? costoTotal / pesoTotalCosechado : null,
+  };
+
+  const alertas =
+    frascos.filter((f) => alertaFrasco(batch, f)).length +
+    recipientes.filter((r) => alertaRecipiente(r)).length;
+
+  const diasDeDemora = Math.max(
+    0,
+    ...frascos.map((f) => overrunFrasco(batch, f)),
+    ...recipientes.map((r) => overrunRecipiente(r))
+  );
+
+  const conIncubacion = recipientes.filter((r) => !!r.fechaInicioIncubacion);
+  const diasIncubacionPromedio = average(
+    conIncubacion.map(
+      (r) => diasEnEtapa(r.fechaInicioIncubacion, r.fechaInicioFructificacion) ?? 0
+    )
+  );
+
+  const conFructificacion = recipientes.filter((r) => !!r.fechaInicioFructificacion);
+  const diasFructificacionPromedio = average(
+    conFructificacion.map((r) => {
+      const fin = r.estado === "fructificando" ? undefined : ultimaOleadaFecha(r);
+      return diasEnEtapa(r.fechaInicioFructificacion, fin) ?? 0;
+    })
+  );
+
   return {
     numeroLote: batch.numeroLote,
-    estado: batch.estado,
-    diasTotales: diasTotalesLote(batch),
-    diasPorEtapa: diasPorEtapa(batch),
-    pesoTotalCosechado: pesoTotalCosechado(batch),
-    eficienciaBiologica: eficienciaBiologica(batch),
-    rendimientoPorOleada: rendimientoPorOleada(batch),
-    costoProduccion: costoProduccion(batch),
-    alertaEtapaActual: alertaEtapaActual(batch),
+    estadoDerivado,
+    diasTotales,
+    pesoTotalCosechado,
+    eficienciaBiologica,
+    costoProduccion,
+    alertas,
+    diasDeDemora,
+    diasIncubacionPromedio,
+    diasFructificacionPromedio,
   };
 }
+
+// --- agregados por catalogo ----------------------------------------------
 
 export type CatalogoCampo = "fungusTypeId" | "tipoGranoId" | "tipoSustratoId";
 
 export interface AgregadoCatalogo {
   key: string;
   label: string;
+  // Cantidad de lotes agrupados (fungusTypeId/tipoGranoId) o de recipientes
+  // (tipoSustratoId) -- el nombre se mantiene por compatibilidad con el
+  // formato que ya consume el frontend de /api/stats.
   cantidadLotes: number;
   eficienciaBiologicaPromedio: number | null;
   diasTotalesPromedio: number | null;
@@ -315,75 +312,119 @@ function labelFor(id: unknown, fallback: string): string {
   return fallback;
 }
 
-function average(values: number[]): number | null {
-  if (values.length === 0) return null;
-  return values.reduce((a, b) => a + b, 0) / values.length;
+export interface LoteConDatos {
+  batch: LeanBatch;
+  frascos: LeanJar[];
+  recipientes: LeanRecipiente[];
 }
 
-/**
- * Agrupa lotes FINALIZADOS por el catalogo indicado (fungusTypeId,
- * tipoGranoId dentro de inoculacionGrano, o tipoSustratoId dentro de
- * crecimientoSustrato) y devuelve promedios pensados para comparativas
- * de dashboard.
- */
-export function agregarPorCatalogo(
-  batches: LeanBatch[],
-  campo: CatalogoCampo
+/** Agrupa lotes FINALIZADOS (estadoDerivado) por fungusTypeId o tipoGranoId. */
+function agregarLotesPorCatalogo(
+  lotes: LoteConDatos[],
+  campo: "fungusTypeId" | "tipoGranoId"
 ): AgregadoCatalogo[] {
-  const finalizados = batches.filter((b) => b.estado === "finalizado");
+  const finalizados = lotes.filter(
+    (l) => estadoLote(l.frascos, l.recipientes) === "finalizado"
+  );
 
   const grupos = new Map<
     string,
-    { label: string; eb: number[]; dias: number[]; costoKg: number[] }
+    { label: string; eb: number[]; dias: number[]; costoKg: number[]; cantidad: number }
   >();
 
-  for (const batch of finalizados) {
-    let rawId: unknown;
-    if (campo === "fungusTypeId") rawId = batch.fungusTypeId;
-    else if (campo === "tipoGranoId") rawId = batch.inoculacionGrano?.tipoGranoId;
-    else rawId = batch.crecimientoSustrato?.tipoSustratoId;
-
+  for (const { batch, frascos, recipientes } of finalizados) {
+    const rawId = campo === "fungusTypeId" ? batch.fungusTypeId : batch.inoculacionGrano?.tipoGranoId;
     const key = idToString(rawId);
     if (!key) continue;
 
     if (!grupos.has(key)) {
+      grupos.set(key, { label: labelFor(rawId, key), eb: [], dias: [], costoKg: [], cantidad: 0 });
+    }
+    const grupo = grupos.get(key)!;
+    grupo.cantidad += 1;
+
+    const resumen = resumenLote(batch, frascos, recipientes);
+    if (resumen.eficienciaBiologica !== null) grupo.eb.push(resumen.eficienciaBiologica);
+    if (resumen.diasTotales !== null) grupo.dias.push(resumen.diasTotales);
+    if (resumen.costoProduccion.costoPorKgProducido !== null) {
+      grupo.costoKg.push(resumen.costoProduccion.costoPorKgProducido);
+    }
+  }
+
+  return Array.from(grupos.entries()).map(([key, grupo]) => ({
+    key,
+    label: grupo.label,
+    cantidadLotes: grupo.cantidad,
+    eficienciaBiologicaPromedio: average(grupo.eb),
+    diasTotalesPromedio: average(grupo.dias),
+    costoPorKgPromedio: average(grupo.costoKg),
+  }));
+}
+
+/**
+ * Agrupa recipientes FINALIZADOS por tipoSustratoId, cruzando todos los
+ * lotes (cada recipiente aporta su propia eficiencia/costo al grupo de su
+ * tipo de sustrato, no el lote entero).
+ */
+function agregarRecipientesPorSustrato(recipientes: LeanRecipiente[]): AgregadoCatalogo[] {
+  const finalizados = recipientes.filter((r) => r.estado === "finalizado");
+
+  const grupos = new Map<
+    string,
+    { label: string; eb: number[]; dias: number[]; costoKg: number[]; cantidad: number }
+  >();
+
+  for (const recipiente of finalizados) {
+    const key = idToString(recipiente.tipoSustratoId);
+    if (!key) continue;
+
+    if (!grupos.has(key)) {
       grupos.set(key, {
-        label: labelFor(rawId, key),
+        label: labelFor(recipiente.tipoSustratoId, key),
         eb: [],
         dias: [],
         costoKg: [],
+        cantidad: 0,
       });
     }
-
     const grupo = grupos.get(key)!;
+    grupo.cantidad += 1;
 
-    const eb = eficienciaBiologica(batch);
+    const eb = eficienciaBiologicaRecipiente(recipiente);
     if (eb !== null) grupo.eb.push(eb);
 
-    const dias = diasTotalesLote(batch);
+    const fin = ultimaOleadaFecha(recipiente);
+    const dias = diasEnEtapa(recipiente.fechaInicioIncubacion, fin);
     if (dias !== null) grupo.dias.push(dias);
 
-    const costo = costoProduccion(batch).costoPorKgProducido;
-    if (costo !== null) grupo.costoKg.push(costo);
+    const peso = pesoCosechadoRecipiente(recipiente);
+    const costoPorKg = peso > 0 ? costoRecipiente(recipiente) / peso : null;
+    if (costoPorKg !== null) grupo.costoKg.push(costoPorKg);
   }
 
-  const resultado: AgregadoCatalogo[] = [];
-  for (const [key, grupo] of grupos.entries()) {
-    resultado.push({
-      key,
-      label: grupo.label,
-      cantidadLotes: finalizados.filter((b) => {
-        let rawId: unknown;
-        if (campo === "fungusTypeId") rawId = b.fungusTypeId;
-        else if (campo === "tipoGranoId") rawId = b.inoculacionGrano?.tipoGranoId;
-        else rawId = b.crecimientoSustrato?.tipoSustratoId;
-        return idToString(rawId) === key;
-      }).length,
-      eficienciaBiologicaPromedio: average(grupo.eb),
-      diasTotalesPromedio: average(grupo.dias),
-      costoPorKgPromedio: average(grupo.costoKg),
-    });
-  }
+  return Array.from(grupos.entries()).map(([key, grupo]) => ({
+    key,
+    label: grupo.label,
+    cantidadLotes: grupo.cantidad,
+    eficienciaBiologicaPromedio: average(grupo.eb),
+    diasTotalesPromedio: average(grupo.dias),
+    costoPorKgPromedio: average(grupo.costoKg),
+  }));
+}
 
-  return resultado;
+/**
+ * Punto de entrada unico para los 3 agregados de catalogo de /api/stats.
+ * "por hongo" y "por grano" agrupan lotes finalizados (via `lotes`);
+ * "por sustrato" agrupa recipientes finalizados a nivel individual (via
+ * `recipientesTodos`), cruzando todos los lotes.
+ */
+export function agregarPorCatalogo(
+  campo: CatalogoCampo,
+  lotes: LoteConDatos[],
+  recipientesTodos: LeanRecipiente[]
+): AgregadoCatalogo[] {
+  if (campo === "tipoSustratoId") {
+    return agregarRecipientesPorSustrato(recipientesTodos);
+  }
+  return agregarLotesPorCatalogo(lotes, campo);
 }

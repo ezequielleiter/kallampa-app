@@ -5,7 +5,7 @@ import { Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BATCH_ESTADO_LABELS } from "@/lib/constants";
+import { ESTADO_DERIVADO_LABELS } from "@/lib/constants";
 import type { StatsLote } from "@/lib/types";
 
 interface LoteSelectorProps {
@@ -89,7 +89,7 @@ export function LoteSelector({ lotes, selectedIds, onChange }: LoteSelectorProps
                 <span className="font-medium">{l.numeroLote}</span>
                 <span className="text-muted-foreground">{l.fungusTypeId?.nombre}</span>
                 <span className="ml-auto text-xs text-muted-foreground">
-                  {BATCH_ESTADO_LABELS[l.estado]}
+                  {ESTADO_DERIVADO_LABELS[l.resumen.estadoDerivado]}
                 </span>
               </button>
             );

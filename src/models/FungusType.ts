@@ -2,9 +2,8 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface DiasEsperadosDefault {
   inoculacionGrano: number;
-  crecimientoSustrato: number;
+  incubacion: number;
   fructificacion: number;
-  cosecha: number;
 }
 
 export interface FungusTypeDoc extends Document {
@@ -20,9 +19,8 @@ export interface FungusTypeDoc extends Document {
 const diasEsperadosDefaultSchema = new Schema<DiasEsperadosDefault>(
   {
     inoculacionGrano: { type: Number, required: true },
-    crecimientoSustrato: { type: Number, required: true },
+    incubacion: { type: Number, required: true },
     fructificacion: { type: Number, required: true },
-    cosecha: { type: Number, required: true },
   },
   { _id: false }
 );

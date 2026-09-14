@@ -1,9 +1,12 @@
 // Smoke test end-to-end contra la API real (requiere `next dev` corriendo
 // en http://localhost:3000 y Mongo local levantado en MONGODB_URI).
 //
-// Ejercita: catalogos -> crear lote con 3 frascos -> avanzar por las 4
-// etapas -> agregar 2 oleadas -> resumen de metricas -> busqueda de frasco
-// por numeroGuia -> descarte de un lote de prueba aparte.
+// v2: ejercita el flujo de trazabilidad real -- crear un tipo de hongo (con
+// diasEsperadosDefault de 3 campos), un tipo de grano y un tipo de sustrato
+// -> crear un lote con 3 frascos -> marcar 2 como 'colonizado' -> crear un
+// recipiente a partir de esos 2 (y confirmar que quedan 'usado') -> hacerlo
+// fructificar -> agregarle 2 oleadas -> marcarlo 'finalizado' -> loguear
+// resumenLote() via /api/stats.
 //
 // Al final borra todos los documentos que creo (usa un sufijo unico por
 // corrida en los nombres de catalogo para no chocar con datos reales, y
@@ -19,7 +22,7 @@ const createdIds = {
   grainTypeId: null,
   substrateTypeId: null,
   batchId: null,
-  discardBatchId: null,
+  recipienteId: null,
 };
 
 async function api(method, path, body) {
@@ -51,13 +54,17 @@ async function main() {
     nombreCientifico: "Pleurotus smoketest",
     diasEsperadosDefault: {
       inoculacionGrano: 14,
-      crecimientoSustrato: 20,
-      fructificacion: 10,
-      cosecha: 15,
+      incubacion: 20,
+      fructificacion: 3, // "3 dias esperados" pedido explicitamente para fructificacion
     },
   });
   createdIds.fungusTypeId = fungusType._id;
   console.log("FungusType creado:", fungusType._id, fungusType.nombre);
+  assert(
+    fungusType.diasEsperadosDefault.fructificacion === 3 &&
+      fungusType.diasEsperadosDefault.cosecha === undefined,
+    "diasEsperadosDefault deberia tener solo 3 campos (sin 'cosecha')"
+  );
 
   const grainType = await api("POST", "/api/grain-types", {
     nombre: `Smoke Grano ${RUN_ID}`,
@@ -79,7 +86,7 @@ async function main() {
     pesoGranoKg: 10,
     precioPorKg: 500,
     cantidadFrascos: 3,
-    fechaInicio: new Date(Date.now() - 60 * 24 * 3600 * 1000).toISOString(),
+    fechaInicio: new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString(),
   });
   createdIds.batchId = batch._id;
   assert(batch.jars?.length === 3, "el lote deberia tener 3 jars");
@@ -88,7 +95,8 @@ async function main() {
     batch.jars.every((j) => j.numeroGuia.startsWith(`${batch.numeroLote}-F`)),
     "numeroGuia de los jars mal formado"
   );
-  console.log("Batch creado:", batch.numeroLote, "estado:", batch.estado);
+  assert(batch.estado === undefined, "el batch v2 no deberia tener campo 'estado'");
+  console.log("Batch creado:", batch.numeroLote);
   console.log(
     "Jars:",
     batch.jars.map((j) => j.numeroGuia).join(", ")
@@ -104,98 +112,145 @@ async function main() {
   assert(jarSearch.batch?.numeroLote === batch.numeroLote, "el jar no trajo el batch esperado");
   console.log("Busqueda de jar OK (case-insensitive):", jarSearch.numeroGuia);
 
-  // Cambiar estado de un jar
-  const jarUpdated = await api("PATCH", `/api/jars/${batch.jars[0]._id}`, {
-    estado: "colonizado",
-  });
-  assert(jarUpdated.estado === "colonizado", "no se actualizo el estado del jar");
-  console.log("Jar actualizado a estado:", jarUpdated.estado);
+  // 3. Marcar 2 de los 3 frascos como 'colonizado' (el 3ro queda 'colonizando')
+  console.log("\n-- Colonizando 2 de los 3 frascos --");
+  const [jar1, jar2] = batch.jars;
+  await api("PATCH", `/api/jars/${jar1._id}`, { estado: "colonizado" });
+  await api("PATCH", `/api/jars/${jar2._id}`, { estado: "colonizado" });
 
-  // 3. Avanzar por las 4 etapas
-  console.log("\n-- Avanzando etapas --");
-  const toSustrato = await api("POST", `/api/batches/${batch._id}/advance-stage`, {
-    targetStage: "crecimiento_sustrato",
-    tipoSustratoId: substrateType._id,
-    kilosSustrato: 20,
-    precioPorKg: 100,
-    fechaInicio: new Date(Date.now() - 45 * 24 * 3600 * 1000).toISOString(),
-  });
-  assert(toSustrato.estado === "crecimiento_sustrato", "no avanzo a crecimiento_sustrato");
-  console.log("Avanzo a:", toSustrato.estado);
-
-  const toFructificacion = await api(
-    "POST",
-    `/api/batches/${batch._id}/advance-stage`,
-    {
-      targetStage: "fructificacion",
-      fechaInicio: new Date(Date.now() - 25 * 24 * 3600 * 1000).toISOString(),
-      recipientes: [
-        { codigo: "R1", pesoKg: 5 },
-        { codigo: "R2", pesoKg: 5 },
-      ],
-    }
+  const jarsColonizados = await api(
+    "GET",
+    `/api/jars?batchId=${batch._id}&estado=colonizado`
   );
-  assert(toFructificacion.estado === "fructificacion", "no avanzo a fructificacion");
-  console.log("Avanzo a:", toFructificacion.estado);
+  assert(jarsColonizados.length === 2, "deberian quedar 2 frascos colonizados");
+  console.log("Frascos colonizados:", jarsColonizados.map((j) => j.numeroGuia).join(", "));
 
-  const toCosecha = await api("POST", `/api/batches/${batch._id}/advance-stage`, {
-    targetStage: "cosecha",
-    fechaInicio: new Date(Date.now() - 10 * 24 * 3600 * 1000).toISOString(),
+  // 4. Crear un recipiente a partir de esos 2 frascos
+  console.log("\n-- Creando recipiente a partir de los 2 frascos colonizados --");
+  const recipiente = await api("POST", "/api/recipientes", {
+    batchId: batch._id,
+    origenFrascoIds: [jar1._id, jar2._id],
+    tipoSustratoId: substrateType._id,
+    pesoSustratoKg: 20,
+    precioPorKg: 100,
+    fechaInicioIncubacion: new Date(Date.now() - 20 * 24 * 3600 * 1000).toISOString(),
   });
-  assert(toCosecha.estado === "cosecha", "no avanzo a cosecha");
-  console.log("Avanzo a:", toCosecha.estado);
+  createdIds.recipienteId = recipiente._id;
+  assert(
+    recipiente.numeroSeguimiento === `${batch.numeroLote}-R01`,
+    `numeroSeguimiento esperado '${batch.numeroLote}-R01', fue '${recipiente.numeroSeguimiento}'`
+  );
+  assert(recipiente.estado === "incubando", "el recipiente deberia arrancar 'incubando'");
+  assert(
+    recipiente.diasEsperadosIncubacion === 20,
+    "deberia haber tomado diasEsperadosDefault.incubacion del hongo"
+  );
+  console.log("Recipiente creado:", recipiente.numeroSeguimiento);
 
-  // Intento de salto de etapa invalido (cosecha -> crecimiento_sustrato) debe fallar con 409
+  // Confirmar que los 2 frascos de origen quedaron 'usado' y el 3ro sigue 'colonizando'
+  const jarsDespues = await api("GET", `/api/jars?batchId=${batch._id}`);
+  const jar1Despues = jarsDespues.find((j) => j._id === jar1._id);
+  const jar2Despues = jarsDespues.find((j) => j._id === jar2._id);
+  const jar3Despues = jarsDespues.find((j) => j._id === batch.jars[2]._id);
+  assert(jar1Despues.estado === "usado", "jar1 deberia quedar 'usado'");
+  assert(jar2Despues.estado === "usado", "jar2 deberia quedar 'usado'");
+  assert(jar3Despues.estado === "colonizando", "jar3 (no usado) deberia seguir 'colonizando'");
+  console.log("Frascos de origen marcados 'usado' OK; el 3ro sigue libre.");
+
+  // Intento de crear un recipiente reusando un frasco ya 'usado' debe fallar con 409
   try {
-    await api("POST", `/api/batches/${batch._id}/advance-stage`, {
-      targetStage: "crecimiento_sustrato",
+    await api("POST", "/api/recipientes", {
+      batchId: batch._id,
+      origenFrascoIds: [jar1._id],
       tipoSustratoId: substrateType._id,
-      kilosSustrato: 1,
-      precioPorKg: 1,
-      fechaInicio: new Date().toISOString(),
+      pesoSustratoKg: 5,
+      precioPorKg: 100,
+      fechaInicioIncubacion: new Date().toISOString(),
     });
-    throw new Error("Se esperaba que la transicion invalida fallara");
+    throw new Error("Se esperaba que reusar un frasco 'usado' fallara");
   } catch (err) {
-    assert(err.message.includes("409"), "la transicion invalida deberia devolver 409");
-    console.log("Transicion invalida rechazada correctamente (409) OK");
+    assert(err.message.includes("409"), "reusar un frasco 'usado' deberia devolver 409");
+    console.log("Reuso de frasco 'usado' rechazado correctamente (409) OK");
   }
 
-  // 4. Agregar 2 oleadas
-  console.log("\n-- Agregando oleadas --");
-  await api("POST", `/api/batches/${batch._id}/flushes`, {
-    numero: 1,
-    fecha: new Date(Date.now() - 8 * 24 * 3600 * 1000).toISOString(),
+  // 5. Fructificar el recipiente
+  console.log("\n-- Pasando el recipiente a fructificacion --");
+  const fructificado = await api(
+    "POST",
+    `/api/recipientes/${recipiente._id}/fructificar`,
+    {
+      fechaInicioFructificacion: new Date(Date.now() - 8 * 24 * 3600 * 1000).toISOString(),
+    }
+  );
+  assert(fructificado.estado === "fructificando", "no paso a 'fructificando'");
+  assert(
+    fructificado.diasEsperadosFructificacion === 3,
+    "deberia haber tomado diasEsperadosDefault.fructificacion (3) del hongo"
+  );
+  console.log("Recipiente en fructificacion. diasEsperadosFructificacion:", fructificado.diasEsperadosFructificacion);
+
+  // 6. Agregar 2 oleadas
+  console.log("\n-- Agregando 2 oleadas --");
+  await api("POST", `/api/recipientes/${recipiente._id}/oleadas`, {
+    fecha: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(),
     pesoKg: 3.5,
   });
-  const afterFlush2 = await api("POST", `/api/batches/${batch._id}/flushes`, {
-    numero: 2,
-    fecha: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString(),
+  const conOleadas = await api("POST", `/api/recipientes/${recipiente._id}/oleadas`, {
+    fecha: new Date().toISOString(),
     pesoKg: 2.5,
   });
-  assert(afterFlush2.oleadas?.length === 2, "deberian existir 2 oleadas");
+  assert(conOleadas.oleadas?.length === 2, "deberian existir 2 oleadas");
   console.log(
     "Oleadas registradas:",
-    afterFlush2.oleadas.map((o) => `#${o.numero}=${o.pesoKg}kg`).join(", ")
+    conOleadas.oleadas.map((o) => `${o.fecha.slice(0, 10)}=${o.pesoKg}kg`).join(", ")
   );
 
-  // 5. Finalizar lote
-  const finalizado = await api("POST", `/api/batches/${batch._id}/advance-stage`, {
-    targetStage: "finalizado",
+  // 7. Marcar el recipiente como 'finalizado'
+  console.log("\n-- Marcando el recipiente como finalizado --");
+  const finalizado = await api("POST", `/api/recipientes/${recipiente._id}/estado`, {
+    estado: "finalizado",
   });
-  assert(finalizado.estado === "finalizado", "no finalizo el lote");
-  assert(finalizado.cosecha?.fechaFin, "cosecha.fechaFin deberia estar seteada al finalizar");
-  console.log("Lote finalizado. cosecha.fechaFin:", finalizado.cosecha.fechaFin);
+  assert(finalizado.estado === "finalizado", "el recipiente deberia quedar 'finalizado'");
+  console.log("Recipiente finalizado OK.");
 
-  // 6. Detalle del lote + resumen via /api/stats
-  console.log("\n-- Detalle del lote y metricas --");
+  // Marcarlo de nuevo (estado terminal) debe fallar con 409
+  try {
+    await api("POST", `/api/recipientes/${recipiente._id}/estado`, {
+      estado: "contaminado",
+    });
+    throw new Error("Se esperaba que re-marcar un recipiente terminal fallara");
+  } catch (err) {
+    assert(err.message.includes("409"), "re-marcar un estado terminal deberia devolver 409");
+    console.log("Re-marcado de estado terminal rechazado correctamente (409) OK");
+  }
+
+  // 8. Detalle del lote (jars + recipientes)
+  console.log("\n-- Detalle del lote --");
   const detail = await api("GET", `/api/batches/${batch._id}`);
   assert(detail.jars?.length === 3, "el detalle deberia traer los 3 jars");
-  console.log("Detalle OK, jars:", detail.jars.length);
+  assert(detail.recipientes?.length === 1, "el detalle deberia traer el recipiente creado");
+  assert(
+    detail.recipientes[0].origenFrascoIds.every((f) => typeof f === "object" && f.numeroGuia),
+    "origenFrascoIds deberia venir poblado (liviano) con numeroGuia"
+  );
+  console.log("Detalle OK: jars =", detail.jars.length, ", recipientes =", detail.recipientes.length);
 
+  // El lote sigue 'en_progreso' segun /api/batches porque el 3er frasco
+  // quedo 'colonizando' (nunca se convirtio en recipiente).
+  const listado = await api("GET", "/api/batches");
+  const loteEnListado = listado.find((b) => b._id === batch._id);
+  assert(loteEnListado, "el lote deberia aparecer en GET /api/batches");
+  assert(
+    loteEnListado.estadoDerivado === "en_progreso",
+    `estadoDerivado esperado 'en_progreso' (frasco 3 sigue colonizando), fue '${loteEnListado.estadoDerivado}'`
+  );
+  console.log("estadoDerivado en listado:", loteEnListado.estadoDerivado, "(correcto: queda un frasco colonizando)");
+
+  // 9. resumenLote() via /api/stats
+  console.log("\n-- resumenLote() via /api/stats --");
   const stats = await api("GET", "/api/stats");
   const loteStats = stats.lotes.find((l) => l.numeroLote === batch.numeroLote);
   assert(loteStats, "el lote deberia aparecer en /api/stats");
-  console.log("\nresumenLote() para", batch.numeroLote, ":");
   console.log(JSON.stringify(loteStats.resumen, null, 2));
 
   assert(
@@ -214,31 +269,11 @@ async function main() {
   console.log("\nKPIs generales de /api/stats:");
   console.log(JSON.stringify(stats.kpis, null, 2));
 
-  // 7. Flujo de descarte (lote aparte, mas simple)
-  console.log("\n-- Probando flujo de descarte --");
-  const discardBatch = await api("POST", "/api/batches", {
-    fungusTypeId: fungusType._id,
-    tipoGranoId: grainType._id,
-    pesoGranoKg: 5,
-    precioPorKg: 200,
-    cantidadFrascos: 1,
-    fechaInicio: new Date().toISOString(),
-  });
-  createdIds.discardBatchId = discardBatch._id;
-  const discarded = await api("POST", `/api/batches/${discardBatch._id}/discard`, {
-    motivo: "Contaminacion detectada (prueba de smoke test)",
-  });
-  assert(discarded.estado === "descartado", "el lote deberia quedar descartado");
-  assert(discarded.descartado === true, "descartado deberia ser true");
-  console.log("Lote de prueba descartado OK:", discarded.numeroLote);
-
   console.log("\n== Smoke test OK: todos los asserts pasaron ==");
 }
 
 async function cleanup() {
   console.log("\n-- Limpiando datos de prueba --");
-  // Borrado directo via mongoose (no hay DELETE fisico en la API para
-  // catalogos/batches por diseno, asi que limpiamos con un driver aparte).
   const mongoose = (await import("mongoose")).default;
   const uri = process.env.MONGODB_URI ?? "mongodb://127.0.0.1:27017/cultivo_hongos";
   await mongoose.connect(uri);
@@ -249,16 +284,11 @@ async function cleanup() {
     await db.collection("jars").deleteMany({
       batchId: new mongoose.Types.ObjectId(createdIds.batchId),
     });
+    await db.collection("recipientes").deleteMany({
+      batchId: new mongoose.Types.ObjectId(createdIds.batchId),
+    });
     await db.collection("batches").deleteOne({
       _id: new mongoose.Types.ObjectId(createdIds.batchId),
-    });
-  }
-  if (createdIds.discardBatchId) {
-    await db.collection("jars").deleteMany({
-      batchId: new mongoose.Types.ObjectId(createdIds.discardBatchId),
-    });
-    await db.collection("batches").deleteOne({
-      _id: new mongoose.Types.ObjectId(createdIds.discardBatchId),
     });
   }
   if (createdIds.fungusTypeId) {

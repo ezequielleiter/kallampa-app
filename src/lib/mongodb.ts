@@ -11,6 +11,7 @@ import "@/models/GrainType";
 import "@/models/SubstrateType";
 import "@/models/Batch";
 import "@/models/Jar";
+import "@/models/Recipiente";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 

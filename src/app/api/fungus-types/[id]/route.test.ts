@@ -17,28 +17,22 @@ describe("PATCH /api/fungus-types/[id]", () => {
     expect(json.data._id).toBe(fungusType._id);
   });
 
-  it("merge parcial de diasEsperadosDefault: mandar 1 de los 4 campos no pisa los otros 3", async () => {
+  it("merge parcial de diasEsperadosDefault: mandar 1 de los 3 campos no pisa los otros 2", async () => {
     const fungusType = await makeFungusType({
-      diasEsperadosDefault: {
-        inoculacionGrano: 14,
-        crecimientoSustrato: 20,
-        fructificacion: 10,
-        cosecha: 15,
-      },
+      diasEsperadosDefault: { inoculacionGrano: 14, incubacion: 20, fructificacion: 10 },
     });
 
     const { status, json } = await callRoute(PATCH, {
       method: "PATCH",
       params: { id: fungusType._id },
-      body: { diasEsperadosDefault: { cosecha: 99 } },
+      body: { diasEsperadosDefault: { fructificacion: 99 } },
     });
 
     expect(status).toBe(200);
     expect(json.data.diasEsperadosDefault).toEqual({
       inoculacionGrano: 14,
-      crecimientoSustrato: 20,
-      fructificacion: 10,
-      cosecha: 99,
+      incubacion: 20,
+      fructificacion: 99,
     });
   });
 

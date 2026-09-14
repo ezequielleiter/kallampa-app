@@ -1,29 +1,62 @@
 import type { NextRequest } from "next/server";
+import type { Types } from "mongoose";
 import dbConnect from "@/lib/mongodb";
 import Batch from "@/models/Batch";
 import Jar from "@/models/Jar";
+import Recipiente from "@/models/Recipiente";
 import FungusType from "@/models/FungusType";
 import { ok, fail, handleApiError, badRequest } from "@/lib/api-utils";
 import { createBatchSchema } from "@/lib/validations/batch.schema";
 import { getNextNumeroLote } from "@/lib/counters";
+import { resumenLote, type LeanBatch, type LeanJar, type LeanRecipiente } from "@/lib/metrics";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     await dbConnect();
-    const { searchParams } = new URL(req.url);
-    const estado = searchParams.get("estado");
-    const fungusTypeId = searchParams.get("fungusTypeId");
 
-    const filter: Record<string, unknown> = {};
-    if (estado) filter.estado = estado;
-    if (fungusTypeId) filter.fungusTypeId = fungusTypeId;
-
-    const batches = await Batch.find(filter)
+    const batches = (await Batch.find({})
       .populate("fungusTypeId")
       .sort({ createdAt: -1 })
-      .lean();
+      .lean()) as unknown as (LeanBatch & { _id: unknown })[];
 
-    return ok(batches);
+    const batchIds = batches.map((b) => b._id) as Types.ObjectId[];
+
+    const [jars, recipientes] = await Promise.all([
+      Jar.find({ batchId: { $in: batchIds } }).lean(),
+      Recipiente.find({ batchId: { $in: batchIds } }).lean(),
+    ]);
+
+    const jarsByBatch = new Map<string, LeanJar[]>();
+    for (const jar of jars as unknown as (LeanJar & { batchId: unknown })[]) {
+      const key = String(jar.batchId);
+      if (!jarsByBatch.has(key)) jarsByBatch.set(key, []);
+      jarsByBatch.get(key)!.push(jar);
+    }
+
+    const recipientesByBatch = new Map<string, LeanRecipiente[]>();
+    for (const rec of recipientes as unknown as (LeanRecipiente & { batchId: unknown })[]) {
+      const key = String(rec.batchId);
+      if (!recipientesByBatch.has(key)) recipientesByBatch.set(key, []);
+      recipientesByBatch.get(key)!.push(rec);
+    }
+
+    const data = batches.map((batch) => {
+      const key = String(batch._id);
+      const batchJars = jarsByBatch.get(key) ?? [];
+      const batchRecipientes = recipientesByBatch.get(key) ?? [];
+      const resumen = resumenLote(batch, batchJars, batchRecipientes);
+
+      return {
+        _id: batch._id,
+        numeroLote: batch.numeroLote,
+        fungusTypeId: batch.fungusTypeId,
+        inoculacionGrano: batch.inoculacionGrano,
+        estadoDerivado: resumen.estadoDerivado,
+        alertas: resumen.alertas,
+      };
+    });
+
+    return ok(data);
   } catch (err) {
     return handleApiError(err);
   }
@@ -63,8 +96,6 @@ export async function POST(req: NextRequest) {
     const batch = await Batch.create({
       numeroLote,
       fungusTypeId: parsed.fungusTypeId,
-      estado: "inoculacion_grano",
-      descartado: false,
       inoculacionGrano: {
         tipoGranoId: parsed.tipoGranoId,
         pesoGranoKg: parsed.pesoGranoKg,
@@ -73,16 +104,12 @@ export async function POST(req: NextRequest) {
         fechaInicio: parsed.fechaInicio,
         diasEsperados,
       },
-      oleadas: [],
-      historialEstados: [
-        { estado: "inoculacion_grano", fecha: parsed.fechaInicio },
-      ],
     });
 
     // El Batch ya esta persistido (tiene numeroLote unico reservado via
     // Counter). Si la insercion de Jars fallara a mitad de camino no hacemos
     // rollback complejo: es una app de un solo operador, y el lote queda
-    // identificable/corregible a mano si hiciera falta (ver README interno).
+    // identificable/corregible a mano si hiciera falta.
     let jars;
     try {
       jars = await Jar.insertMany(

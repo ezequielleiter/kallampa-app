@@ -47,9 +47,8 @@ export function FungusTypeFormDialog({
       notas: fungusType?.notas ?? "",
       diasEsperadosDefault: {
         inoculacionGrano: fungusType?.diasEsperadosDefault.inoculacionGrano ?? 14,
-        crecimientoSustrato: fungusType?.diasEsperadosDefault.crecimientoSustrato ?? 14,
+        incubacion: fungusType?.diasEsperadosDefault.incubacion ?? 14,
         fructificacion: fungusType?.diasEsperadosDefault.fructificacion ?? 14,
-        cosecha: fungusType?.diasEsperadosDefault.cosecha ?? 7,
       },
     },
   });
@@ -118,16 +117,16 @@ export function FungusTypeFormDialog({
               )}
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Crecimiento en sustrato</Label>
+              <Label>Incubación</Label>
               <Input
                 type="number"
-                {...register("diasEsperadosDefault.crecimientoSustrato", {
+                {...register("diasEsperadosDefault.incubacion", {
                   setValueAs: (v) => (v === "" ? undefined : Number(v)),
                 })}
               />
-              {errors.diasEsperadosDefault?.crecimientoSustrato && (
+              {errors.diasEsperadosDefault?.incubacion && (
                 <p className="text-xs text-destructive">
-                  {errors.diasEsperadosDefault.crecimientoSustrato.message}
+                  {errors.diasEsperadosDefault.incubacion.message}
                 </p>
               )}
             </div>
@@ -142,20 +141,6 @@ export function FungusTypeFormDialog({
               {errors.diasEsperadosDefault?.fructificacion && (
                 <p className="text-xs text-destructive">
                   {errors.diasEsperadosDefault.fructificacion.message}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>Cosecha</Label>
-              <Input
-                type="number"
-                {...register("diasEsperadosDefault.cosecha", {
-                  setValueAs: (v) => (v === "" ? undefined : Number(v)),
-                })}
-              />
-              {errors.diasEsperadosDefault?.cosecha && (
-                <p className="text-xs text-destructive">
-                  {errors.diasEsperadosDefault.cosecha.message}
                 </p>
               )}
             </div>

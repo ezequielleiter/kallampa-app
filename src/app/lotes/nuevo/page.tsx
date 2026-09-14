@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api-client";
-import type { FungusType, GrainType, BatchWithJars } from "@/lib/types";
+import type { FungusType, GrainType, Batch } from "@/lib/types";
 import {
   createBatchSchema,
   type CreateBatchInput,
@@ -53,7 +53,7 @@ export default function NuevoLotePage() {
 
   async function onSubmit(data: CreateBatchInput) {
     try {
-      const batch = await apiFetch<BatchWithJars>("/api/batches", {
+      const batch = await apiFetch<Batch>("/api/batches", {
         method: "POST",
         body: JSON.stringify(data),
       });

@@ -103,7 +103,7 @@ export default function EstadisticasPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Lotes por etapa</CardTitle>
+          <CardTitle>Recipientes por estado</CardTitle>
         </CardHeader>
         <CardContent>
           <EstadoDistributionChart data={stats.distribucionPorEstado} />

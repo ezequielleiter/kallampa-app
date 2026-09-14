@@ -47,7 +47,7 @@ export function JarsGrid({ jars, onChanged }: JarsGridProps) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>N° de guía</TableHead>
+          <TableHead>N° de guía (spawn)</TableHead>
           <TableHead>Estado</TableHead>
         </TableRow>
       </TableHeader>

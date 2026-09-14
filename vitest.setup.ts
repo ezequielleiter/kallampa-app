@@ -6,6 +6,7 @@ import { beforeEach } from "vitest";
 import dbConnect from "@/lib/mongodb";
 import Batch from "@/models/Batch";
 import Jar from "@/models/Jar";
+import Recipiente from "@/models/Recipiente";
 import FungusType from "@/models/FungusType";
 import GrainType from "@/models/GrainType";
 import SubstrateType from "@/models/SubstrateType";
@@ -16,6 +17,7 @@ beforeEach(async () => {
   await Promise.all([
     Batch.deleteMany({}),
     Jar.deleteMany({}),
+    Recipiente.deleteMany({}),
     FungusType.deleteMany({}),
     GrainType.deleteMany({}),
     SubstrateType.deleteMany({}),

@@ -4,7 +4,7 @@
 import { NextRequest } from "next/server";
 
 // `P` es la forma real de `params` que declara cada route handler (ej.
-// `{ id: string }` o `{ id: string; flushId: string }`). Generico para que
+// `{ id: string }` o `{ id: string; oleadaId: string }`). Generico para que
 // TS infiera el shape correcto handler por handler en vez de forzar un
 // `Record<string, string>` generico que no matchea las firmas concretas.
 type RouteHandler<P extends Record<string, string>> = (
@@ -47,11 +47,12 @@ export async function callRoute<P extends Record<string, string> = Record<string
   return { status: res.status, json };
 }
 
+// v2: 3 campos (inoculacionGrano/incubacion/fructificacion) -- "cosecha" ya
+// no aplica como default fijo de dias esperados.
 const DEFAULT_DIAS_ESPERADOS = {
   inoculacionGrano: 14,
-  crecimientoSustrato: 20,
+  incubacion: 20,
   fructificacion: 10,
-  cosecha: 15,
 };
 
 export async function makeFungusType(overrides: Record<string, unknown> = {}) {
@@ -104,7 +105,7 @@ export interface MakeBatchOpts {
   diasEsperados?: number;
 }
 
-/** Crea fungusType + grainType de soporte si no se pasan, y crea el batch. */
+/** Crea fungusType + grainType de soporte si no se pasan, y crea el batch (+ sus jars). */
 export async function makeBatch(opts: MakeBatchOpts = {}) {
   const { POST } = await import("@/app/api/batches/route");
 
@@ -129,42 +130,75 @@ export async function makeBatch(opts: MakeBatchOpts = {}) {
   return json.data;
 }
 
-/** Avanza un batch ya creado (en inoculacion_grano) hasta la etapa 'cosecha'. */
-export async function advanceToCosecha(batchId: string) {
-  const { POST: advanceStage } = await import("@/app/api/batches/[id]/advance-stage/route");
-  const substrateType = await makeSubstrateType();
-
-  await callRoute(advanceStage, {
-    method: "POST",
-    params: { id: batchId },
-    body: {
-      targetStage: "crecimiento_sustrato",
-      tipoSustratoId: substrateType._id,
-      kilosSustrato: 20,
-      precioPorKg: 100,
-      fechaInicio: new Date().toISOString(),
-    },
-  });
-
-  await callRoute(advanceStage, {
-    method: "POST",
-    params: { id: batchId },
-    body: {
-      targetStage: "fructificacion",
-      fechaInicio: new Date().toISOString(),
-      recipientes: [{ codigo: "R1", pesoKg: 5 }],
-    },
-  });
-
-  const { status, json } = await callRoute(advanceStage, {
-    method: "POST",
-    params: { id: batchId },
-    body: { targetStage: "cosecha", fechaInicio: new Date().toISOString() },
-  });
-
-  if (status !== 200) {
-    throw new Error(`No se pudo avanzar el batch de fixture a cosecha: ${JSON.stringify(json)}`);
+/** Marca N jars de un batch (ya creado) como 'colonizado' y devuelve sus ids. */
+export async function colonizarJars(jars: { _id: string }[]) {
+  const { PATCH } = await import("@/app/api/jars/[id]/route");
+  for (const jar of jars) {
+    await callRoute(PATCH, {
+      method: "PATCH",
+      params: { id: jar._id },
+      body: { estado: "colonizado" },
+    });
   }
+  return jars.map((j) => j._id);
+}
 
+export interface MakeRecipienteOpts {
+  batchId: string;
+  origenFrascoIds: string[];
+  tipoSustratoId?: string;
+  pesoSustratoKg?: number;
+  precioPorKg?: number;
+  fechaInicioIncubacion?: string;
+  diasEsperadosIncubacion?: number;
+}
+
+/** Crea un recipiente a partir de frascos ya colonizados de un batch. */
+export async function makeRecipiente(opts: MakeRecipienteOpts) {
+  const { POST } = await import("@/app/api/recipientes/route");
+  const tipoSustratoId = opts.tipoSustratoId ?? (await makeSubstrateType())._id;
+
+  const { status, json } = await callRoute(POST, {
+    method: "POST",
+    body: {
+      batchId: opts.batchId,
+      origenFrascoIds: opts.origenFrascoIds,
+      tipoSustratoId,
+      pesoSustratoKg: opts.pesoSustratoKg ?? 20,
+      precioPorKg: opts.precioPorKg ?? 100,
+      fechaInicioIncubacion: opts.fechaInicioIncubacion ?? new Date().toISOString(),
+      ...(opts.diasEsperadosIncubacion !== undefined
+        ? { diasEsperadosIncubacion: opts.diasEsperadosIncubacion }
+        : {}),
+    },
+  });
+  if (status !== 201) {
+    throw new Error(`No se pudo crear recipiente de fixture: ${JSON.stringify(json)}`);
+  }
+  return json.data;
+}
+
+/** Crea un batch con 1 frasco ya colonizado y un recipiente a partir de el. */
+export async function makeBatchConRecipiente(opts: MakeBatchOpts = {}) {
+  const batch = await makeBatch({ cantidadFrascos: 1, ...opts });
+  const [jarId] = await colonizarJars(batch.jars);
+  const recipiente = await makeRecipiente({ batchId: batch._id, origenFrascoIds: [jarId] });
+  return { batch, recipiente };
+}
+
+/** Hace fructificar un recipiente ya creado (debe estar 'incubando'). */
+export async function fructificarRecipiente(
+  recipienteId: string,
+  overrides: Record<string, unknown> = {}
+) {
+  const { POST } = await import("@/app/api/recipientes/[id]/fructificar/route");
+  const { status, json } = await callRoute(POST, {
+    method: "POST",
+    params: { id: recipienteId },
+    body: { fechaInicioFructificacion: new Date().toISOString(), ...overrides },
+  });
+  if (status !== 200) {
+    throw new Error(`No se pudo fructificar el recipiente de fixture: ${JSON.stringify(json)}`);
+  }
   return json.data;
 }

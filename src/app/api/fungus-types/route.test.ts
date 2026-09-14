@@ -4,9 +4,8 @@ import { callRoute } from "@/test-utils/api-test-helpers";
 
 const DIAS = {
   inoculacionGrano: 14,
-  crecimientoSustrato: 20,
+  incubacion: 20,
   fructificacion: 10,
-  cosecha: 15,
 };
 
 describe("POST /api/fungus-types", () => {

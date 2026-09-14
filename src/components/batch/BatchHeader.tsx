@@ -3,13 +3,22 @@
 import { TriangleAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { BATCH_ESTADO_COLORS, BATCH_ESTADO_LABELS } from "@/lib/constants";
-import type { ResumenLote } from "@/lib/metrics";
+import { formatFechaCorta } from "@/lib/format";
+import {
+  ESTADO_DERIVADO_BADGE_VARIANT,
+  ESTADO_DERIVADO_LABELS,
+  type EstadoDerivado,
+} from "@/lib/constants";
 import type { Batch } from "@/lib/types";
+import type { CostoProduccionBatch } from "@/lib/recipiente-utils";
 
 interface BatchHeaderProps {
   batch: Batch;
-  resumen: ResumenLote;
+  estadoDerivado: EstadoDerivado;
+  alertas: number;
+  pesoTotalCosechado: number;
+  eficienciaBiologica: number | null;
+  costoProduccion: CostoProduccionBatch;
 }
 
 const currency = new Intl.NumberFormat("es-AR", {
@@ -18,43 +27,42 @@ const currency = new Intl.NumberFormat("es-AR", {
   maximumFractionDigits: 2,
 });
 
-export function BatchHeader({ batch, resumen }: BatchHeaderProps) {
-  const { costoProduccion } = resumen;
-
+export function BatchHeader({
+  batch,
+  estadoDerivado,
+  alertas,
+  pesoTotalCosechado,
+  eficienciaBiologica,
+  costoProduccion,
+}: BatchHeaderProps) {
   return (
     <Card>
       <CardContent className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-xl font-semibold">{batch.numeroLote}</h1>
-          <Badge
-            className="text-white"
-            style={{ backgroundColor: BATCH_ESTADO_COLORS[batch.estado] }}
-          >
-            {BATCH_ESTADO_LABELS[batch.estado]}
+          <Badge variant={ESTADO_DERIVADO_BADGE_VARIANT[estadoDerivado]}>
+            {ESTADO_DERIVADO_LABELS[estadoDerivado]}
           </Badge>
-          {resumen.alertaEtapaActual.demorado && (
+          {alertas > 0 && (
             <Badge variant="destructive">
-              <TriangleAlert /> Demorado {resumen.alertaEtapaActual.diasDeDemora} día(s)
+              <TriangleAlert /> {alertas} alerta{alertas === 1 ? "" : "s"}
             </Badge>
           )}
         </div>
         <p className="text-sm text-muted-foreground">
           {batch.fungusTypeId?.nombre}
           {batch.fungusTypeId?.nombreCientifico ? ` (${batch.fungusTypeId.nombreCientifico})` : ""}
+          {" · Inoculado el "}
+          {formatFechaCorta(batch.inoculacionGrano.fechaInicio)}
+          {" · "}
+          {batch.inoculacionGrano.cantidadFrascos} frasco(s)
         </p>
-        {batch.descartado && batch.motivoDescarte && (
-          <p className="text-sm text-destructive">Motivo de descarte: {batch.motivoDescarte}</p>
-        )}
 
         <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 sm:grid-cols-4">
-          <Metric label="Días totales" value={resumen.diasTotales ?? "—"} />
+          <Metric label="Peso cosechado" value={`${pesoTotalCosechado.toFixed(2)} kg`} />
           <Metric
             label="Eficiencia biológica"
-            value={
-              resumen.eficienciaBiologica !== null
-                ? `${resumen.eficienciaBiologica.toFixed(1)}%`
-                : "—"
-            }
+            value={eficienciaBiologica !== null ? `${eficienciaBiologica.toFixed(1)}%` : "—"}
           />
           <Metric
             label="Costo total"

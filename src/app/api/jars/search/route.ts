@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     }
 
     const batch = await Batch.findById(jar.batchId)
-      .select("numeroLote estado fungusTypeId")
+      .select("numeroLote fungusTypeId")
       .populate("fungusTypeId")
       .lean();
 

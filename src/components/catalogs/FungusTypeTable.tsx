@@ -68,7 +68,7 @@ export function FungusTypeTable() {
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
-              <TableHead>Días esperados (Grano / Sustrato / Fruct. / Cosecha)</TableHead>
+              <TableHead>Días esperados (Grano / Incubación / Fruct.)</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="w-32" />
             </TableRow>
@@ -86,9 +86,8 @@ export function FungusTypeTable() {
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {item.diasEsperadosDefault.inoculacionGrano} / {" "}
-                  {item.diasEsperadosDefault.crecimientoSustrato} / {" "}
-                  {item.diasEsperadosDefault.fructificacion} / {" "}
-                  {item.diasEsperadosDefault.cosecha}
+                  {item.diasEsperadosDefault.incubacion} / {" "}
+                  {item.diasEsperadosDefault.fructificacion}
                 </TableCell>
                 <TableCell>
                   <Badge variant={item.activo ? "default" : "secondary"}>

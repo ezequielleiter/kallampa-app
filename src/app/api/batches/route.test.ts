@@ -1,6 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { GET, POST } from "./route";
-import { callRoute, makeBatch, makeFungusType, makeGrainType } from "@/test-utils/api-test-helpers";
+import {
+  callRoute,
+  makeBatch,
+  makeFungusType,
+  makeGrainType,
+  colonizarJars,
+  makeRecipiente,
+} from "@/test-utils/api-test-helpers";
 
 const NONEXISTENT_ID = "507f1f77bcf86cd799439011";
 
@@ -15,6 +22,14 @@ describe("POST /api/batches", () => {
     batch.jars.forEach((jar: { numeroGuia: string }, i: number) => {
       expect(jar.numeroGuia).toBe(`${batch.numeroLote}-F${String(i + 1).padStart(2, "0")}`);
     });
+  });
+
+  it("el batch creado no tiene campos de la v1 (estado, oleadas, etc)", async () => {
+    const batch = await makeBatch();
+    expect(batch.estado).toBeUndefined();
+    expect(batch.oleadas).toBeUndefined();
+    expect(batch.fructificacion).toBeUndefined();
+    expect(batch.cosecha).toBeUndefined();
   });
 
   it("incrementa la secuencia de numeroLote entre batches del mismo anio", async () => {
@@ -48,12 +63,7 @@ describe("POST /api/batches", () => {
 
   it("usa diasEsperadosDefault.inoculacionGrano del hongo si no se manda diasEsperados", async () => {
     const fungusType = await makeFungusType({
-      diasEsperadosDefault: {
-        inoculacionGrano: 21,
-        crecimientoSustrato: 20,
-        fructificacion: 10,
-        cosecha: 15,
-      },
+      diasEsperadosDefault: { inoculacionGrano: 21, incubacion: 20, fructificacion: 10 },
     });
     const batch = await makeBatch({ fungusTypeId: fungusType._id });
 
@@ -62,12 +72,7 @@ describe("POST /api/batches", () => {
 
   it("usa el diasEsperados explicito si se manda, ignorando el default del hongo", async () => {
     const fungusType = await makeFungusType({
-      diasEsperadosDefault: {
-        inoculacionGrano: 21,
-        crecimientoSustrato: 20,
-        fructificacion: 10,
-        cosecha: 15,
-      },
+      diasEsperadosDefault: { inoculacionGrano: 21, incubacion: 20, fructificacion: 10 },
     });
     const batch = await makeBatch({ fungusTypeId: fungusType._id, diasEsperados: 9 });
 
@@ -76,26 +81,39 @@ describe("POST /api/batches", () => {
 });
 
 describe("GET /api/batches", () => {
-  it("sin filtro devuelve todos los batches creados", async () => {
-    await makeBatch();
+  it("sin recipientes: estadoDerivado 'en_progreso' y 0 alertas", async () => {
     await makeBatch();
 
     const { status, json } = await callRoute(GET);
     expect(status).toBe(200);
-    expect(json.data).toHaveLength(2);
+    expect(json.data).toHaveLength(1);
+    expect(json.data[0].estadoDerivado).toBe("en_progreso");
+    expect(json.data[0].alertas).toBe(0);
   });
 
-  it("filtra por estado", async () => {
+  it("lista todos los batches con su fungusTypeId poblado", async () => {
+    await makeBatch();
     await makeBatch();
 
-    const { json: enInoculacion } = await callRoute(GET, {
-      searchParams: { estado: "inoculacion_grano" },
-    });
-    expect(enInoculacion.data).toHaveLength(1);
+    const { json } = await callRoute(GET);
+    expect(json.data).toHaveLength(2);
+    expect(json.data[0].fungusTypeId).toHaveProperty("nombre");
+  });
 
-    const { json: enCosecha } = await callRoute(GET, {
-      searchParams: { estado: "cosecha" },
+  it("estadoDerivado 'finalizado' cuando el unico recipiente ya finalizo", async () => {
+    const batch = await makeBatch({ cantidadFrascos: 1 });
+    const [jarId] = await colonizarJars(batch.jars);
+    const recipiente = await makeRecipiente({ batchId: batch._id, origenFrascoIds: [jarId] });
+
+    const { POST: marcarEstado } = await import("@/app/api/recipientes/[id]/estado/route");
+    await callRoute(marcarEstado, {
+      method: "POST",
+      params: { id: recipiente._id },
+      body: { estado: "finalizado" },
     });
-    expect(enCosecha.data).toHaveLength(0);
+
+    const { json } = await callRoute(GET);
+    const item = json.data.find((b: { numeroLote: string }) => b.numeroLote === batch.numeroLote);
+    expect(item.estadoDerivado).toBe("finalizado");
   });
 });

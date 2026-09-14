@@ -15,12 +15,14 @@ export const catalogUpdateSchema = z.object({
 export type CatalogCreateInput = z.infer<typeof catalogCreateSchema>;
 export type CatalogUpdateInput = z.infer<typeof catalogUpdateSchema>;
 
-// FungusType tiene campos propios ademas del genero {nombre, notas}
+// FungusType tiene campos propios ademas del genero {nombre, notas}.
+// v2: 3 campos en vez de 4 -- "cosecha" se elimino porque cosechar es una
+// actividad abierta por recipiente (oleadas sucesivas), no tiene sentido
+// un "dias esperados" fijo para esa etapa.
 export const diasEsperadosDefaultSchema = z.object({
   inoculacionGrano: z.number().positive(),
-  crecimientoSustrato: z.number().positive(),
+  incubacion: z.number().positive(),
   fructificacion: z.number().positive(),
-  cosecha: z.number().positive(),
 });
 
 export const fungusTypeCreateSchema = z.object({

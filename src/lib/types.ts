@@ -2,14 +2,15 @@
 // (ver src/app/api/**). No importan nada de `@/models` a proposito: son
 // solo `interface`/`type` (se borran en compilacion) para que cualquier
 // Client Component los pueda usar sin riesgo de arrastrar mongoose.
-import type { BatchEstado, JarEstado } from "@/lib/constants";
+import type { EstadoDerivado, JarEstado, RecipienteEstado } from "@/lib/constants";
 import type { AgregadoCatalogo, ResumenLote } from "@/lib/metrics";
 
+// v2: 3 campos (antes 4, se elimina "cosecha"; "crecimientoSustrato" pasa a
+// llamarse "incubacion" porque ahora describe la etapa de los recipientes).
 export interface DiasEsperadosDefault {
   inoculacionGrano: number;
-  crecimientoSustrato: number;
+  incubacion: number;
   fructificacion: number;
-  cosecha: number;
 }
 
 export interface FungusType {
@@ -41,6 +42,7 @@ export interface SubstrateType {
   updatedAt?: string;
 }
 
+// Sin cambios de forma respecto a v1.
 export interface Jar {
   _id: string;
   batchId: string;
@@ -54,29 +56,8 @@ export interface JarSearchResult extends Jar {
   batch: {
     _id: string;
     numeroLote: string;
-    estado: BatchEstado;
     fungusTypeId: FungusType;
   } | null;
-}
-
-export interface Recipiente {
-  _id?: string;
-  codigo: string;
-  pesoKg: number;
-  notas?: string;
-}
-
-export interface Oleada {
-  _id: string;
-  numero: number;
-  fecha: string;
-  pesoKg: number;
-  notas?: string;
-}
-
-export interface HistorialEstado {
-  estado: string;
-  fecha: string;
 }
 
 export interface InoculacionGrano {
@@ -85,51 +66,69 @@ export interface InoculacionGrano {
   precioPorKg: number;
   cantidadFrascos: number;
   fechaInicio: string;
-  fechaFin?: string;
   diasEsperados: number;
 }
 
-export interface CrecimientoSustrato {
-  tipoSustratoId?: SubstrateType | string;
-  kilosSustrato?: number;
-  precioPorKg?: number;
-  fechaInicio?: string;
-  fechaFin?: string;
-  diasEsperados?: number;
-}
-
-export interface Fructificacion {
-  fechaInicio?: string;
-  fechaFin?: string;
-  diasEsperados?: number;
-  recipientes?: Recipiente[];
-}
-
-export interface Cosecha {
-  fechaInicio?: string;
-  fechaFin?: string;
-  diasEsperados?: number;
-}
-
-export interface Batch {
+// v2: entidad NUEVA. Un lote se reparte en varios recipientes, cada uno con
+// su propia incubacion/fructificacion/cosecha y su propio estado — a
+// diferencia de v1, donde esto vivia como subdocumentos unicos del batch.
+export interface Oleada {
   _id: string;
-  numeroLote: string;
-  fungusTypeId: FungusType;
-  estado: BatchEstado;
-  descartado: boolean;
-  motivoDescarte?: string;
-  inoculacionGrano: InoculacionGrano;
-  crecimientoSustrato?: CrecimientoSustrato;
-  fructificacion?: Fructificacion;
-  cosecha?: Cosecha;
+  fecha: string;
+  pesoKg: number;
+  notas?: string;
+}
+
+// En la lista embebida del detalle de lote, `origenFrascoIds` viene poblado
+// (liviano: solo _id + numeroGuia). En otros contextos puede venir sin
+// poblar (array de ids). El helper `getOrigenFrascoLabel` en
+// `src/lib/recipiente-utils.ts` normaliza ambos casos.
+export interface Recipiente {
+  _id: string;
+  batchId: string;
+  numeroSeguimiento: string;
+  origenFrascoIds: string[] | { _id: string; numeroGuia: string }[];
+  tipoSustratoId: SubstrateType | string;
+  pesoSustratoKg: number;
+  precioPorKg: number;
+  fechaInicioIncubacion: string;
+  diasEsperadosIncubacion: number;
+  fechaInicioFructificacion?: string;
+  diasEsperadosFructificacion?: number;
+  estado: RecipienteEstado;
+  motivoPerdida?: string;
   oleadas: Oleada[];
-  historialEstados: HistorialEstado[];
   createdAt?: string;
   updatedAt?: string;
 }
 
-export interface BatchWithJars extends Batch {
+// v2: el batch ya no tiene `estado`/`descartado`/`motivoDescarte` ni los
+// subdocumentos de etapa (crecimientoSustrato, fructificacion, cosecha,
+// oleadas, historialEstados) — esos datos ahora viven en cada Recipiente.
+export interface Batch {
+  _id: string;
+  numeroLote: string;
+  fungusTypeId: FungusType;
+  inoculacionGrano: InoculacionGrano;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// GET /api/batches/[id] → batch poblado + sus frascos y recipientes.
+export interface BatchDetail extends Batch {
   jars: Jar[];
+  recipientes: Recipiente[];
+}
+
+// --- /api/batches (lista) -------------------------------------------------
+
+export interface BatchListItem {
+  _id: string;
+  numeroLote: string;
+  fungusTypeId: FungusType;
+  inoculacionGrano: InoculacionGrano;
+  estadoDerivado: EstadoDerivado;
+  alertas: number;
 }
 
 // --- /api/stats ---------------------------------------------------------
@@ -148,14 +147,12 @@ export interface StatsKpis {
 export interface StatsLote {
   _id: string;
   numeroLote: string;
-  estado: BatchEstado;
   fungusTypeId: FungusType;
   resumen: ResumenLote;
 }
 
 export interface StatsLoteDemorado {
   numeroLote: string;
-  estado: BatchEstado;
   diasDeDemora: number;
 }
 

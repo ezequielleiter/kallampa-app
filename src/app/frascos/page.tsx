@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiFetch } from "@/lib/api-client";
-import { JAR_ESTADO_LABELS, JAR_ESTADO_BADGE_VARIANT, BATCH_ESTADO_LABELS } from "@/lib/constants";
+import { JAR_ESTADO_LABELS, JAR_ESTADO_BADGE_VARIANT } from "@/lib/constants";
 import type { JarSearchResult } from "@/lib/types";
 
 export default function FrascosPage() {
@@ -69,7 +69,6 @@ export default function FrascosPage() {
             {resultado.batch && (
               <div className="flex flex-col gap-1 text-sm text-muted-foreground">
                 <span>Lote: {resultado.batch.numeroLote}</span>
-                <span>Estado del lote: {BATCH_ESTADO_LABELS[resultado.batch.estado]}</span>
                 <span>Hongo: {resultado.batch.fungusTypeId?.nombre}</span>
               </div>
             )}
