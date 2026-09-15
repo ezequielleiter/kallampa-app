@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { TriangleAlert } from "lucide-react";
+import Link from "next/link";
+import { TriangleAlert, Dna } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -79,11 +80,22 @@ export function FructificacionSection({
                   )}
                 </TableCell>
                 <TableCell>
-                  {r.estado === "incubando" && (
-                    <Button size="sm" onClick={() => setTarget(r)}>
-                      Pasar a fructificación
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {r.estado === "incubando" && (
+                      <Button size="sm" onClick={() => setTarget(r)}>
+                        Pasar a fructificación
+                      </Button>
+                    )}
+                    {r.estado === "fructificando" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        render={<Link href={`/clonacion/nueva?origenRecipienteId=${r._id}`} />}
+                      >
+                        <Dna /> Clonar
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             );

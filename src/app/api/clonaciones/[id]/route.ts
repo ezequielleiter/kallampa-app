@@ -13,7 +13,12 @@ export async function GET(
     await dbConnect();
     const { id } = await ctx.params;
 
-    const clonacion = await Clonacion.findById(id).populate("fungusTypeId").lean();
+    const clonacion = await Clonacion.findById(id)
+      .populate("fungusTypeId")
+      .populate("origenJarId", "numeroGuia")
+      .populate("origenRecipienteId", "numeroSeguimiento")
+      .populate("origenBatchId", "numeroLote")
+      .lean();
 
     if (!clonacion) throw notFound("Clonación no encontrada");
 

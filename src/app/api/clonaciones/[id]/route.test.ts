@@ -5,6 +5,8 @@ import {
   makeClonacion,
   colonizarPlacas,
   makeFrascoLiquido,
+  makeBatch,
+  colonizarJars,
 } from "@/test-utils/api-test-helpers";
 
 describe("GET /api/clonaciones/[id]", () => {
@@ -26,5 +28,17 @@ describe("GET /api/clonaciones/[id]", () => {
   it("404 si la clonacion no existe", async () => {
     const { status } = await callRoute(GET, { params: { id: "000000000000000000000000" } });
     expect(status).toBe(404);
+  });
+
+  it("popula origenJarId/origenBatchId cuando la clonacion viene de un jar", async () => {
+    const batch = await makeBatch({ cantidadFrascos: 1 });
+    const [jarId] = await colonizarJars(batch.jars);
+    const clonacion = await makeClonacion({ origenJarId: jarId, cantidadPlacas: 1, diasEsperados: 15 });
+
+    const { status, json } = await callRoute(GET, { params: { id: clonacion._id } });
+
+    expect(status).toBe(200);
+    expect(json.data.origenJarId).toHaveProperty("numeroGuia");
+    expect(json.data.origenBatchId).toHaveProperty("numeroLote", batch.numeroLote);
   });
 });

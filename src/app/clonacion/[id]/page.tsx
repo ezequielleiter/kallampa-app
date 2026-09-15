@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { TriangleAlert } from "lucide-react";
+import { TriangleAlert, Network } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -49,11 +50,25 @@ export default function ClonacionDetailPage() {
     return dias !== null && dias > clonacion.colonizacion.diasEsperados;
   }).length;
 
+  const origenBatch =
+    typeof clonacion.origenBatchId === "object" ? clonacion.origenBatchId : null;
+  const origenEtiqueta =
+    clonacion.origenTipo === "jar" && typeof clonacion.origenJarId === "object"
+      ? clonacion.origenJarId.numeroGuia
+      : clonacion.origenTipo === "recipiente" && typeof clonacion.origenRecipienteId === "object"
+        ? clonacion.origenRecipienteId.numeroSeguimiento
+        : null;
+
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
-      <Button variant="ghost" size="sm" className="w-fit" onClick={() => router.push("/clonacion")}>
-        ← Volver a clonación
-      </Button>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Button variant="ghost" size="sm" className="w-fit" onClick={() => router.push("/clonacion")}>
+          ← Volver a clonación
+        </Button>
+        <Button variant="outline" size="sm" render={<Link href="/trazabilidad" />}>
+          <Network /> Ver árbol de trazabilidad
+        </Button>
+      </div>
 
       <Card>
         <CardContent className="flex flex-col gap-3">
@@ -74,6 +89,15 @@ export default function ClonacionDetailPage() {
             {" · Iniciada el "}
             {formatFechaCorta(clonacion.colonizacion.fechaInicio)}
           </p>
+          {origenBatch && (
+            <p className="text-sm text-muted-foreground">
+              Iniciada desde el lote{" "}
+              <Link href={`/lotes/${origenBatch._id}`} className="font-medium text-primary hover:underline">
+                {origenBatch.numeroLote}
+              </Link>
+              {origenEtiqueta ? ` (${origenEtiqueta})` : ""}
+            </p>
+          )}
         </CardContent>
       </Card>
 

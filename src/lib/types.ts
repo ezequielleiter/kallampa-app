@@ -9,7 +9,7 @@ import type {
   PlacaEstado,
   FrascoLiquidoEstado,
 } from "@/lib/constants";
-import type { AgregadoCatalogo, ResumenLote } from "@/lib/metrics";
+import type { AgregadoCatalogo, ResumenLote, ResumenClonacion } from "@/lib/metrics";
 
 // v2: 3 campos (antes 4, se elimina "cosecha"; "crecimientoSustrato" pasa a
 // llamarse "incubacion" porque ahora describe la etapa de los recipientes).
@@ -197,11 +197,19 @@ export interface Colonizacion {
   diasEsperados: number;
 }
 
+// Trazabilidad inversa a Batch.origenFrascoLiquidoId: una clonación se
+// puede iniciar eligiendo el hongo directamente, O a partir de un Jar ya
+// colonizado/usado, O de un Recipiente fructificando. Opcionales: la
+// mayoría de las clonaciones no tienen origen.
 export interface Clonacion {
   _id: string;
   numeroLote: string; // "C-2026-001"
   fungusTypeId: FungusType; // poblado
   colonizacion: Colonizacion;
+  origenTipo?: "jar" | "recipiente";
+  origenBatchId?: string | { _id: string; numeroLote: string };
+  origenJarId?: string | { _id: string; numeroGuia: string };
+  origenRecipienteId?: string | { _id: string; numeroSeguimiento: string };
   createdAt?: string;
   updatedAt?: string;
 }
@@ -253,4 +261,45 @@ export interface FrascoLiquido {
 export interface ClonacionDetail extends Clonacion {
   placas: Placa[];
   frascosLiquidos: FrascoLiquido[];
+}
+
+// --- GET /api/jars/[id] y GET /api/recipientes/[id] -----------------------
+// Frasco/recipiente + su lote y hongo poblados, usado para prellenar
+// "nueva clonación" cuando se llega desde "Clonar este frasco/recipiente".
+
+export interface JarDetail extends Jar {
+  batch: { _id: string; numeroLote: string; fungusTypeId: FungusType };
+}
+
+export interface RecipienteDetail extends Recipiente {
+  batch: { _id: string; numeroLote: string; fungusTypeId: FungusType };
+}
+
+// --- GET /api/trazabilidad -------------------------------------------------
+// Material crudo para reconstruir en el cliente el árbol
+// Lote -> Clonación -> Lote -> ...
+
+export interface TrazabilidadLote {
+  _id: string;
+  numeroLote: string;
+  fungusTypeId: { nombre: string };
+  origenFrascoLiquidoId?: string;
+  resumen: ResumenLote;
+}
+
+export interface TrazabilidadClonacion {
+  _id: string;
+  numeroLote: string;
+  fungusTypeId: { nombre: string };
+  origenTipo?: "jar" | "recipiente";
+  origenBatchId?: string;
+  origenJarId?: { numeroGuia: string };
+  origenRecipienteId?: { numeroSeguimiento: string };
+  resumen: ResumenClonacion;
+}
+
+export interface TrazabilidadResponse {
+  lotes: TrazabilidadLote[];
+  clonaciones: TrazabilidadClonacion[];
+  frascosLiquidos: { _id: string; etiqueta: string; clonacionId: string }[];
 }

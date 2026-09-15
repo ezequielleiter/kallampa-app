@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Network } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BatchHeader } from "@/components/batch/BatchHeader";
@@ -58,9 +60,14 @@ export default function BatchDetailPage() {
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
-      <Button variant="ghost" size="sm" className="w-fit" onClick={() => router.push("/")}>
-        ← Volver a lotes
-      </Button>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Button variant="ghost" size="sm" className="w-fit" onClick={() => router.push("/")}>
+          ← Volver a lotes
+        </Button>
+        <Button variant="outline" size="sm" render={<Link href="/trazabilidad" />}>
+          <Network /> Ver árbol de trazabilidad
+        </Button>
+      </div>
 
       <BatchHeader
         batch={batch}

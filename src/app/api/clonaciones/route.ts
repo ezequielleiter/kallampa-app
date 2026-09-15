@@ -5,6 +5,9 @@ import Clonacion from "@/models/Clonacion";
 import Placa from "@/models/Placa";
 import FrascoLiquido from "@/models/FrascoLiquido";
 import FungusType from "@/models/FungusType";
+import Jar from "@/models/Jar";
+import Recipiente from "@/models/Recipiente";
+import Batch from "@/models/Batch";
 import { ok, fail, handleApiError, badRequest } from "@/lib/api-utils";
 import { createClonacionSchema } from "@/lib/validations/clonacion.schema";
 import { getNextNumeroClonacion } from "@/lib/counters";
@@ -75,7 +78,53 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const parsed = createClonacionSchema.parse(body);
 
-    const fungusType = await FungusType.findById(parsed.fungusTypeId).lean();
+    let fungusTypeId = parsed.fungusTypeId;
+    let origenTipo: "jar" | "recipiente" | undefined;
+    let origenJarId: string | undefined;
+    let origenRecipienteId: string | undefined;
+    let origenBatchId: string | undefined;
+
+    if (parsed.origenJarId) {
+      const jar = await Jar.findById(parsed.origenJarId).lean();
+      if (!jar) {
+        return fail("El frasco de origen indicado no existe", 400);
+      }
+      if (jar.estado !== "colonizado" && jar.estado !== "usado") {
+        return fail(
+          `El frasco '${jar.numeroGuia}' no está disponible para clonar (estado actual: '${jar.estado}')`,
+          409
+        );
+      }
+      const batch = await Batch.findById(jar.batchId).lean();
+      if (!batch) {
+        return fail("El lote de origen del frasco ya no existe", 400);
+      }
+      fungusTypeId = String(batch.fungusTypeId);
+      origenTipo = "jar";
+      origenJarId = parsed.origenJarId;
+      origenBatchId = String(jar.batchId);
+    } else if (parsed.origenRecipienteId) {
+      const recipiente = await Recipiente.findById(parsed.origenRecipienteId).lean();
+      if (!recipiente) {
+        return fail("El recipiente de origen indicado no existe", 400);
+      }
+      if (recipiente.estado !== "fructificando") {
+        return fail(
+          `El recipiente '${recipiente.numeroSeguimiento}' no está disponible para clonar (estado actual: '${recipiente.estado}', se necesita 'fructificando')`,
+          409
+        );
+      }
+      const batch = await Batch.findById(recipiente.batchId).lean();
+      if (!batch) {
+        return fail("El lote de origen del recipiente ya no existe", 400);
+      }
+      fungusTypeId = String(batch.fungusTypeId);
+      origenTipo = "recipiente";
+      origenRecipienteId = parsed.origenRecipienteId;
+      origenBatchId = String(recipiente.batchId);
+    }
+
+    const fungusType = await FungusType.findById(fungusTypeId).lean();
     if (!fungusType) {
       return fail("El tipo de hongo indicado no existe", 400);
     }
@@ -102,7 +151,11 @@ export async function POST(req: NextRequest) {
 
     const clonacion = await Clonacion.create({
       numeroLote,
-      fungusTypeId: parsed.fungusTypeId,
+      fungusTypeId,
+      ...(origenTipo ? { origenTipo } : {}),
+      ...(origenJarId ? { origenJarId } : {}),
+      ...(origenRecipienteId ? { origenRecipienteId } : {}),
+      ...(origenBatchId ? { origenBatchId } : {}),
       colonizacion: {
         cantidadPlacas: parsed.cantidadPlacas,
         fechaInicio: parsed.fechaInicio,

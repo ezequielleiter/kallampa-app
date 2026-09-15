@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { toast } from "sonner";
+import { Dna } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -16,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { JAR_ESTADOS, JAR_ESTADO_LABELS, type JarEstado } from "@/lib/constants";
 import { apiFetch } from "@/lib/api-client";
 import type { Jar } from "@/lib/types";
@@ -49,6 +52,7 @@ export function JarsGrid({ jars, onChanged }: JarsGridProps) {
         <TableRow>
           <TableHead>N° de guía (spawn)</TableHead>
           <TableHead>Estado</TableHead>
+          <TableHead className="w-32" />
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -75,6 +79,13 @@ export function JarsGrid({ jars, onChanged }: JarsGridProps) {
                   ))}
                 </SelectContent>
               </Select>
+            </TableCell>
+            <TableCell>
+              {(jar.estado === "colonizado" || jar.estado === "usado") && (
+                <Button variant="ghost" size="sm" render={<Link href={`/clonacion/nueva?origenJarId=${jar._id}`} />}>
+                  <Dna /> Clonar
+                </Button>
+              )}
             </TableCell>
           </TableRow>
         ))}

@@ -5,6 +5,10 @@ import {
   makeFungusType,
   makeClonacion,
   colonizarPlacas,
+  makeBatch,
+  colonizarJars,
+  makeRecipiente,
+  fructificarRecipiente,
 } from "@/test-utils/api-test-helpers";
 
 describe("POST /api/clonaciones", () => {
@@ -70,6 +74,157 @@ describe("POST /api/clonaciones", () => {
       },
     });
     expect(status).toBe(400);
+  });
+});
+
+describe("POST /api/clonaciones - origen desde un Jar o Recipiente (Batch)", () => {
+  it("deriva el fungusTypeId de un jar 'colonizado' y guarda origenTipo/origenBatchId", async () => {
+    const fungusType = await makeFungusType({
+      diasEsperadosDefault: { inoculacionGrano: 14, incubacion: 20, fructificacion: 10 },
+    });
+    const batch = await makeBatch({ fungusTypeId: fungusType._id, cantidadFrascos: 1 });
+    const [jarId] = await colonizarJars(batch.jars);
+
+    const clonacion = await makeClonacion({ origenJarId: jarId, cantidadPlacas: 2, diasEsperados: 15 });
+
+    expect(clonacion.fungusTypeId).toBe(fungusType._id);
+    expect(clonacion.origenTipo).toBe("jar");
+    expect(clonacion.origenJarId).toBe(jarId);
+    expect(clonacion.origenBatchId).toBe(batch._id);
+  });
+
+  it("rechaza con 409 un origenJarId de un jar 'colonizando'", async () => {
+    const batch = await makeBatch({ cantidadFrascos: 1 });
+
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        origenJarId: batch.jars[0]._id,
+        cantidadPlacas: 2,
+        fechaInicio: new Date().toISOString(),
+      },
+    });
+
+    expect(status).toBe(409);
+    expect(json.error).toMatch(/no está disponible para clonar/i);
+  });
+
+  it("rechaza con 409 un origenJarId de un jar 'contaminado'", async () => {
+    const batch = await makeBatch({ cantidadFrascos: 1 });
+    const { PATCH } = await import("@/app/api/jars/[id]/route");
+    await callRoute(PATCH, {
+      method: "PATCH",
+      params: { id: batch.jars[0]._id },
+      body: { estado: "contaminado" },
+    });
+
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        origenJarId: batch.jars[0]._id,
+        cantidadPlacas: 2,
+        fechaInicio: new Date().toISOString(),
+      },
+    });
+
+    expect(status).toBe(409);
+    expect(json.error).toMatch(/no está disponible para clonar/i);
+  });
+
+  it("deriva el fungusTypeId de un recipiente 'fructificando'", async () => {
+    const fungusType = await makeFungusType({
+      diasEsperadosDefault: { inoculacionGrano: 14, incubacion: 20, fructificacion: 10 },
+    });
+    const batch = await makeBatch({ fungusTypeId: fungusType._id, cantidadFrascos: 1 });
+    const [jarId] = await colonizarJars(batch.jars);
+    const recipiente = await makeRecipiente({ batchId: batch._id, origenFrascoIds: [jarId] });
+    await fructificarRecipiente(recipiente._id);
+
+    const clonacion = await makeClonacion({
+      origenRecipienteId: recipiente._id,
+      cantidadPlacas: 2,
+      diasEsperados: 15,
+    });
+
+    expect(clonacion.fungusTypeId).toBe(fungusType._id);
+    expect(clonacion.origenTipo).toBe("recipiente");
+    expect(clonacion.origenRecipienteId).toBe(recipiente._id);
+    expect(clonacion.origenBatchId).toBe(batch._id);
+  });
+
+  it("rechaza con 409 un origenRecipienteId de un recipiente 'incubando'", async () => {
+    const batch = await makeBatch({ cantidadFrascos: 1 });
+    const [jarId] = await colonizarJars(batch.jars);
+    const recipiente = await makeRecipiente({ batchId: batch._id, origenFrascoIds: [jarId] });
+
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        origenRecipienteId: recipiente._id,
+        cantidadPlacas: 2,
+        fechaInicio: new Date().toISOString(),
+      },
+    });
+
+    expect(status).toBe(409);
+    expect(json.error).toMatch(/no está disponible para clonar/i);
+  });
+
+  it("rechaza con 409 un origenRecipienteId de un recipiente 'finalizado'", async () => {
+    const batch = await makeBatch({ cantidadFrascos: 1 });
+    const [jarId] = await colonizarJars(batch.jars);
+    const recipiente = await makeRecipiente({ batchId: batch._id, origenFrascoIds: [jarId] });
+
+    const { POST: marcarEstado } = await import("@/app/api/recipientes/[id]/estado/route");
+    await callRoute(marcarEstado, {
+      method: "POST",
+      params: { id: recipiente._id },
+      body: { estado: "finalizado" },
+    });
+
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        origenRecipienteId: recipiente._id,
+        cantidadPlacas: 2,
+        fechaInicio: new Date().toISOString(),
+      },
+    });
+
+    expect(status).toBe(409);
+    expect(json.error).toMatch(/no está disponible para clonar/i);
+  });
+
+  it("rechaza con 400 (Zod) si no viene ninguna fuente de hongo", async () => {
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        cantidadPlacas: 2,
+        fechaInicio: new Date().toISOString(),
+      },
+    });
+
+    expect(status).toBe(400);
+    expect(json.error).toMatch(/Elegí un tipo de hongo/i);
+  });
+
+  it("rechaza con 400 (Zod) si vienen origenJarId y origenRecipienteId juntos", async () => {
+    const batch = await makeBatch({ cantidadFrascos: 1 });
+    const [jarId] = await colonizarJars(batch.jars);
+    const recipiente = await makeRecipiente({ batchId: batch._id, origenFrascoIds: [jarId] });
+
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        origenJarId: jarId,
+        origenRecipienteId: recipiente._id,
+        cantidadPlacas: 2,
+        fechaInicio: new Date().toISOString(),
+      },
+    });
+
+    expect(status).toBe(400);
+    expect(json.error).toMatch(/no se puede clonar desde un frasco y un recipiente/i);
   });
 });
 

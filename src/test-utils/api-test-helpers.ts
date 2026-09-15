@@ -213,27 +213,40 @@ export async function fructificarRecipiente(
 
 export interface MakeClonacionOpts {
   fungusTypeId?: string;
+  origenJarId?: string;
+  origenRecipienteId?: string;
   cantidadPlacas?: number;
   fechaInicio?: string;
   diasEsperados?: number;
 }
 
-/** Crea un fungusType (con colonizacionPlacas por default) si no se pasa, y crea la clonacion (+ sus placas). */
+/**
+ * Crea un fungusType (con colonizacionPlacas por default) si no se pasa
+ * ninguna fuente de hongo, y crea la clonacion (+ sus placas). La
+ * clonacion se puede iniciar con un `fungusTypeId` directo (por default),
+ * o con `origenJarId`/`origenRecipienteId` (el hongo se deriva del lote de
+ * origen) -- si se pasa alguno de estos, NO se autocompleta fungusTypeId.
+ */
 export async function makeClonacion(opts: MakeClonacionOpts = {}) {
   const { POST } = await import("@/app/api/clonaciones/route");
 
+  const tieneOrigen = !!(opts.origenJarId || opts.origenRecipienteId);
   const fungusTypeId =
     opts.fungusTypeId ??
-    (
-      await makeFungusType({
-        diasEsperadosDefault: { ...DEFAULT_DIAS_ESPERADOS, colonizacionPlacas: 15 },
-      })
-    )._id;
+    (tieneOrigen
+      ? undefined
+      : (
+          await makeFungusType({
+            diasEsperadosDefault: { ...DEFAULT_DIAS_ESPERADOS, colonizacionPlacas: 15 },
+          })
+        )._id);
 
   const { status, json } = await callRoute(POST, {
     method: "POST",
     body: {
-      fungusTypeId,
+      ...(fungusTypeId ? { fungusTypeId } : {}),
+      ...(opts.origenJarId ? { origenJarId: opts.origenJarId } : {}),
+      ...(opts.origenRecipienteId ? { origenRecipienteId: opts.origenRecipienteId } : {}),
       cantidadPlacas: opts.cantidadPlacas ?? 3,
       fechaInicio: opts.fechaInicio ?? new Date().toISOString(),
       ...(opts.diasEsperados !== undefined ? { diasEsperados: opts.diasEsperados } : {}),
