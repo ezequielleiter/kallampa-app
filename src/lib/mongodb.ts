@@ -15,6 +15,7 @@ import "@/models/Recipiente";
 import "@/models/Clonacion";
 import "@/models/Placa";
 import "@/models/FrascoLiquido";
+import "@/models/Nota";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 

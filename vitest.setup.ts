@@ -14,6 +14,7 @@ import Counter from "@/models/Counter";
 import Clonacion from "@/models/Clonacion";
 import Placa from "@/models/Placa";
 import FrascoLiquido from "@/models/FrascoLiquido";
+import Nota from "@/models/Nota";
 
 beforeEach(async () => {
   await dbConnect();
@@ -28,5 +29,6 @@ beforeEach(async () => {
     Clonacion.deleteMany({}),
     Placa.deleteMany({}),
     FrascoLiquido.deleteMany({}),
+    Nota.deleteMany({}),
   ]);
 });

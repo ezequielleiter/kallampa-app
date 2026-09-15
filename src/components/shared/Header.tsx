@@ -15,6 +15,7 @@ const NAV_LINKS = [
   { href: "/", label: "Producción" },
   { href: "/clonacion", label: "Clonación" },
   { href: "/trazabilidad", label: "Trazabilidad" },
+  { href: "/notas", label: "Notas" },
   { href: "/frascos", label: "Frascos" },
   { href: "/catalogos", label: "Catálogos" },
   { href: "/estadisticas", label: "Estadísticas" },

@@ -304,3 +304,20 @@ export interface TrazabilidadResponse {
   clonaciones: TrazabilidadClonacion[];
   frascosLiquidos: { _id: string; etiqueta: string; clonacionId: string }[];
 }
+
+// --- Notas (wiki en Markdown, sin relación con el dominio de cultivo) ----
+
+export interface NotaListItem {
+  _id: string;
+  titulo: string;
+  updatedAt: string;
+  extracto: string;
+}
+
+export interface Nota {
+  _id: string;
+  titulo: string;
+  contenido: string; // Markdown crudo
+  createdAt: string;
+  updatedAt: string;
+}
