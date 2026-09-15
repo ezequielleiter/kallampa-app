@@ -41,6 +41,35 @@ describe("POST /api/clonaciones", () => {
     expect(clonacion.colonizacion.diasEsperados).toBe(15);
   });
 
+  it("guarda recetaAgar si se manda, y no la exige (opcional)", async () => {
+    const fungusType = await makeFungusType({
+      diasEsperadosDefault: { inoculacionGrano: 14, incubacion: 20, fructificacion: 10, colonizacionPlacas: 7 },
+    });
+
+    const { status: statusConReceta, json: jsonConReceta } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        fungusTypeId: fungusType._id,
+        cantidadPlacas: 1,
+        fechaInicio: new Date().toISOString(),
+        recetaAgar: "PDA 39g/L + extracto de malta 10g/L",
+      },
+    });
+    expect(statusConReceta).toBe(201);
+    expect(jsonConReceta.data.recetaAgar).toBe("PDA 39g/L + extracto de malta 10g/L");
+
+    const { status: statusSinReceta, json: jsonSinReceta } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        fungusTypeId: fungusType._id,
+        cantidadPlacas: 1,
+        fechaInicio: new Date().toISOString(),
+      },
+    });
+    expect(statusSinReceta).toBe(201);
+    expect(jsonSinReceta.data.recetaAgar).toBeUndefined();
+  });
+
   it("usa diasEsperados explicito si se manda, aunque el hongo tenga default", async () => {
     const clonacion = await makeClonacion({ diasEsperados: 21 });
     expect(clonacion.colonizacion.diasEsperados).toBe(21);

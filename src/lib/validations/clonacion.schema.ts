@@ -16,6 +16,8 @@ export const createClonacionSchema = z
     cantidadPlacas: z.number().int().positive(),
     fechaInicio: z.coerce.date(),
     diasEsperados: z.number().positive().optional(),
+    // Nota libre, no obligatoria: receta de agar usada para estas placas.
+    recetaAgar: z.string().trim().optional(),
   })
   .refine(
     (data) => !!data.fungusTypeId || !!data.origenJarId || !!data.origenRecipienteId,

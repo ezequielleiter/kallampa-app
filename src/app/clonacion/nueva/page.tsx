@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -34,6 +35,7 @@ const nuevaClonacionSchema = z.object({
   cantidadPlacas: z.number().int().positive(),
   fechaInicio: z.coerce.date(),
   diasEsperados: z.number().positive().optional(),
+  recetaAgar: z.string().trim().optional(),
 });
 type NuevaClonacionInput = z.infer<typeof nuevaClonacionSchema>;
 
@@ -144,6 +146,7 @@ function NuevaClonacionForm() {
       cantidadPlacas: data.cantidadPlacas,
       fechaInicio: data.fechaInicio,
       diasEsperados: data.diasEsperados,
+      recetaAgar: data.recetaAgar,
     };
     if (origen.tipo === "jar") {
       body.origenJarId = origen.jar._id;
@@ -263,6 +266,18 @@ function NuevaClonacionForm() {
               </p>
               {errors.diasEsperados && (
                 <p className="text-xs text-destructive">{errors.diasEsperados.message}</p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label>Receta de agar (opcional)</Label>
+              <Textarea
+                placeholder="Proporciones, marca, aditivos, etc."
+                rows={3}
+                {...register("recetaAgar")}
+              />
+              {errors.recetaAgar && (
+                <p className="text-xs text-destructive">{errors.recetaAgar.message}</p>
               )}
             </div>
 

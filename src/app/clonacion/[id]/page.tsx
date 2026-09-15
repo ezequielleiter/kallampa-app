@@ -122,6 +122,12 @@ export default function ClonacionDetailPage() {
               <span className="font-medium">{clonacion.colonizacion.diasEsperados}</span>
             </div>
           </div>
+          {clonacion.recetaAgar && (
+            <div className="flex flex-col gap-0.5">
+              <span className="text-xs text-muted-foreground">Receta de agar</span>
+              <p className="whitespace-pre-wrap text-sm">{clonacion.recetaAgar}</p>
+            </div>
+          )}
           <PlacasGrid placas={clonacion.placas} onChanged={cargar} />
         </CardContent>
       </Card>

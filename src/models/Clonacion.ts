@@ -30,6 +30,10 @@ export interface ClonacionDoc extends Document {
   // del jar/recipiente (que podria borrarse/cambiar mas adelante).
   origenBatchId?: Types.ObjectId;
   colonizacion: Colonizacion;
+  // Nota libre, no obligatoria: la receta de agar usada para las placas de
+  // esta clonación (proporciones, marca, aditivos, etc.), a gusto del
+  // operador.
+  recetaAgar?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -57,6 +61,7 @@ const clonacionSchema = new Schema<ClonacionDoc>(
     origenRecipienteId: { type: Schema.Types.ObjectId, ref: "Recipiente" },
     origenBatchId: { type: Schema.Types.ObjectId, ref: "Batch" },
     colonizacion: { type: colonizacionSchema, required: true },
+    recetaAgar: { type: String },
   },
   { timestamps: true }
 );

@@ -161,6 +161,7 @@ export async function POST(req: NextRequest) {
         fechaInicio: parsed.fechaInicio,
         diasEsperados,
       },
+      ...(parsed.recetaAgar ? { recetaAgar: parsed.recetaAgar } : {}),
     });
 
     // La Clonacion ya esta persistida (numeroLote unico reservado via

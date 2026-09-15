@@ -210,6 +210,7 @@ export interface Clonacion {
   origenBatchId?: string | { _id: string; numeroLote: string };
   origenJarId?: string | { _id: string; numeroGuia: string };
   origenRecipienteId?: string | { _id: string; numeroSeguimiento: string };
+  recetaAgar?: string;
   createdAt?: string;
   updatedAt?: string;
 }
