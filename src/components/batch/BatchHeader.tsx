@@ -56,6 +56,9 @@ export function BatchHeader({
           {formatFechaCorta(batch.inoculacionGrano.fechaInicio)}
           {" · "}
           {batch.inoculacionGrano.cantidadFrascos} frasco(s)
+          {typeof batch.origenFrascoLiquidoId === "object" && (
+            <> {" · desde micelio líquido "}{batch.origenFrascoLiquidoId.etiqueta}</>
+          )}
         </p>
 
         <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 sm:grid-cols-4">

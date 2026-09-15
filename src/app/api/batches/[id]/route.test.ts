@@ -1,6 +1,14 @@
 import { describe, it, expect } from "vitest";
 import { GET } from "./route";
-import { callRoute, makeBatch, colonizarJars, makeRecipiente } from "@/test-utils/api-test-helpers";
+import {
+  callRoute,
+  makeBatch,
+  colonizarJars,
+  makeRecipiente,
+  makeClonacion,
+  colonizarPlacas,
+  makeFrascoLiquido,
+} from "@/test-utils/api-test-helpers";
 
 const NONEXISTENT_ID = "507f1f77bcf86cd799439011";
 
@@ -27,6 +35,19 @@ describe("GET /api/batches/[id]", () => {
     expect(json.data.recipientes[0]._id).toBe(recipiente._id);
     expect(json.data.recipientes[0].tipoSustratoId).toHaveProperty("nombre");
     expect(json.data.recipientes[0].origenFrascoIds[0]).toHaveProperty("numeroGuia");
+  });
+
+  it("si el lote se inicio desde un frasco de micelio liquido, incluye origenFrascoLiquidoId poblado (etiqueta)", async () => {
+    const clonacion = await makeClonacion({ cantidadPlacas: 1 });
+    const [placaId] = await colonizarPlacas([clonacion.placas[0]]);
+    const frasco = await makeFrascoLiquido({ origenPlacaId: placaId });
+
+    const batch = await makeBatch({ cantidadFrascos: 1, origenFrascoLiquidoId: frasco._id });
+
+    const { json } = await callRoute(GET, { params: { id: batch._id } });
+
+    expect(json.data.origenFrascoLiquidoId).toHaveProperty("etiqueta", frasco.etiqueta);
+    expect(json.data.fungusTypeId._id).toBe(clonacion.fungusTypeId);
   });
 
   it("404 en un id inexistente", async () => {

@@ -4,6 +4,7 @@ export interface DiasEsperadosDefault {
   inoculacionGrano: number;
   incubacion: number;
   fructificacion: number;
+  colonizacionPlacas?: number;
 }
 
 export interface FungusTypeDoc extends Document {
@@ -21,6 +22,9 @@ const diasEsperadosDefaultSchema = new Schema<DiasEsperadosDefault>(
     inoculacionGrano: { type: Number, required: true },
     incubacion: { type: Number, required: true },
     fructificacion: { type: Number, required: true },
+    // Opcional: se agrego despues (Clonacion) y no queremos requerir una
+    // migracion de los hongos ya creados en la base real.
+    colonizacionPlacas: { type: Number },
   },
   { _id: false }
 );

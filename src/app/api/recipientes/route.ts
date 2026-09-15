@@ -39,11 +39,11 @@ export async function POST(req: NextRequest) {
       return fail("El lote indicado no existe", 400);
     }
 
-    // Los frascos de origen tienen que (a) pertenecer al batch indicado y
-    // (b) estar listos: 'colonizado' (nunca usado) o 'usado' (ya se uso en
-    // otro recipiente, pero SE PUEDE volver a elegir: en la practica el
-    // grano de un mismo frasco a veces se reparte en mas de un recipiente).
-    // No son validos: 'colonizando' (todavia no esta listo) ni
+    // Los frascos de grano de origen tienen que (a) pertenecer al batch
+    // indicado y (b) estar listos: 'colonizado' (nunca usado) o 'usado' (ya
+    // se uso en otro recipiente, pero SE PUEDE volver a elegir: en la
+    // practica el grano de un mismo frasco a veces se reparte en mas de un
+    // recipiente). No son validos: 'colonizando' (todavia no esta listo) ni
     // 'contaminado' (perdida).
     const frascos = await Jar.find({ _id: { $in: parsed.origenFrascoIds } }).lean();
 

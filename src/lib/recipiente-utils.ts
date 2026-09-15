@@ -125,7 +125,7 @@ export function alertasBatch(recipientes: Recipiente[]): number {
   return recipientes.filter((r) => alertaRecipiente(r).demorado).length;
 }
 
-/** Etiqueta legible de los frascos de origen de un recipiente (poblados o no). */
+/** Etiqueta legible de los frascos de grano de origen de un recipiente (poblados o no). */
 export function getOrigenFrascosLabel(r: Recipiente): string {
   if (r.origenFrascoIds.length === 0) return "—";
   return r.origenFrascoIds

@@ -21,6 +21,9 @@ import {
   type FungusTypeCreateInput,
 } from "@/lib/validations/catalog.schema";
 
+// `fungusTypeCreateSchema` ya incluye el 4° campo opcional de Clonación
+// (`diasEsperadosDefault.colonizacionPlacas`) — no hace falta extenderlo acá.
+
 interface FungusTypeFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -49,6 +52,7 @@ export function FungusTypeFormDialog({
         inoculacionGrano: fungusType?.diasEsperadosDefault.inoculacionGrano ?? 14,
         incubacion: fungusType?.diasEsperadosDefault.incubacion ?? 14,
         fructificacion: fungusType?.diasEsperadosDefault.fructificacion ?? 14,
+        colonizacionPlacas: fungusType?.diasEsperadosDefault.colonizacionPlacas ?? undefined,
       },
     },
   });
@@ -141,6 +145,20 @@ export function FungusTypeFormDialog({
               {errors.diasEsperadosDefault?.fructificacion && (
                 <p className="text-xs text-destructive">
                   {errors.diasEsperadosDefault.fructificacion.message}
+                </p>
+              )}
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>Colonización de placas (opcional)</Label>
+              <Input
+                type="number"
+                {...register("diasEsperadosDefault.colonizacionPlacas", {
+                  setValueAs: (v) => (v === "" ? undefined : Number(v)),
+                })}
+              />
+              {errors.diasEsperadosDefault?.colonizacionPlacas && (
+                <p className="text-xs text-destructive">
+                  {errors.diasEsperadosDefault.colonizacionPlacas.message}
                 </p>
               )}
             </div>

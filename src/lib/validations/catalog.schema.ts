@@ -23,6 +23,9 @@ export const diasEsperadosDefaultSchema = z.object({
   inoculacionGrano: z.number().positive(),
   incubacion: z.number().positive(),
   fructificacion: z.number().positive(),
+  // Opcional: agregado para Clonacion. Los hongos ya creados en la base
+  // real no lo tienen, y no forzamos requerirlo aca para no romperlos.
+  colonizacionPlacas: z.number().positive().optional(),
 });
 
 export const fungusTypeCreateSchema = z.object({

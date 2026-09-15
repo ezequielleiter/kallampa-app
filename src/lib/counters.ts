@@ -21,3 +21,24 @@ export async function getNextNumeroLote(date: Date = new Date()): Promise<string
 
   return `L-${year}-${padded}`;
 }
+
+/**
+ * Analoga a getNextNumeroLote, pero para Clonacion: genera C-<anio>-<seq>,
+ * scopeada por anio en su propio contador (`clonacion:<anio>`), mismo
+ * mecanismo atomico de findOneAndUpdate + $inc + upsert.
+ */
+export async function getNextNumeroClonacion(date: Date = new Date()): Promise<string> {
+  const year = date.getFullYear();
+  const scopeId = `clonacion:${year}`;
+
+  const counter = await Counter.findOneAndUpdate(
+    { _id: scopeId },
+    { $inc: { seq: 1 } },
+    { upsert: true, new: true }
+  );
+
+  const seq = counter.seq;
+  const padded = String(seq).padStart(3, "0");
+
+  return `C-${year}-${padded}`;
+}

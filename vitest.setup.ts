@@ -11,6 +11,9 @@ import FungusType from "@/models/FungusType";
 import GrainType from "@/models/GrainType";
 import SubstrateType from "@/models/SubstrateType";
 import Counter from "@/models/Counter";
+import Clonacion from "@/models/Clonacion";
+import Placa from "@/models/Placa";
+import FrascoLiquido from "@/models/FrascoLiquido";
 
 beforeEach(async () => {
   await dbConnect();
@@ -22,5 +25,8 @@ beforeEach(async () => {
     GrainType.deleteMany({}),
     SubstrateType.deleteMany({}),
     Counter.deleteMany({}),
+    Clonacion.deleteMany({}),
+    Placa.deleteMany({}),
+    FrascoLiquido.deleteMany({}),
   ]);
 });

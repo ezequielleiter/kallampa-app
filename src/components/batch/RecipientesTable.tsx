@@ -74,7 +74,7 @@ export function RecipientesTable({
           <TableHeader>
             <TableRow>
               <TableHead>N° de seguimiento</TableHead>
-              <TableHead>Origen (frascos)</TableHead>
+              <TableHead>Origen</TableHead>
               <TableHead>Sustrato</TableHead>
               <TableHead>Peso (kg)</TableHead>
               <TableHead>Estado</TableHead>

@@ -129,6 +129,25 @@ describe("POST /api/recipientes", () => {
     expect(status).toBe(400);
     expect(json.error).toMatch(/no pertenece/i);
   });
+
+  it("rechaza con 400 (Zod) un recipiente sin ningun frasco de origen", async () => {
+    const batch = await makeBatch({ cantidadFrascos: 1 });
+
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        batchId: batch._id,
+        origenFrascoIds: [],
+        tipoSustratoId: (await makeSubstrateType())._id,
+        pesoSustratoKg: 20,
+        precioPorKg: 100,
+        fechaInicioIncubacion: new Date().toISOString(),
+      },
+    });
+
+    expect(status).toBe(400);
+    expect(json.error).toMatch(/al menos un frasco de origen/i);
+  });
 });
 
 describe("GET /api/recipientes", () => {

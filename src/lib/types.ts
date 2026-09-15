@@ -2,15 +2,25 @@
 // (ver src/app/api/**). No importan nada de `@/models` a proposito: son
 // solo `interface`/`type` (se borran en compilacion) para que cualquier
 // Client Component los pueda usar sin riesgo de arrastrar mongoose.
-import type { EstadoDerivado, JarEstado, RecipienteEstado } from "@/lib/constants";
+import type {
+  EstadoDerivado,
+  JarEstado,
+  RecipienteEstado,
+  PlacaEstado,
+  FrascoLiquidoEstado,
+} from "@/lib/constants";
 import type { AgregadoCatalogo, ResumenLote } from "@/lib/metrics";
 
 // v2: 3 campos (antes 4, se elimina "cosecha"; "crecimientoSustrato" pasa a
 // llamarse "incubacion" porque ahora describe la etapa de los recipientes).
+// v2.1 (Clonación): se agrega un 4° campo opcional — opcional porque los
+// hongos ya creados en la base real no lo tienen todavía y no queremos
+// forzar una migración.
 export interface DiasEsperadosDefault {
   inoculacionGrano: number;
   incubacion: number;
   fructificacion: number;
+  colonizacionPlacas?: number;
 }
 
 export interface FungusType {
@@ -109,6 +119,10 @@ export interface Batch {
   _id: string;
   numeroLote: string;
   fungusTypeId: FungusType;
+  // Si el lote se inicio eligiendo un frasco de micelio liquido de
+  // Clonacion (en vez de un tipo de hongo directamente), viene poblado
+  // liviano (solo etiqueta) para trazabilidad.
+  origenFrascoLiquidoId?: { _id: string; etiqueta: string } | string;
   inoculacionGrano: InoculacionGrano;
   createdAt?: string;
   updatedAt?: string;
@@ -126,6 +140,7 @@ export interface BatchListItem {
   _id: string;
   numeroLote: string;
   fungusTypeId: FungusType;
+  origenFrascoLiquidoId?: { _id: string; etiqueta: string } | string;
   inoculacionGrano: InoculacionGrano;
   estadoDerivado: EstadoDerivado;
   alertas: number;
@@ -166,4 +181,76 @@ export interface StatsResponse {
     porSustrato: AgregadoCatalogo[];
   };
   lotesDemorados: StatsLoteDemorado[];
+}
+
+// --- Clonación (módulo nuevo, paralelo a Producción) ---------------------
+//
+// Flujo: se colonizan N placas de Petri a partir de una cepa (evento
+// "colonización"); cada placa colonizada puede usarse para crear uno o más
+// frascos de micelio líquido (no se consume al usarla). Esos frascos
+// líquidos, junto con los frascos de grano de Producción, son los posibles
+// orígenes de un Recipiente nuevo.
+
+export interface Colonizacion {
+  cantidadPlacas: number;
+  fechaInicio: string;
+  diasEsperados: number;
+}
+
+export interface Clonacion {
+  _id: string;
+  numeroLote: string; // "C-2026-001"
+  fungusTypeId: FungusType; // poblado
+  colonizacion: Colonizacion;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ClonacionResumen {
+  placasColonizando: number;
+  placasColonizado: number;
+  placasContaminado: number;
+  frascosLiquidosValidos: number;
+  frascosLiquidosVacios: number;
+  frascosLiquidosFinalizados: number;
+  frascosLiquidosContaminados: number;
+  alertas: number;
+}
+
+export interface ClonacionListItem extends Clonacion {
+  resumen: ClonacionResumen;
+}
+
+export interface Placa {
+  _id: string;
+  clonacionId: string;
+  numeroPlaca: string; // "C-2026-001-P01"
+  estado: PlacaEstado;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// `clonacionId`/`origenPlacaId` vienen sin poblar en el detalle de una
+// clonación (ya sabemos de cuál se trata) y poblados livianamente en los
+// listados globales cross-clonación (selector de Producción).
+export interface FrascoLiquido {
+  _id: string;
+  clonacionId:
+    | string
+    | {
+        _id: string;
+        numeroLote: string;
+        fungusTypeId?: FungusType;
+      };
+  origenPlacaId: string | { _id: string; numeroPlaca: string };
+  etiqueta: string; // "C-2026-001-L01"
+  fechaCreacion: string;
+  estado: FrascoLiquidoEstado;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ClonacionDetail extends Clonacion {
+  placas: Placa[];
+  frascosLiquidos: FrascoLiquido[];
 }

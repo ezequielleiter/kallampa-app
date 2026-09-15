@@ -7,6 +7,9 @@ import {
   makeGrainType,
   colonizarJars,
   makeRecipiente,
+  makeClonacion,
+  colonizarPlacas,
+  makeFrascoLiquido,
 } from "@/test-utils/api-test-helpers";
 
 const NONEXISTENT_ID = "507f1f77bcf86cd799439011";
@@ -77,6 +80,83 @@ describe("POST /api/batches", () => {
     const batch = await makeBatch({ fungusTypeId: fungusType._id, diasEsperados: 9 });
 
     expect(batch.inoculacionGrano.diasEsperados).toBe(9);
+  });
+
+  it("rechaza un body sin fungusTypeId ni origenFrascoLiquidoId con 400 (Zod)", async () => {
+    const grainType = await makeGrainType();
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        tipoGranoId: grainType._id,
+        pesoGranoKg: 10,
+        precioPorKg: 100,
+        cantidadFrascos: 2,
+        fechaInicio: new Date().toISOString(),
+      },
+    });
+
+    expect(status).toBe(400);
+    expect(json.error).toMatch(/hongo o un frasco de micelio líquido/i);
+  });
+});
+
+describe("POST /api/batches - origen desde un frasco de micelio liquido (Clonacion)", () => {
+  it("deriva el fungusTypeId de la clonacion del frasco liquido de origen", async () => {
+    const clonacion = await makeClonacion({ cantidadPlacas: 1 });
+    const [placaId] = await colonizarPlacas([clonacion.placas[0]]);
+    const frasco = await makeFrascoLiquido({ origenPlacaId: placaId });
+
+    const batch = await makeBatch({ cantidadFrascos: 1, origenFrascoLiquidoId: frasco._id });
+
+    expect(batch.fungusTypeId).toBe(clonacion.fungusTypeId);
+    expect(batch.origenFrascoLiquidoId).toBe(frasco._id);
+  });
+
+  it("rechaza un frasco liquido inexistente con 400", async () => {
+    const grainType = await makeGrainType();
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        origenFrascoLiquidoId: "507f1f77bcf86cd799439011",
+        tipoGranoId: grainType._id,
+        pesoGranoKg: 10,
+        precioPorKg: 100,
+        cantidadFrascos: 2,
+        fechaInicio: new Date().toISOString(),
+      },
+    });
+
+    expect(status).toBe(400);
+    expect(json.error).toMatch(/no existe/i);
+  });
+
+  it("rechaza un frasco liquido que no esta 'valido' (ej. contaminado) con 409", async () => {
+    const clonacion = await makeClonacion({ cantidadPlacas: 1 });
+    const [placaId] = await colonizarPlacas([clonacion.placas[0]]);
+    const frasco = await makeFrascoLiquido({ origenPlacaId: placaId });
+
+    const { PATCH } = await import("@/app/api/frascos-liquidos/[id]/route");
+    await callRoute(PATCH, {
+      method: "PATCH",
+      params: { id: frasco._id },
+      body: { estado: "contaminado" },
+    });
+
+    const grainType = await makeGrainType();
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        origenFrascoLiquidoId: frasco._id,
+        tipoGranoId: grainType._id,
+        pesoGranoKg: 10,
+        precioPorKg: 100,
+        cantidadFrascos: 2,
+        fechaInicio: new Date().toISOString(),
+      },
+    });
+
+    expect(status).toBe(409);
+    expect(json.error).toMatch(/no está disponible/i);
   });
 });
 

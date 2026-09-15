@@ -1,6 +1,8 @@
 import { differenceInCalendarDays } from "date-fns";
 import type { JarEstado } from "@/models/Jar";
 import type { RecipienteEstado } from "@/models/Recipiente";
+import type { PlacaEstado } from "@/models/Placa";
+import type { FrascoLiquidoEstado } from "@/models/FrascoLiquido";
 
 /**
  * v2: ya no hay un unico Batch-documento con todas las etapas embebidas.
@@ -28,6 +30,7 @@ export interface LeanBatch {
   _id?: unknown;
   numeroLote: string;
   fungusTypeId: unknown;
+  origenFrascoLiquidoId?: unknown;
   inoculacionGrano: {
     tipoGranoId: unknown;
     pesoGranoKg: number;
@@ -264,6 +267,73 @@ export function resumenLote(
     diasDeDemora,
     diasIncubacionPromedio,
     diasFructificacionPromedio,
+  };
+}
+
+// --- Clonacion / Placa / FrascoLiquido ------------------------------------
+
+export interface LeanClonacion {
+  _id?: unknown;
+  numeroLote: string;
+  fungusTypeId: unknown;
+  colonizacion: {
+    cantidadPlacas: number;
+    fechaInicio: Date | string;
+    diasEsperados: number;
+  };
+}
+
+export interface LeanPlaca {
+  _id?: unknown;
+  clonacionId?: unknown;
+  numeroPlaca: string;
+  estado: PlacaEstado;
+}
+
+export interface LeanFrascoLiquido {
+  _id?: unknown;
+  clonacionId?: unknown;
+  origenPlacaId?: unknown;
+  etiqueta: string;
+  estado: FrascoLiquidoEstado;
+}
+
+/** Una placa esta demorada si sigue 'colonizando' mas alla de lo esperado. */
+export function alertaPlaca(
+  clonacion: LeanClonacion,
+  placa: LeanPlaca
+): boolean {
+  if (placa.estado !== "colonizando") return false;
+  const dias = diasEnEtapa(clonacion.colonizacion?.fechaInicio);
+  return dias !== null && dias > (clonacion.colonizacion?.diasEsperados ?? 0);
+}
+
+export interface ResumenClonacion {
+  placasColonizando: number;
+  placasColonizado: number;
+  placasContaminado: number;
+  frascosLiquidosValidos: number;
+  frascosLiquidosVacios: number;
+  frascosLiquidosFinalizados: number;
+  frascosLiquidosContaminados: number;
+  alertas: number;
+}
+
+/** Rollup de metricas de una clonacion a partir de sus placas y frascos liquidos. */
+export function resumenClonacion(
+  clonacion: LeanClonacion,
+  placas: LeanPlaca[],
+  frascosLiquidos: LeanFrascoLiquido[]
+): ResumenClonacion {
+  return {
+    placasColonizando: placas.filter((p) => p.estado === "colonizando").length,
+    placasColonizado: placas.filter((p) => p.estado === "colonizado").length,
+    placasContaminado: placas.filter((p) => p.estado === "contaminado").length,
+    frascosLiquidosValidos: frascosLiquidos.filter((f) => f.estado === "valido").length,
+    frascosLiquidosVacios: frascosLiquidos.filter((f) => f.estado === "vacio").length,
+    frascosLiquidosFinalizados: frascosLiquidos.filter((f) => f.estado === "finalizado").length,
+    frascosLiquidosContaminados: frascosLiquidos.filter((f) => f.estado === "contaminado").length,
+    alertas: placas.filter((p) => alertaPlaca(clonacion, p)).length,
   };
 }
 

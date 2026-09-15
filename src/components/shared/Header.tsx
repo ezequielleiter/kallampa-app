@@ -12,7 +12,8 @@ import { apiFetch } from "@/lib/api-client";
 import type { JarSearchResult } from "@/lib/types";
 
 const NAV_LINKS = [
-  { href: "/", label: "Lotes" },
+  { href: "/", label: "Producción" },
+  { href: "/clonacion", label: "Clonación" },
   { href: "/frascos", label: "Frascos" },
   { href: "/catalogos", label: "Catálogos" },
   { href: "/estadisticas", label: "Estadísticas" },

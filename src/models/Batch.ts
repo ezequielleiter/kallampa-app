@@ -21,6 +21,11 @@ export interface InoculacionGrano {
 export interface BatchDoc extends Document {
   numeroLote: string;
   fungusTypeId: Types.ObjectId;
+  // Si el lote se inicio a partir de un frasco de micelio liquido de
+  // Clonacion (en vez de elegir el tipo de hongo directamente), queda
+  // registrado aca para trazabilidad. fungusTypeId siempre se completa (se
+  // deriva del frasco cuando este campo esta presente).
+  origenFrascoLiquidoId?: Types.ObjectId;
   inoculacionGrano: InoculacionGrano;
   createdAt: Date;
   updatedAt: Date;
@@ -46,6 +51,10 @@ const batchSchema = new Schema<BatchDoc>(
       ref: "FungusType",
       required: true,
       index: true,
+    },
+    origenFrascoLiquidoId: {
+      type: Schema.Types.ObjectId,
+      ref: "FrascoLiquido",
     },
     inoculacionGrano: { type: inoculacionGranoSchema, required: true },
   },

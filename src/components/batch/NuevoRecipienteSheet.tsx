@@ -27,12 +27,16 @@ import {
 import { apiFetch } from "@/lib/api-client";
 import type { FungusType, Jar, Recipiente, SubstrateType } from "@/lib/types";
 
-// Schema local: `POST /api/recipientes` es un endpoint nuevo de v2, no hay
-// un archivo en `src/lib/validations/**` para reusar (esa carpeta es
-// responsabilidad del otro agente, que la esta reescribiendo en paralelo).
+// Schema LOCAL, no importado de `src/lib/validations/recipiente.schema.ts`
+// (que sí ya tiene el shape equivalente): ese archivo importa
+// `RECIPIENTE_ESTADOS` desde `@/models/Recipiente` para re-exportarlo, y
+// cualquier import de ese archivo desde un Client Component arrastraría
+// mongoose entero al bundle del navegador (rompe `next build`).
+const objectIdString = z.string().min(1, "Id requerido");
 const nuevoRecipienteSchema = z.object({
-  origenFrascoIds: z.array(z.string()).min(1, "Seleccioná al menos un frasco de origen"),
-  tipoSustratoId: z.string().min(1, "Elegí un tipo de sustrato"),
+  batchId: objectIdString,
+  origenFrascoIds: z.array(objectIdString).min(1, "Seleccioná al menos un frasco de origen"),
+  tipoSustratoId: objectIdString,
   pesoSustratoKg: z.number().positive(),
   precioPorKg: z.number().positive(),
   fechaInicioIncubacion: z.coerce.date(),
@@ -72,7 +76,8 @@ export function NuevoRecipienteSheet({
   } = useForm({
     resolver: zodResolver(nuevoRecipienteSchema),
     defaultValues: {
-      origenFrascoIds: [],
+      batchId,
+      origenFrascoIds: [] as string[],
       diasEsperadosIncubacion: fungusType.diasEsperadosDefault.incubacion,
     },
   });
@@ -81,6 +86,7 @@ export function NuevoRecipienteSheet({
     if (!open) return;
     void Promise.resolve().then(() => {
       reset({
+        batchId,
         origenFrascoIds: [],
         diasEsperadosIncubacion: fungusType.diasEsperadosDefault.incubacion,
       });
@@ -99,7 +105,7 @@ export function NuevoRecipienteSheet({
     try {
       await apiFetch<Recipiente>("/api/recipientes", {
         method: "POST",
-        body: JSON.stringify({ batchId, ...data }),
+        body: JSON.stringify(data),
       });
       toast.success("Recipiente creado");
       onOpenChange(false);

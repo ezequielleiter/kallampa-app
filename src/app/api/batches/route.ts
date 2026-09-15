@@ -5,6 +5,8 @@ import Batch from "@/models/Batch";
 import Jar from "@/models/Jar";
 import Recipiente from "@/models/Recipiente";
 import FungusType from "@/models/FungusType";
+import FrascoLiquido from "@/models/FrascoLiquido";
+import Clonacion from "@/models/Clonacion";
 import { ok, fail, handleApiError, badRequest } from "@/lib/api-utils";
 import { createBatchSchema } from "@/lib/validations/batch.schema";
 import { getNextNumeroLote } from "@/lib/counters";
@@ -16,6 +18,7 @@ export async function GET() {
 
     const batches = (await Batch.find({})
       .populate("fungusTypeId")
+      .populate("origenFrascoLiquidoId", "etiqueta")
       .sort({ createdAt: -1 })
       .lean()) as unknown as (LeanBatch & { _id: unknown })[];
 
@@ -50,6 +53,7 @@ export async function GET() {
         _id: batch._id,
         numeroLote: batch.numeroLote,
         fungusTypeId: batch.fungusTypeId,
+        origenFrascoLiquidoId: batch.origenFrascoLiquidoId,
         inoculacionGrano: batch.inoculacionGrano,
         estadoDerivado: resumen.estadoDerivado,
         alertas: resumen.alertas,
@@ -68,7 +72,29 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const parsed = createBatchSchema.parse(body);
 
-    const fungusType = await FungusType.findById(parsed.fungusTypeId).lean();
+    let fungusTypeId = parsed.fungusTypeId;
+    let origenFrascoLiquidoId: string | undefined;
+
+    if (parsed.origenFrascoLiquidoId) {
+      const frascoLiquido = await FrascoLiquido.findById(parsed.origenFrascoLiquidoId).lean();
+      if (!frascoLiquido) {
+        return fail("El frasco de micelio líquido indicado no existe", 400);
+      }
+      if (frascoLiquido.estado !== "valido") {
+        return fail(
+          `El frasco de micelio líquido '${frascoLiquido.etiqueta}' no está disponible (estado actual: '${frascoLiquido.estado}')`,
+          409
+        );
+      }
+      const clonacion = await Clonacion.findById(frascoLiquido.clonacionId).lean();
+      if (!clonacion) {
+        return fail("La clonación de origen del frasco ya no existe", 400);
+      }
+      fungusTypeId = String(clonacion.fungusTypeId);
+      origenFrascoLiquidoId = parsed.origenFrascoLiquidoId;
+    }
+
+    const fungusType = await FungusType.findById(fungusTypeId).lean();
     if (!fungusType) {
       return fail("El tipo de hongo indicado no existe", 400);
     }
@@ -95,7 +121,8 @@ export async function POST(req: NextRequest) {
 
     const batch = await Batch.create({
       numeroLote,
-      fungusTypeId: parsed.fungusTypeId,
+      fungusTypeId,
+      ...(origenFrascoLiquidoId ? { origenFrascoLiquidoId } : {}),
       inoculacionGrano: {
         tipoGranoId: parsed.tipoGranoId,
         pesoGranoKg: parsed.pesoGranoKg,

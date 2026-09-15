@@ -97,6 +97,7 @@ export async function makeSubstrateType(overrides: Record<string, unknown> = {})
 
 export interface MakeBatchOpts {
   fungusTypeId?: string;
+  origenFrascoLiquidoId?: string;
   tipoGranoId?: string;
   pesoGranoKg?: number;
   precioPorKg?: number;
@@ -105,17 +106,24 @@ export interface MakeBatchOpts {
   diasEsperados?: number;
 }
 
-/** Crea fungusType + grainType de soporte si no se pasan, y crea el batch (+ sus jars). */
+/**
+ * Crea fungusType + grainType de soporte si no se pasan, y crea el batch
+ * (+ sus jars). El lote se puede iniciar con un `fungusTypeId` directo (por
+ * default) o con `origenFrascoLiquidoId` (el hongo se deriva del frasco) --
+ * si se pasa este ultimo, NO se autocompleta fungusTypeId.
+ */
 export async function makeBatch(opts: MakeBatchOpts = {}) {
   const { POST } = await import("@/app/api/batches/route");
 
-  const fungusTypeId = opts.fungusTypeId ?? (await makeFungusType())._id;
+  const fungusTypeId =
+    opts.fungusTypeId ?? (opts.origenFrascoLiquidoId ? undefined : (await makeFungusType())._id);
   const tipoGranoId = opts.tipoGranoId ?? (await makeGrainType())._id;
 
   const { status, json } = await callRoute(POST, {
     method: "POST",
     body: {
-      fungusTypeId,
+      ...(fungusTypeId ? { fungusTypeId } : {}),
+      ...(opts.origenFrascoLiquidoId ? { origenFrascoLiquidoId: opts.origenFrascoLiquidoId } : {}),
       tipoGranoId,
       pesoGranoKg: opts.pesoGranoKg ?? 10,
       precioPorKg: opts.precioPorKg ?? 500,
@@ -153,7 +161,7 @@ export interface MakeRecipienteOpts {
   diasEsperadosIncubacion?: number;
 }
 
-/** Crea un recipiente a partir de frascos ya colonizados de un batch. */
+/** Crea un recipiente a partir de uno o mas frascos de grano ya colonizados (Jar). */
 export async function makeRecipiente(opts: MakeRecipienteOpts) {
   const { POST } = await import("@/app/api/recipientes/route");
   const tipoSustratoId = opts.tipoSustratoId ?? (await makeSubstrateType())._id;
@@ -199,6 +207,74 @@ export async function fructificarRecipiente(
   });
   if (status !== 200) {
     throw new Error(`No se pudo fructificar el recipiente de fixture: ${JSON.stringify(json)}`);
+  }
+  return json.data;
+}
+
+export interface MakeClonacionOpts {
+  fungusTypeId?: string;
+  cantidadPlacas?: number;
+  fechaInicio?: string;
+  diasEsperados?: number;
+}
+
+/** Crea un fungusType (con colonizacionPlacas por default) si no se pasa, y crea la clonacion (+ sus placas). */
+export async function makeClonacion(opts: MakeClonacionOpts = {}) {
+  const { POST } = await import("@/app/api/clonaciones/route");
+
+  const fungusTypeId =
+    opts.fungusTypeId ??
+    (
+      await makeFungusType({
+        diasEsperadosDefault: { ...DEFAULT_DIAS_ESPERADOS, colonizacionPlacas: 15 },
+      })
+    )._id;
+
+  const { status, json } = await callRoute(POST, {
+    method: "POST",
+    body: {
+      fungusTypeId,
+      cantidadPlacas: opts.cantidadPlacas ?? 3,
+      fechaInicio: opts.fechaInicio ?? new Date().toISOString(),
+      ...(opts.diasEsperados !== undefined ? { diasEsperados: opts.diasEsperados } : {}),
+    },
+  });
+  if (status !== 201) {
+    throw new Error(`No se pudo crear clonacion de fixture: ${JSON.stringify(json)}`);
+  }
+  return json.data;
+}
+
+/** Marca N placas de una clonacion (ya creada) como 'colonizado' y devuelve sus ids. */
+export async function colonizarPlacas(placas: { _id: string }[]) {
+  const { PATCH } = await import("@/app/api/placas/[id]/route");
+  for (const placa of placas) {
+    await callRoute(PATCH, {
+      method: "PATCH",
+      params: { id: placa._id },
+      body: { estado: "colonizado" },
+    });
+  }
+  return placas.map((p) => p._id);
+}
+
+export interface MakeFrascoLiquidoOpts {
+  origenPlacaId: string;
+  fechaCreacion?: string;
+}
+
+/** Crea un frasco liquido a partir de una placa ya colonizada. */
+export async function makeFrascoLiquido(opts: MakeFrascoLiquidoOpts) {
+  const { POST } = await import("@/app/api/frascos-liquidos/route");
+  const { status, json } = await callRoute(POST, {
+    method: "POST",
+    body: {
+      origenPlacaId: opts.origenPlacaId,
+      fechaCreacion: opts.fechaCreacion ?? new Date().toISOString(),
+    },
+  });
+  if (status !== 201) {
+    throw new Error(`No se pudo crear frasco liquido de fixture: ${JSON.stringify(json)}`);
   }
   return json.data;
 }

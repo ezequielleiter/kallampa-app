@@ -23,6 +23,9 @@ const createdIds = {
   substrateTypeId: null,
   batchId: null,
   recipienteId: null,
+  clonacionId: null,
+  batchLiquidoId: null,
+  recipienteLiquidoId: null,
 };
 
 async function api(method, path, body) {
@@ -56,6 +59,7 @@ async function main() {
       inoculacionGrano: 14,
       incubacion: 20,
       fructificacion: 3, // "3 dias esperados" pedido explicitamente para fructificacion
+      colonizacionPlacas: 12,
     },
   });
   createdIds.fungusTypeId = fungusType._id;
@@ -246,6 +250,91 @@ async function main() {
   );
   console.log("estadoDerivado en listado:", loteEnListado.estadoDerivado, "(correcto: queda un frasco colonizando)");
 
+  // 9. Flujo de Clonacion: placas -> frascos liquidos -> recipiente
+  console.log("\n-- Clonacion: creando 2 placas --");
+  const clonacion = await api("POST", "/api/clonaciones", {
+    fungusTypeId: fungusType._id,
+    cantidadPlacas: 2,
+    fechaInicio: new Date(Date.now() - 15 * 24 * 3600 * 1000).toISOString(),
+  });
+  createdIds.clonacionId = clonacion._id;
+  assert(/^C-\d{4}-\d{3}$/.test(clonacion.numeroLote), "numeroLote de clonacion con formato invalido");
+  assert(clonacion.placas?.length === 2, "la clonacion deberia tener 2 placas");
+  assert(
+    clonacion.colonizacion.diasEsperados === 12,
+    "deberia haber tomado diasEsperadosDefault.colonizacionPlacas (12) del hongo"
+  );
+  console.log("Clonacion creada:", clonacion.numeroLote, "placas:", clonacion.placas.map((p) => p.numeroPlaca).join(", "));
+
+  const [placa1] = clonacion.placas;
+  await api("PATCH", `/api/placas/${placa1._id}`, { estado: "colonizado" });
+  console.log("Placa 1 colonizada:", placa1.numeroPlaca);
+
+  console.log("\n-- Creando 2 frascos liquidos desde la MISMA placa --");
+  const fl1 = await api("POST", "/api/frascos-liquidos", {
+    origenPlacaId: placa1._id,
+    fechaCreacion: new Date().toISOString(),
+  });
+  const fl2 = await api("POST", "/api/frascos-liquidos", {
+    origenPlacaId: placa1._id,
+    fechaCreacion: new Date().toISOString(),
+  });
+  assert(fl1.etiqueta === `${clonacion.numeroLote}-L01`, "etiqueta de fl1 mal formada");
+  assert(fl2.etiqueta === `${clonacion.numeroLote}-L02`, "etiqueta de fl2 mal formada");
+  console.log("Frascos liquidos creados (misma placa reusada):", fl1.etiqueta, fl2.etiqueta);
+
+  const placaDespues = await api("GET", `/api/placas?clonacionId=${clonacion._id}`);
+  assert(
+    placaDespues.find((p) => p._id === placa1._id).estado === "colonizado",
+    "la placa de origen no deberia cambiar de estado al usarse"
+  );
+  console.log("Placa de origen sigue 'colonizado' (no se consume) OK");
+
+  // Usamos un batch separado (no el `batch` principal) para no alterar los
+  // numeros de resumenLote()/stats que se verifican mas abajo con datos
+  // fijos.
+  console.log("\n-- Creando un recipiente SOLO con origen liquido (batch separado) --");
+  const batchLiquido = await api("POST", "/api/batches", {
+    fungusTypeId: fungusType._id,
+    tipoGranoId: grainType._id,
+    pesoGranoKg: 1,
+    precioPorKg: 500,
+    cantidadFrascos: 1,
+    fechaInicio: new Date().toISOString(),
+  });
+  createdIds.batchLiquidoId = batchLiquido._id;
+
+  const recipienteLiquido = await api("POST", "/api/recipientes", {
+    batchId: batchLiquido._id,
+    origenFrascosLiquidosIds: [fl1._id],
+    tipoSustratoId: substrateType._id,
+    pesoSustratoKg: 5,
+    precioPorKg: 100,
+    fechaInicioIncubacion: new Date().toISOString(),
+  });
+  createdIds.recipienteLiquidoId = recipienteLiquido._id;
+  assert(
+    recipienteLiquido.origenFrascoIds.length === 0 &&
+      recipienteLiquido.origenFrascosLiquidosIds[0] === fl1._id,
+    "el recipiente deberia haberse creado solo con origen liquido"
+  );
+  console.log("Recipiente creado solo con frasco liquido:", recipienteLiquido.numeroSeguimiento);
+
+  // Un recipiente sin ningun origen debe fallar con 400 (Zod)
+  try {
+    await api("POST", "/api/recipientes", {
+      batchId: batchLiquido._id,
+      tipoSustratoId: substrateType._id,
+      pesoSustratoKg: 5,
+      precioPorKg: 100,
+      fechaInicioIncubacion: new Date().toISOString(),
+    });
+    throw new Error("Se esperaba que un recipiente sin origen fallara");
+  } catch (err) {
+    assert(err.message.includes("400"), "recipiente sin origen deberia devolver 400");
+    console.log("Recipiente sin ningun origen rechazado correctamente (400) OK");
+  }
+
   // 9. resumenLote() via /api/stats
   console.log("\n-- resumenLote() via /api/stats --");
   const stats = await api("GET", "/api/stats");
@@ -289,6 +378,28 @@ async function cleanup() {
     });
     await db.collection("batches").deleteOne({
       _id: new mongoose.Types.ObjectId(createdIds.batchId),
+    });
+  }
+  if (createdIds.batchLiquidoId) {
+    await db.collection("jars").deleteMany({
+      batchId: new mongoose.Types.ObjectId(createdIds.batchLiquidoId),
+    });
+    await db.collection("recipientes").deleteMany({
+      batchId: new mongoose.Types.ObjectId(createdIds.batchLiquidoId),
+    });
+    await db.collection("batches").deleteOne({
+      _id: new mongoose.Types.ObjectId(createdIds.batchLiquidoId),
+    });
+  }
+  if (createdIds.clonacionId) {
+    await db.collection("placas").deleteMany({
+      clonacionId: new mongoose.Types.ObjectId(createdIds.clonacionId),
+    });
+    await db.collection("frascos_liquidos").deleteMany({
+      clonacionId: new mongoose.Types.ObjectId(createdIds.clonacionId),
+    });
+    await db.collection("clonaciones").deleteOne({
+      _id: new mongoose.Types.ObjectId(createdIds.clonacionId),
     });
   }
   if (createdIds.fungusTypeId) {

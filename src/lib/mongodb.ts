@@ -12,6 +12,9 @@ import "@/models/SubstrateType";
 import "@/models/Batch";
 import "@/models/Jar";
 import "@/models/Recipiente";
+import "@/models/Clonacion";
+import "@/models/Placa";
+import "@/models/FrascoLiquido";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 

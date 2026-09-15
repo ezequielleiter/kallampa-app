@@ -55,6 +55,50 @@ export const JAR_ESTADO_BADGE_VARIANT: Record<
   usado: "outline",
 };
 
+// --- Placa (Clonación, entidad nueva) ------------------------------------
+
+export const PLACA_ESTADOS = ["colonizando", "colonizado", "contaminado"] as const;
+
+export type PlacaEstado = (typeof PLACA_ESTADOS)[number];
+
+export const PLACA_ESTADO_LABELS: Record<PlacaEstado, string> = {
+  colonizando: "Colonizando",
+  colonizado: "Colonizado",
+  contaminado: "Contaminado",
+};
+
+export const PLACA_ESTADO_BADGE_VARIANT: Record<
+  PlacaEstado,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  colonizando: "secondary",
+  colonizado: "default",
+  contaminado: "destructive",
+};
+
+// --- Frasco de micelio líquido (Clonación, entidad nueva) ----------------
+
+export const FRASCO_LIQUIDO_ESTADOS = ["valido", "vacio", "finalizado", "contaminado"] as const;
+
+export type FrascoLiquidoEstado = (typeof FRASCO_LIQUIDO_ESTADOS)[number];
+
+export const FRASCO_LIQUIDO_ESTADO_LABELS: Record<FrascoLiquidoEstado, string> = {
+  valido: "Válido",
+  vacio: "Vacío",
+  finalizado: "Finalizado",
+  contaminado: "Contaminado",
+};
+
+export const FRASCO_LIQUIDO_ESTADO_BADGE_VARIANT: Record<
+  FrascoLiquidoEstado,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
+  valido: "default",
+  vacio: "outline",
+  finalizado: "secondary",
+  contaminado: "destructive",
+};
+
 // --- Recipiente (v2, entidad nueva) --------------------------------------
 
 export const RECIPIENTE_ESTADOS = [

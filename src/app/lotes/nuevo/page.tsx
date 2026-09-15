@@ -17,22 +17,33 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api-client";
-import type { FungusType, GrainType, Batch } from "@/lib/types";
+import type { FungusType, GrainType, Batch, FrascoLiquido } from "@/lib/types";
 import {
   createBatchSchema,
   type CreateBatchInput,
 } from "@/lib/validations/batch.schema";
 
+/** Nombre del hongo de un frasco líquido, resuelto vía su clonación. */
+function frascoLiquidoHongoNombre(f: FrascoLiquido): string {
+  return typeof f.clonacionId === "object" ? f.clonacionId.fungusTypeId?.nombre ?? "—" : "—";
+}
+
+type OrigenLote = "hongo" | "frascoLiquido";
+
 export default function NuevoLotePage() {
   const router = useRouter();
+  const [origen, setOrigen] = useState<OrigenLote>("hongo");
   const [fungusTypes, setFungusTypes] = useState<FungusType[]>([]);
   const [grainTypes, setGrainTypes] = useState<GrainType[]>([]);
+  const [frascosLiquidos, setFrascosLiquidos] = useState<FrascoLiquido[]>([]);
+  const [loadingFrascosLiquidos, setLoadingFrascosLiquidos] = useState(false);
 
   const {
     register,
     handleSubmit,
     control,
     setValue,
+    resetField,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(createBatchSchema),
@@ -43,11 +54,40 @@ export default function NuevoLotePage() {
     apiFetch<GrainType[]>("/api/grain-types?activo=true").then(setGrainTypes);
   }, []);
 
+  useEffect(() => {
+    if (origen !== "frascoLiquido" || frascosLiquidos.length > 0) return;
+    void Promise.resolve().then(() => {
+      setLoadingFrascosLiquidos(true);
+      apiFetch<FrascoLiquido[]>("/api/frascos-liquidos?estado=valido")
+        .then(setFrascosLiquidos)
+        .finally(() => setLoadingFrascosLiquidos(false));
+    });
+  }, [origen, frascosLiquidos.length]);
+
+  function handleOrigenChange(next: OrigenLote) {
+    setOrigen(next);
+    resetField("fungusTypeId");
+    resetField("origenFrascoLiquidoId");
+    resetField("diasEsperados");
+  }
+
   function handleFungusChange(id: string | null, onChange: (v: string | null) => void) {
     onChange(id);
     const fungusType = fungusTypes.find((f) => f._id === id);
     if (fungusType) {
       setValue("diasEsperados", fungusType.diasEsperadosDefault.inoculacionGrano);
+    }
+  }
+
+  function handleFrascoLiquidoChange(id: string | null, onChange: (v: string | null) => void) {
+    onChange(id);
+    const frasco = frascosLiquidos.find((f) => f._id === id);
+    const diasEsperados =
+      typeof frasco?.clonacionId === "object"
+        ? frasco.clonacionId.fungusTypeId?.diasEsperadosDefault.inoculacionGrano
+        : undefined;
+    if (diasEsperados !== undefined) {
+      setValue("diasEsperados", diasEsperados);
     }
   }
 
@@ -74,33 +114,105 @@ export default function NuevoLotePage() {
         <CardContent>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-1.5">
-              <Label>Tipo de hongo</Label>
-              <Controller
-                control={control}
-                name="fungusTypeId"
-                render={({ field }) => (
-                  <Select
-                    items={fungusTypes.map((f) => ({ label: f.nombre, value: f._id }))}
-                    value={field.value}
-                    onValueChange={(v) => handleFungusChange(v, field.onChange)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Elegí un hongo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {fungusTypes.map((f) => (
-                        <SelectItem key={f._id} value={f._id}>
-                          {f.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.fungusTypeId && (
+              <Label>Origen del lote</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={origen === "hongo" ? "default" : "outline"}
+                  onClick={() => handleOrigenChange("hongo")}
+                >
+                  Tipo de hongo
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={origen === "frascoLiquido" ? "default" : "outline"}
+                  onClick={() => handleOrigenChange("frascoLiquido")}
+                >
+                  Frasco de micelio líquido
+                </Button>
+              </div>
+              {errors.fungusTypeId && origen === "frascoLiquido" && (
                 <p className="text-xs text-destructive">{errors.fungusTypeId.message}</p>
               )}
             </div>
+
+            {origen === "hongo" ? (
+              <div className="flex flex-col gap-1.5">
+                <Label>Tipo de hongo</Label>
+                <Controller
+                  control={control}
+                  name="fungusTypeId"
+                  render={({ field }) => (
+                    <Select
+                      items={fungusTypes.map((f) => ({ label: f.nombre, value: f._id }))}
+                      value={field.value}
+                      onValueChange={(v) => handleFungusChange(v, field.onChange)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Elegí un hongo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {fungusTypes.map((f) => (
+                          <SelectItem key={f._id} value={f._id}>
+                            {f.nombre}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.fungusTypeId && (
+                  <p className="text-xs text-destructive">{errors.fungusTypeId.message}</p>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1.5">
+                <Label>Frasco de micelio líquido</Label>
+                <p className="text-xs text-muted-foreground">
+                  El tipo de hongo se toma de la clonación de origen del frasco elegido.
+                </p>
+                <Controller
+                  control={control}
+                  name="origenFrascoLiquidoId"
+                  render={({ field }) => (
+                    <Select
+                      items={frascosLiquidos.map((f) => ({
+                        label: `${f.etiqueta} — ${frascoLiquidoHongoNombre(f)}`,
+                        value: f._id,
+                      }))}
+                      value={field.value}
+                      onValueChange={(v) => handleFrascoLiquidoChange(v, field.onChange)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue
+                          placeholder={
+                            loadingFrascosLiquidos
+                              ? "Cargando…"
+                              : frascosLiquidos.length === 0
+                                ? "No hay frascos de micelio líquido disponibles"
+                                : "Elegí un frasco"
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {frascosLiquidos.map((f) => (
+                          <SelectItem key={f._id} value={f._id}>
+                            {f.etiqueta} — {frascoLiquidoHongoNombre(f)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {errors.origenFrascoLiquidoId && (
+                  <p className="text-xs text-destructive">
+                    {errors.origenFrascoLiquidoId.message}
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="flex flex-col gap-1.5">
               <Label>Tipo de grano</Label>

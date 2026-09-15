@@ -59,6 +59,10 @@ const recipienteSchema = new Schema<RecipienteDoc>(
       index: true,
     },
     numeroSeguimiento: { type: String, required: true, unique: true },
+    // Los frascos de micelio liquido de Clonacion NO originan recipientes
+    // directamente -- se usan para iniciar un lote nuevo (ver
+    // Batch.origenFrascoLiquidoId). Un recipiente siempre viene de uno o
+    // mas Jars (frascos de grano) de ESTE lote.
     origenFrascoIds: {
       type: [{ type: Schema.Types.ObjectId, ref: "Jar" }],
       required: true,
