@@ -78,6 +78,11 @@ export function FungusTypeTable() {
               <TableRow key={item._id}>
                 <TableCell className="font-medium">
                   {item.nombre}
+                  {item.iniciales && (
+                    <Badge variant="outline" className="ml-1.5 align-middle">
+                      {item.iniciales}
+                    </Badge>
+                  )}
                   {item.nombreCientifico && (
                     <span className="ml-1 text-xs text-muted-foreground">
                       ({item.nombreCientifico})

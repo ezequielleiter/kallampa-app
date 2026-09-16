@@ -140,7 +140,8 @@ export async function POST(req: NextRequest) {
 
     // Armamos y validamos todo en memoria antes de persistir nada, mismo
     // criterio que POST /api/batches.
-    const numeroLote = await getNextNumeroClonacion(parsed.fechaInicio);
+    const numeroLoteBase = await getNextNumeroClonacion(parsed.fechaInicio);
+    const numeroLote = fungusType.iniciales ? `${fungusType.iniciales}-${numeroLoteBase}` : numeroLoteBase;
 
     const placasToCreate = Array.from(
       { length: parsed.cantidadPlacas },

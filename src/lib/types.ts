@@ -28,6 +28,7 @@ export interface FungusType {
   nombre: string;
   nombreCientifico?: string;
   notas?: string;
+  iniciales?: string;
   activo: boolean;
   diasEsperadosDefault: DiasEsperadosDefault;
   createdAt?: string;

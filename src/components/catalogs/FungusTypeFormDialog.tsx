@@ -2,6 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { z } from "zod";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -42,11 +43,12 @@ export function FungusTypeFormDialog({
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<FungusTypeCreateInput>({
+  } = useForm<z.input<typeof fungusTypeCreateSchema>, unknown, FungusTypeCreateInput>({
     resolver: zodResolver(fungusTypeCreateSchema),
     defaultValues: {
       nombre: fungusType?.nombre ?? "",
       nombreCientifico: fungusType?.nombreCientifico ?? "",
+      iniciales: fungusType?.iniciales ?? "",
       notas: fungusType?.notas ?? "",
       diasEsperadosDefault: {
         inoculacionGrano: fungusType?.diasEsperadosDefault.inoculacionGrano ?? 14,
@@ -96,6 +98,16 @@ export function FungusTypeFormDialog({
           <div className="flex flex-col gap-1.5">
             <Label>Nombre científico (opcional)</Label>
             <Input {...register("nombreCientifico")} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>Iniciales (opcional)</Label>
+            <Input {...register("iniciales")} maxLength={4} className="uppercase" />
+            <p className="text-xs text-muted-foreground">
+              Se antepone a los códigos generados (ej: &quot;OST&quot; → OST-L-2026-003-F01).
+            </p>
+            {errors.iniciales && (
+              <p className="text-xs text-destructive">{errors.iniciales.message}</p>
+            )}
           </div>
           <div className="flex flex-col gap-1.5">
             <Label>Notas (opcional)</Label>

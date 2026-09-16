@@ -11,6 +11,8 @@ import {
   fructificarRecipiente,
 } from "@/test-utils/api-test-helpers";
 
+const DIAS_CON_PLACAS = { inoculacionGrano: 14, incubacion: 20, fructificacion: 10, colonizacionPlacas: 15 };
+
 describe("POST /api/clonaciones", () => {
   it("crea la clonacion con numeroLote correlativo y sus placas P01..Pnn", async () => {
     const clonacion = await makeClonacion({ cantidadPlacas: 3 });
@@ -25,6 +27,16 @@ describe("POST /api/clonaciones", () => {
     expect(clonacion.placas.every((p: { estado: string }) => p.estado === "colonizando")).toBe(
       true
     );
+  });
+
+  it("prefija numeroLote y numeroPlaca con las iniciales del hongo cuando estan configuradas", async () => {
+    const fungusType = await makeFungusType({ iniciales: "OST", diasEsperadosDefault: DIAS_CON_PLACAS });
+    const clonacion = await makeClonacion({ fungusTypeId: fungusType._id, cantidadPlacas: 2 });
+
+    expect(clonacion.numeroLote).toMatch(/^OST-C-/);
+    clonacion.placas.forEach((placa: { numeroPlaca: string }) => {
+      expect(placa.numeroPlaca).toMatch(/^OST-C-/);
+    });
   });
 
   it("el segundo lote de clonacion sigue el correlativo (C-<anio>-002)", async () => {

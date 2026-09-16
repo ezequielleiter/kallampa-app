@@ -27,6 +27,16 @@ describe("POST /api/batches", () => {
     });
   });
 
+  it("prefija numeroLote y numeroGuia con las iniciales del hongo cuando estan configuradas", async () => {
+    const fungusType = await makeFungusType({ iniciales: "OST" });
+    const batch = await makeBatch({ fungusTypeId: fungusType._id, cantidadFrascos: 2 });
+
+    expect(batch.numeroLote).toMatch(/^OST-L-/);
+    batch.jars.forEach((jar: { numeroGuia: string }) => {
+      expect(jar.numeroGuia).toMatch(/^OST-L-/);
+    });
+  });
+
   it("el batch creado no tiene campos de la v1 (estado, oleadas, etc)", async () => {
     const batch = await makeBatch();
     expect(batch.estado).toBeUndefined();

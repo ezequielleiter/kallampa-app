@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import FungusType from "@/models/FungusType";
-import { ok, handleApiError, notFound } from "@/lib/api-utils";
+import { ok, handleApiError, notFound, conflict } from "@/lib/api-utils";
 import { fungusTypeUpdateSchema } from "@/lib/validations/catalog.schema";
 
 // No hay DELETE fisico: "borrar" del catalogo es PATCH { activo: false }.
@@ -15,14 +15,32 @@ export async function PATCH(
     const body = await req.json();
     const parsed = fungusTypeUpdateSchema.parse(body);
 
+    const current = await FungusType.findById(id);
+    if (!current) throw notFound("Tipo de hongo no encontrado");
+
+    // Chequeo de unicidad de iniciales entre hongos activos: se evalua sobre
+    // el estado *resultante* (iniciales/activo pueden venir omitidos en el
+    // PATCH, en cuyo caso se mantiene el valor actual).
+    const inicialesFinal = parsed.iniciales !== undefined ? parsed.iniciales : current.iniciales;
+    const activoFinal = parsed.activo !== undefined ? parsed.activo : current.activo;
+
+    if (inicialesFinal && activoFinal) {
+      const existente = await FungusType.findOne({
+        _id: { $ne: id },
+        iniciales: inicialesFinal,
+        activo: true,
+      }).lean();
+      if (existente) {
+        throw conflict(`Ya existe un hongo activo con las iniciales "${inicialesFinal}" (${existente.nombre})`);
+      }
+    }
+
     const update: Record<string, unknown> = { ...parsed };
     // Merge parcial de diasEsperadosDefault para no pisar los campos no enviados
     if (parsed.diasEsperadosDefault) {
       delete update.diasEsperadosDefault;
-      const existing = await FungusType.findById(id).lean();
-      if (!existing) throw notFound("Tipo de hongo no encontrado");
       update.diasEsperadosDefault = {
-        ...existing.diasEsperadosDefault,
+        ...current.toObject().diasEsperadosDefault,
         ...parsed.diasEsperadosDefault,
       };
     }

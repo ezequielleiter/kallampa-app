@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import FungusType from "@/models/FungusType";
-import { ok, fail, handleApiError } from "@/lib/api-utils";
+import { ok, fail, handleApiError, conflict } from "@/lib/api-utils";
 import { fungusTypeCreateSchema } from "@/lib/validations/catalog.schema";
 
 // GET: listar. ?activo=true|false filtra; sin querystring devuelve todos
@@ -33,6 +33,13 @@ export async function POST(req: NextRequest) {
     const existing = await FungusType.findOne({ nombre: parsed.nombre });
     if (existing) {
       return fail("Ya existe un tipo de hongo con ese nombre", 409);
+    }
+
+    if (parsed.iniciales) {
+      const existente = await FungusType.findOne({ iniciales: parsed.iniciales, activo: true }).lean();
+      if (existente) {
+        throw conflict(`Ya existe un hongo activo con las iniciales "${parsed.iniciales}" (${existente.nombre})`);
+      }
     }
 
     const created = await FungusType.create(parsed);

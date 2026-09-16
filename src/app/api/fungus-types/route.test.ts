@@ -35,6 +35,71 @@ describe("POST /api/fungus-types", () => {
     expect(status).toBe(409);
     expect(json.error).toMatch(/ya existe/i);
   });
+
+  it("crea con iniciales en minuscula y las guarda en mayuscula", async () => {
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: { nombre: "Ostra", iniciales: "ost", diasEsperadosDefault: DIAS },
+    });
+
+    expect(status).toBe(201);
+    expect(json.data.iniciales).toBe("OST");
+  });
+
+  it("rechaza iniciales invalidas (mas de 4 letras) con 400", async () => {
+    const { status } = await callRoute(POST, {
+      method: "POST",
+      body: { nombre: "Ostra", iniciales: "ABCDE", diasEsperadosDefault: DIAS },
+    });
+
+    expect(status).toBe(400);
+  });
+
+  it("rechaza iniciales invalidas (con un digito) con 400", async () => {
+    const { status } = await callRoute(POST, {
+      method: "POST",
+      body: { nombre: "Ostra", iniciales: "O5T", diasEsperadosDefault: DIAS },
+    });
+
+    expect(status).toBe(400);
+  });
+
+  it("rechaza iniciales duplicadas entre hongos activos con 409", async () => {
+    await callRoute(POST, {
+      method: "POST",
+      body: { nombre: "Ostra", iniciales: "OST", diasEsperadosDefault: DIAS },
+    });
+
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: { nombre: "Ostra Rosa", iniciales: "OST", diasEsperadosDefault: DIAS },
+    });
+
+    expect(status).toBe(409);
+    expect(json.error).toMatch(/iniciales/i);
+  });
+
+  it("permite iniciales que coinciden con las de un hongo desactivado", async () => {
+    const { json: creado } = await callRoute(POST, {
+      method: "POST",
+      body: { nombre: "Ostra", iniciales: "OST", diasEsperadosDefault: DIAS },
+    });
+
+    const { PATCH } = await import("./[id]/route");
+    await callRoute(PATCH, {
+      method: "PATCH",
+      params: { id: creado.data._id },
+      body: { activo: false },
+    });
+
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: { nombre: "Ostra Rosa", iniciales: "OST", diasEsperadosDefault: DIAS },
+    });
+
+    expect(status).toBe(201);
+    expect(json.data.iniciales).toBe("OST");
+  });
 });
 
 describe("GET /api/fungus-types", () => {

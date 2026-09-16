@@ -11,6 +11,7 @@ export interface FungusTypeDoc extends Document {
   nombre: string;
   nombreCientifico?: string;
   notas?: string;
+  iniciales?: string;
   activo: boolean;
   diasEsperadosDefault: DiasEsperadosDefault;
   createdAt: Date;
@@ -34,6 +35,7 @@ const fungusTypeSchema = new Schema<FungusTypeDoc>(
     nombre: { type: String, required: true, unique: true, trim: true },
     nombreCientifico: { type: String },
     notas: { type: String },
+    iniciales: { type: String, trim: true, uppercase: true, match: /^[A-Z]{1,4}$/ },
     activo: { type: Boolean, default: true },
     diasEsperadosDefault: {
       type: diasEsperadosDefaultSchema,

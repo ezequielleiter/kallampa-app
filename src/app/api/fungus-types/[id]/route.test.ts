@@ -45,4 +45,65 @@ describe("PATCH /api/fungus-types/[id]", () => {
 
     expect(status).toBe(404);
   });
+
+  it("rechaza cambiar iniciales a una que ya usa otro hongo activo con 409", async () => {
+    await makeFungusType({ iniciales: "OST" });
+    const otro = await makeFungusType({ iniciales: "REI" });
+
+    const { status, json } = await callRoute(PATCH, {
+      method: "PATCH",
+      params: { id: otro._id },
+      body: { iniciales: "OST" },
+    });
+
+    expect(status).toBe(409);
+    expect(json.error).toMatch(/iniciales/i);
+  });
+
+  it("rechaza reactivar un hongo cuyas iniciales colisionan con un hongo activo con 409", async () => {
+    const original = await makeFungusType({ iniciales: "OST" });
+    await callRoute(PATCH, {
+      method: "PATCH",
+      params: { id: original._id },
+      body: { activo: false },
+    });
+    // Ahora que "OST" quedo libre (el original esta inactivo), otro hongo
+    // puede crearse con esas mismas iniciales.
+    await makeFungusType({ iniciales: "OST" });
+
+    const { status, json } = await callRoute(PATCH, {
+      method: "PATCH",
+      params: { id: original._id },
+      body: { activo: true },
+    });
+
+    expect(status).toBe(409);
+    expect(json.error).toMatch(/iniciales/i);
+  });
+
+  it("permite cambiar iniciales a un valor unico", async () => {
+    const fungusType = await makeFungusType({ iniciales: "OST" });
+
+    const { status, json } = await callRoute(PATCH, {
+      method: "PATCH",
+      params: { id: fungusType._id },
+      body: { iniciales: "REI" },
+    });
+
+    expect(status).toBe(200);
+    expect(json.data.iniciales).toBe("REI");
+  });
+
+  it("permite un PATCH que manda las mismas iniciales que ya tenia", async () => {
+    const fungusType = await makeFungusType({ iniciales: "OST" });
+
+    const { status, json } = await callRoute(PATCH, {
+      method: "PATCH",
+      params: { id: fungusType._id },
+      body: { iniciales: "OST" },
+    });
+
+    expect(status).toBe(200);
+    expect(json.data.iniciales).toBe("OST");
+  });
 });

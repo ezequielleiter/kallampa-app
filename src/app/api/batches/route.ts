@@ -110,7 +110,8 @@ export async function POST(req: NextRequest) {
 
     // Armamos y validamos todo en memoria antes de persistir nada: si algo
     // de esto fallara, no queremos un Batch huerfano sin sus Jars.
-    const numeroLote = await getNextNumeroLote(parsed.fechaInicio);
+    const numeroLoteBase = await getNextNumeroLote(parsed.fechaInicio);
+    const numeroLote = fungusType.iniciales ? `${fungusType.iniciales}-${numeroLoteBase}` : numeroLoteBase;
 
     const jarsToCreate = Array.from(
       { length: parsed.cantidadFrascos },
