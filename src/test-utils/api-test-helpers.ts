@@ -218,6 +218,8 @@ export interface MakeClonacionOpts {
   cantidadPlacas?: number;
   fechaInicio?: string;
   diasEsperados?: number;
+  origenProceso?: "placa" | "comprado" | "frascoGrano";
+  cantidadFrascos?: number;
 }
 
 /**
@@ -250,10 +252,46 @@ export async function makeClonacion(opts: MakeClonacionOpts = {}) {
       cantidadPlacas: opts.cantidadPlacas ?? 3,
       fechaInicio: opts.fechaInicio ?? new Date().toISOString(),
       ...(opts.diasEsperados !== undefined ? { diasEsperados: opts.diasEsperados } : {}),
+      ...(opts.origenProceso ? { origenProceso: opts.origenProceso } : {}),
+      ...(opts.cantidadFrascos !== undefined ? { cantidadFrascos: opts.cantidadFrascos } : {}),
     },
   });
   if (status !== 201) {
     throw new Error(`No se pudo crear clonacion de fixture: ${JSON.stringify(json)}`);
+  }
+  return json.data;
+}
+
+export interface MakeClonacionDirectaOpts {
+  origenProceso: "comprado" | "frascoGrano";
+  origenJarId?: string;
+  fungusTypeId?: string;
+  cantidadFrascos?: number;
+  fechaInicio?: Date;
+}
+
+/**
+ * Crea una clonacion por uno de los 2 caminos "directos" (sin placas):
+ * "comprado" (requiere fungusTypeId, sin origen interno) o "frascoGrano"
+ * (requiere origenJarId, el hongo se hereda del jar). A diferencia de
+ * `makeClonacion`, no autocompleta un fungusType/jar de soporte -- quien
+ * llama decide que fuente pasar segun el camino elegido.
+ */
+export async function makeClonacionDirecta(opts: MakeClonacionDirectaOpts) {
+  const { POST } = await import("@/app/api/clonaciones/route");
+
+  const { status, json } = await callRoute(POST, {
+    method: "POST",
+    body: {
+      origenProceso: opts.origenProceso,
+      ...(opts.fungusTypeId ? { fungusTypeId: opts.fungusTypeId } : {}),
+      ...(opts.origenJarId ? { origenJarId: opts.origenJarId } : {}),
+      cantidadFrascos: opts.cantidadFrascos ?? 3,
+      fechaInicio: (opts.fechaInicio ?? new Date()).toISOString(),
+    },
+  });
+  if (status !== 201) {
+    throw new Error(`No se pudo crear clonacion directa de fixture: ${JSON.stringify(json)}`);
   }
   return json.data;
 }

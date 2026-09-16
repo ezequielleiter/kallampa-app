@@ -45,9 +45,10 @@ export default function ClonacionDetailPage() {
   }
 
   const placasDemoradas = clonacion.placas.filter((p) => {
+    if (clonacion.origenProceso !== "placa") return false;
     if (p.estado !== "colonizando") return false;
-    const dias = diasTranscurridos(clonacion.colonizacion.fechaInicio);
-    return dias !== null && dias > clonacion.colonizacion.diasEsperados;
+    const dias = diasTranscurridos(clonacion.colonizacion?.fechaInicio ?? "");
+    return dias !== null && dias > (clonacion.colonizacion?.diasEsperados ?? 0);
   }).length;
 
   const origenBatch =
@@ -87,8 +88,13 @@ export default function ClonacionDetailPage() {
               ? ` (${clonacion.fungusTypeId.nombreCientifico})`
               : ""}
             {" · Iniciada el "}
-            {formatFechaCorta(clonacion.colonizacion.fechaInicio)}
+            {formatFechaCorta(clonacion.fechaInicio)}
           </p>
+          {clonacion.origenProceso !== "placa" && clonacion.cantidadFrascos !== undefined && (
+            <p className="text-sm text-muted-foreground">
+              Cantidad de frascos: <span className="font-medium">{clonacion.cantidadFrascos}</span>
+            </p>
+          )}
           {origenBatch && (
             <p className="text-sm text-muted-foreground">
               Iniciada desde el lote{" "}
@@ -101,46 +107,49 @@ export default function ClonacionDetailPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>1. Colonización de placas</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Cantidad de placas</span>
-              <span className="font-medium">{clonacion.colonizacion.cantidadPlacas}</span>
+      {clonacion.origenProceso === "placa" && (
+        <Card>
+          <CardHeader>
+            <CardTitle>1. Colonización de placas</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground">Cantidad de placas</span>
+                <span className="font-medium">{clonacion.colonizacion?.cantidadPlacas}</span>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground">Fecha de inicio</span>
+                <span className="font-medium">
+                  {formatFechaCorta(clonacion.colonizacion?.fechaInicio ?? "")}
+                </span>
+              </div>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground">Días esperados</span>
+                <span className="font-medium">{clonacion.colonizacion?.diasEsperados}</span>
+              </div>
             </div>
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Fecha de inicio</span>
-              <span className="font-medium">
-                {formatFechaCorta(clonacion.colonizacion.fechaInicio)}
-              </span>
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Días esperados</span>
-              <span className="font-medium">{clonacion.colonizacion.diasEsperados}</span>
-            </div>
-          </div>
-          {clonacion.recetaAgar && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Receta de agar</span>
-              <p className="whitespace-pre-wrap text-sm">{clonacion.recetaAgar}</p>
-            </div>
-          )}
-          <PlacasGrid placas={clonacion.placas} onChanged={cargar} />
-        </CardContent>
-      </Card>
+            {clonacion.recetaAgar && (
+              <div className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground">Receta de agar</span>
+                <p className="whitespace-pre-wrap text-sm">{clonacion.recetaAgar}</p>
+              </div>
+            )}
+            <PlacasGrid placas={clonacion.placas} onChanged={cargar} />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
-          <CardTitle>2. Micelio líquido</CardTitle>
+          <CardTitle>Micelio líquido</CardTitle>
         </CardHeader>
         <CardContent>
           <FrascosLiquidosSection
             clonacionId={clonacion._id}
             frascosLiquidos={clonacion.frascosLiquidos}
             onChanged={cargar}
+            permiteAgregar={clonacion.origenProceso === "placa"}
           />
         </CardContent>
       </Card>

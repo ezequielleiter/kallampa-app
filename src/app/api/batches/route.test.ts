@@ -8,6 +8,7 @@ import {
   colonizarJars,
   makeRecipiente,
   makeClonacion,
+  makeClonacionDirecta,
   colonizarPlacas,
   makeFrascoLiquido,
 } from "@/test-utils/api-test-helpers";
@@ -138,6 +139,21 @@ describe("POST /api/batches - origen desde un frasco de micelio liquido (Clonaci
 
     expect(status).toBe(400);
     expect(json.error).toMatch(/no existe/i);
+  });
+
+  it("acepta como origen un frasco nacido de 'comprado' (sin placa), igual que uno de 'placa'", async () => {
+    const fungusType = await makeFungusType();
+    const clonacion = await makeClonacionDirecta({
+      origenProceso: "comprado",
+      fungusTypeId: fungusType._id,
+      cantidadFrascos: 1,
+    });
+    const frasco = clonacion.frascosLiquidos[0];
+
+    const batch = await makeBatch({ cantidadFrascos: 1, origenFrascoLiquidoId: frasco._id });
+
+    expect(batch.fungusTypeId).toBe(fungusType._id);
+    expect(batch.origenFrascoLiquidoId).toBe(frasco._id);
   });
 
   it("rechaza un frasco liquido que no esta 'valido' (ej. contaminado) con 409", async () => {

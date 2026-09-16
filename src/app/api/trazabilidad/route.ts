@@ -53,7 +53,7 @@ export async function GET() {
         Recipiente.find({ batchId: { $in: batchIds } }).lean(),
         Placa.find({ clonacionId: { $in: clonacionIds } }).lean(),
         FrascoLiquido.find({ clonacionId: { $in: clonacionIds } }).lean(),
-        FrascoLiquido.find({}).select("etiqueta clonacionId").lean(),
+        FrascoLiquido.find({}).select("numeroGuia clonacionId").lean(),
       ]);
 
     const jarsByBatch = new Map<string, LeanJar[]>();
@@ -118,6 +118,7 @@ export async function GET() {
         _id: c._id,
         numeroLote: c.numeroLote,
         fungusTypeId: c.fungusTypeId,
+        origenProceso: c.origenProceso,
         origenTipo: c.origenTipo,
         origenBatchId: c.origenBatchId,
         origenJarId: c.origenJarId,
@@ -128,7 +129,7 @@ export async function GET() {
 
     const frascosLiquidosOut = todosLosFrascosLiquidos.map((f) => ({
       _id: f._id,
-      etiqueta: f.etiqueta,
+      numeroGuia: f.numeroGuia,
       clonacionId: f.clonacionId,
     }));
 

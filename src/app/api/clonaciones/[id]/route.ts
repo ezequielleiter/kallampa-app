@@ -26,7 +26,7 @@ export async function GET(
       Placa.find({ clonacionId: id }).sort({ numeroPlaca: 1 }).lean(),
       FrascoLiquido.find({ clonacionId: id })
         .populate("origenPlacaId", "numeroPlaca")
-        .sort({ etiqueta: 1 })
+        .sort({ numeroGuia: 1 })
         .lean(),
     ]);
 

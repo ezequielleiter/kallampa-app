@@ -179,7 +179,7 @@ export default function NuevoLotePage() {
                   render={({ field }) => (
                     <Select
                       items={frascosLiquidos.map((f) => ({
-                        label: `${f.etiqueta} — ${frascoLiquidoHongoNombre(f)}`,
+                        label: `${f.numeroGuia} — ${frascoLiquidoHongoNombre(f)}`,
                         value: f._id,
                       }))}
                       value={field.value}
@@ -199,7 +199,7 @@ export default function NuevoLotePage() {
                       <SelectContent>
                         {frascosLiquidos.map((f) => (
                           <SelectItem key={f._id} value={f._id}>
-                            {f.etiqueta} — {frascoLiquidoHongoNombre(f)}
+                            {f.numeroGuia} — {frascoLiquidoHongoNombre(f)}
                           </SelectItem>
                         ))}
                       </SelectContent>

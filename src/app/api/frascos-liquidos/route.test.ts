@@ -15,8 +15,8 @@ describe("POST /api/frascos-liquidos", () => {
     const f1 = await makeFrascoLiquido({ origenPlacaId: placaId });
     const f2 = await makeFrascoLiquido({ origenPlacaId: placaId });
 
-    expect(f1.etiqueta).toBe(`${clonacion.numeroLote}-L01`);
-    expect(f2.etiqueta).toBe(`${clonacion.numeroLote}-L02`);
+    expect(f1.numeroGuia).toBe(`${clonacion.numeroLote}-L01`);
+    expect(f2.numeroGuia).toBe(`${clonacion.numeroLote}-L02`);
     expect(f1.estado).toBe("valido");
     expect(String(f1.clonacionId)).toBe(clonacion._id);
 

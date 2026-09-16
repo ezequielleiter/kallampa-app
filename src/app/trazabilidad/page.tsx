@@ -138,7 +138,7 @@ export default function TrazabilidadPage() {
         typeof actual.origenFrascoLiquidoId === "string"
           ? actual.origenFrascoLiquidoId
           : undefined;
-      const frasco: { _id: string; etiqueta: string; clonacionId: string } | undefined = frascoId
+      const frasco: { _id: string; numeroGuia: string; clonacionId: string } | undefined = frascoId
         ? frascoLiquidoPorId.get(frascoId)
         : undefined;
       const clon: TrazabilidadClonacion | undefined = frasco

@@ -33,12 +33,14 @@ interface FrascosLiquidosSectionProps {
   clonacionId: string;
   frascosLiquidos: FrascoLiquido[];
   onChanged: () => void;
+  permiteAgregar: boolean;
 }
 
 export function FrascosLiquidosSection({
   clonacionId,
   frascosLiquidos,
   onChanged,
+  permiteAgregar,
 }: FrascosLiquidosSectionProps) {
   const [nuevoOpen, setNuevoOpen] = useState(false);
 
@@ -56,6 +58,7 @@ export function FrascosLiquidosSection({
   }
 
   function placaOrigenLabel(frasco: FrascoLiquido): string {
+    if (frasco.origenPlacaId === undefined) return "—";
     return typeof frasco.origenPlacaId === "object"
       ? frasco.origenPlacaId.numeroPlaca
       : frasco.origenPlacaId;
@@ -65,9 +68,11 @@ export function FrascosLiquidosSection({
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold">Frascos de micelio líquido ({frascosLiquidos.length})</h2>
-        <Button size="sm" onClick={() => setNuevoOpen(true)}>
-          <Plus /> Nuevo frasco
-        </Button>
+        {permiteAgregar && (
+          <Button size="sm" onClick={() => setNuevoOpen(true)}>
+            <Plus /> Nuevo frasco
+          </Button>
+        )}
       </div>
 
       {frascosLiquidos.length === 0 ? (
@@ -78,7 +83,7 @@ export function FrascosLiquidosSection({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Etiqueta</TableHead>
+              <TableHead>N° de guía</TableHead>
               <TableHead>Placa de origen</TableHead>
               <TableHead>Fecha</TableHead>
               <TableHead>Estado</TableHead>
@@ -88,7 +93,7 @@ export function FrascosLiquidosSection({
           <TableBody>
             {frascosLiquidos.map((frasco) => (
               <TableRow key={frasco._id}>
-                <TableCell className="font-medium">{frasco.etiqueta}</TableCell>
+                <TableCell className="font-medium">{frasco.numeroGuia}</TableCell>
                 <TableCell className="text-muted-foreground">{placaOrigenLabel(frasco)}</TableCell>
                 <TableCell>{formatFechaCorta(frasco.fechaCreacion)}</TableCell>
                 <TableCell>
@@ -129,12 +134,14 @@ export function FrascosLiquidosSection({
         </Table>
       )}
 
-      <NuevoFrascoLiquidoSheet
-        open={nuevoOpen}
-        onOpenChange={setNuevoOpen}
-        clonacionId={clonacionId}
-        onSuccess={onChanged}
-      />
+      {permiteAgregar && (
+        <NuevoFrascoLiquidoSheet
+          open={nuevoOpen}
+          onOpenChange={setNuevoOpen}
+          clonacionId={clonacionId}
+          onSuccess={onChanged}
+        />
+      )}
     </div>
   );
 }

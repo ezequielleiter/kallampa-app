@@ -76,6 +76,14 @@ export const PLACA_ESTADO_BADGE_VARIANT: Record<
   contaminado: "destructive",
 };
 
+// --- Origen de proceso de una Clonación (Micelio) ------------------------
+
+export const ORIGEN_PROCESO_LABELS: Record<"placa" | "comprado" | "frascoGrano", string> = {
+  placa: "Placas Petri",
+  comprado: "Micelio comprado",
+  frascoGrano: "Micelio de frascos de grano",
+};
+
 // --- Frasco de micelio líquido (Clonación, entidad nueva) ----------------
 
 export const FRASCO_LIQUIDO_ESTADOS = ["valido", "vacio", "finalizado", "contaminado"] as const;

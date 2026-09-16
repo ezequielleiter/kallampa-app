@@ -64,7 +64,7 @@ export default function ClonacionPage() {
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">Clonación</h1>
+        <h1 className="text-lg font-semibold">Micelio</h1>
         <Button size="sm" onClick={() => router.push("/clonacion/nueva")}>
           <Plus /> Nueva clonación
         </Button>
@@ -95,7 +95,7 @@ export default function ClonacionPage() {
               >
                 <TableCell className="font-medium">{clonacion.numeroLote}</TableCell>
                 <TableCell>{clonacion.fungusTypeId?.nombre}</TableCell>
-                <TableCell>{formatFechaCorta(clonacion.colonizacion.fechaInicio)}</TableCell>
+                <TableCell>{formatFechaCorta(clonacion.fechaInicio)}</TableCell>
                 <TableCell className="text-muted-foreground">
                   {placasResumenLabel(clonacion.resumen)}
                 </TableCell>

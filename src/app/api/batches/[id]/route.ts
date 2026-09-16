@@ -18,7 +18,7 @@ export async function GET(
     const batch = await Batch.findById(id)
       .populate("fungusTypeId")
       .populate("inoculacionGrano.tipoGranoId")
-      .populate("origenFrascoLiquidoId", "etiqueta")
+      .populate("origenFrascoLiquidoId", "numeroGuia")
       .lean();
 
     if (!batch) throw notFound("Lote no encontrado");

@@ -4,6 +4,7 @@ import {
   callRoute,
   makeFungusType,
   makeClonacion,
+  makeClonacionDirecta,
   colonizarPlacas,
   makeBatch,
   colonizarJars,
@@ -266,6 +267,111 @@ describe("POST /api/clonaciones - origen desde un Jar o Recipiente (Batch)", () 
 
     expect(status).toBe(400);
     expect(json.error).toMatch(/no se puede clonar desde un frasco y un recipiente/i);
+  });
+});
+
+describe("POST /api/clonaciones - origenProceso 'comprado'", () => {
+  it("crea la clonacion sin colonizacion y N frascos liquidos sin placa, con numeroGuia correlativo", async () => {
+    const fungusType = await makeFungusType();
+
+    const clonacion = await makeClonacionDirecta({
+      origenProceso: "comprado",
+      fungusTypeId: fungusType._id,
+      cantidadFrascos: 3,
+    });
+
+    expect(clonacion.origenProceso).toBe("comprado");
+    expect(clonacion.colonizacion).toBeUndefined();
+    expect(clonacion.frascosLiquidos).toHaveLength(3);
+    expect(
+      clonacion.frascosLiquidos.map((f: { numeroGuia: string }) => f.numeroGuia).sort()
+    ).toEqual([
+      `${clonacion.numeroLote}-L01`,
+      `${clonacion.numeroLote}-L02`,
+      `${clonacion.numeroLote}-L03`,
+    ]);
+    clonacion.frascosLiquidos.forEach((f: { origenPlacaId?: unknown; estado: string }) => {
+      expect(f.origenPlacaId).toBeUndefined();
+      expect(f.estado).toBe("valido");
+    });
+  });
+});
+
+describe("POST /api/clonaciones - origenProceso 'frascoGrano'", () => {
+  it("rechaza con 400 (Zod) si no viene origenJarId", async () => {
+    const { POST } = await import("./route");
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        origenProceso: "frascoGrano",
+        cantidadFrascos: 2,
+        fechaInicio: new Date().toISOString(),
+      },
+    });
+
+    expect(status).toBe(400);
+    expect(json.error).toMatch(/frasco de grano de origen/i);
+  });
+
+  it("rechaza con 409 un jar en estado 'colonizando' (no colonizado/usado)", async () => {
+    const { POST } = await import("./route");
+    const batch = await makeBatch({ cantidadFrascos: 1 });
+
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        origenProceso: "frascoGrano",
+        origenJarId: batch.jars[0]._id,
+        cantidadFrascos: 2,
+        fechaInicio: new Date().toISOString(),
+      },
+    });
+
+    expect(status).toBe(409);
+    expect(json.error).toMatch(/no está disponible para clonar/i);
+  });
+
+  it("con un jar 'colonizado' hereda el hongo, guarda origenTipo/origenJarId/origenBatchId y crea N frascos sin placa", async () => {
+    const fungusType = await makeFungusType();
+    const batch = await makeBatch({ fungusTypeId: fungusType._id, cantidadFrascos: 1 });
+    const [jarId] = await colonizarJars(batch.jars);
+
+    const clonacion = await makeClonacionDirecta({
+      origenProceso: "frascoGrano",
+      origenJarId: jarId,
+      cantidadFrascos: 2,
+    });
+
+    expect(clonacion.origenProceso).toBe("frascoGrano");
+    expect(clonacion.origenTipo).toBe("jar");
+    expect(clonacion.origenJarId).toBe(jarId);
+    expect(clonacion.origenBatchId).toBe(batch._id);
+    expect(clonacion.fungusTypeId).toBe(fungusType._id);
+    expect(clonacion.frascosLiquidos).toHaveLength(2);
+    clonacion.frascosLiquidos.forEach((f: { origenPlacaId?: unknown }) => {
+      expect(f.origenPlacaId).toBeUndefined();
+    });
+  });
+
+  it("rechaza con 400 (Zod) si se manda fungusTypeId junto con origenJarId (se hereda del jar)", async () => {
+    const { POST } = await import("./route");
+    const fungusType = await makeFungusType();
+    const batch = await makeBatch({ cantidadFrascos: 1 });
+    const [jarId] = await colonizarJars(batch.jars);
+
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      body: {
+        origenProceso: "frascoGrano",
+        origenJarId: jarId,
+        fungusTypeId: fungusType._id,
+        cantidadFrascos: 2,
+        fechaInicio: new Date().toISOString(),
+      },
+    });
+
+    expect(status).toBe(400);
+    expect(json.error).toMatch(/el hongo se hereda del frasco de grano elegido/i);
   });
 });
 

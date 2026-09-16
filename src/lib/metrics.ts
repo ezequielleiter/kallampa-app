@@ -276,7 +276,9 @@ export interface LeanClonacion {
   _id?: unknown;
   numeroLote: string;
   fungusTypeId: unknown;
-  colonizacion: {
+  origenProceso?: string;
+  fechaInicio?: Date | string;
+  colonizacion?: {
     cantidadPlacas: number;
     fechaInicio: Date | string;
     diasEsperados: number;
@@ -294,7 +296,7 @@ export interface LeanFrascoLiquido {
   _id?: unknown;
   clonacionId?: unknown;
   origenPlacaId?: unknown;
-  etiqueta: string;
+  numeroGuia: string;
   estado: FrascoLiquidoEstado;
 }
 

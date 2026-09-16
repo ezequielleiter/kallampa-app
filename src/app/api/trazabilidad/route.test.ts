@@ -53,7 +53,7 @@ describe("GET /api/trazabilidad", () => {
 
     // frascosLiquidos trae la pieza para cruzar frasco -> clonacionId.
     expect(String(frascoRow.clonacionId)).toBe(clonacionC._id);
-    expect(frascoRow.etiqueta).toBe(frasco.etiqueta);
+    expect(frascoRow.numeroGuia).toBe(frasco.numeroGuia);
 
     // Con esto se puede reconstruir la cadena completa:
     // loteB.origenFrascoLiquidoId -> frascoRow._id -> frascoRow.clonacionId -> cln._id

@@ -18,7 +18,7 @@ export async function GET() {
 
     const batches = (await Batch.find({})
       .populate("fungusTypeId")
-      .populate("origenFrascoLiquidoId", "etiqueta")
+      .populate("origenFrascoLiquidoId", "numeroGuia")
       .sort({ createdAt: -1 })
       .lean()) as unknown as (LeanBatch & { _id: unknown })[];
 
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       }
       if (frascoLiquido.estado !== "valido") {
         return fail(
-          `El frasco de micelio líquido '${frascoLiquido.etiqueta}' no está disponible (estado actual: '${frascoLiquido.estado}')`,
+          `El frasco de micelio líquido '${frascoLiquido.numeroGuia}' no está disponible (estado actual: '${frascoLiquido.estado}')`,
           409
         );
       }

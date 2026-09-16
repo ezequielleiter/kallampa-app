@@ -6,8 +6,11 @@ export type FrascoLiquidoEstado = (typeof FRASCO_LIQUIDO_ESTADOS)[number];
 
 export interface FrascoLiquidoDoc extends Document {
   clonacionId: Types.ObjectId;
-  origenPlacaId: Types.ObjectId;
-  etiqueta: string;
+  // Solo presente para frascos nacidos de una Clonacion "placa". Los
+  // frascos de "comprado"/"frascoGrano" no vienen de ninguna Placa, asi
+  // que queda undefined.
+  origenPlacaId?: Types.ObjectId;
+  numeroGuia: string;
   fechaCreacion: Date;
   estado: FrascoLiquidoEstado;
   createdAt: Date;
@@ -28,9 +31,9 @@ const frascoLiquidoSchema = new Schema<FrascoLiquidoDoc>(
     origenPlacaId: {
       type: Schema.Types.ObjectId,
       ref: "Placa",
-      required: true,
+      required: false,
     },
-    etiqueta: { type: String, required: true, unique: true },
+    numeroGuia: { type: String, required: true, unique: true },
     fechaCreacion: { type: Date, required: true },
     estado: {
       type: String,

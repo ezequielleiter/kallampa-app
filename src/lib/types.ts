@@ -122,8 +122,8 @@ export interface Batch {
   fungusTypeId: FungusType;
   // Si el lote se inicio eligiendo un frasco de micelio liquido de
   // Clonacion (en vez de un tipo de hongo directamente), viene poblado
-  // liviano (solo etiqueta) para trazabilidad.
-  origenFrascoLiquidoId?: { _id: string; etiqueta: string } | string;
+  // liviano (solo numeroGuia) para trazabilidad.
+  origenFrascoLiquidoId?: { _id: string; numeroGuia: string } | string;
   inoculacionGrano: InoculacionGrano;
   createdAt?: string;
   updatedAt?: string;
@@ -141,7 +141,7 @@ export interface BatchListItem {
   _id: string;
   numeroLote: string;
   fungusTypeId: FungusType;
-  origenFrascoLiquidoId?: { _id: string; etiqueta: string } | string;
+  origenFrascoLiquidoId?: { _id: string; numeroGuia: string } | string;
   inoculacionGrano: InoculacionGrano;
   estadoDerivado: EstadoDerivado;
   alertas: number;
@@ -206,7 +206,11 @@ export interface Clonacion {
   _id: string;
   numeroLote: string; // "C-2026-001"
   fungusTypeId: FungusType; // poblado
-  colonizacion: Colonizacion;
+  origenProceso: "placa" | "comprado" | "frascoGrano";
+  fechaInicio: string;
+  cantidadFrascos?: number;
+  // Solo presente cuando `origenProceso === "placa"`.
+  colonizacion?: Colonizacion;
   origenTipo?: "jar" | "recipiente";
   origenBatchId?: string | { _id: string; numeroLote: string };
   origenJarId?: string | { _id: string; numeroGuia: string };
@@ -252,8 +256,8 @@ export interface FrascoLiquido {
         numeroLote: string;
         fungusTypeId?: FungusType;
       };
-  origenPlacaId: string | { _id: string; numeroPlaca: string };
-  etiqueta: string; // "C-2026-001-L01"
+  origenPlacaId?: string | { _id: string; numeroPlaca: string };
+  numeroGuia: string; // "C-2026-001-L01"
   fechaCreacion: string;
   estado: FrascoLiquidoEstado;
   createdAt?: string;
@@ -303,7 +307,7 @@ export interface TrazabilidadClonacion {
 export interface TrazabilidadResponse {
   lotes: TrazabilidadLote[];
   clonaciones: TrazabilidadClonacion[];
-  frascosLiquidos: { _id: string; etiqueta: string; clonacionId: string }[];
+  frascosLiquidos: { _id: string; numeroGuia: string; clonacionId: string }[];
 }
 
 // --- Notas (wiki en Markdown, sin relación con el dominio de cultivo) ----

@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
         select: "numeroLote fungusTypeId",
         populate: { path: "fungusTypeId", select: "nombre diasEsperadosDefault" },
       })
-      .sort({ etiqueta: 1 })
+      .sort({ numeroGuia: 1 })
       .lean();
 
     return ok(frascosLiquidos);
@@ -69,12 +69,12 @@ export async function POST(req: NextRequest) {
     // Correlativo por clonacion (no global, no atomico): mismo criterio que
     // numeroSeguimiento de Recipiente en POST /api/recipientes.
     const cantidadExistente = await FrascoLiquido.countDocuments({ clonacionId });
-    const etiqueta = `${clonacion.numeroLote}-L${String(cantidadExistente + 1).padStart(2, "0")}`;
+    const numeroGuia = `${clonacion.numeroLote}-L${String(cantidadExistente + 1).padStart(2, "0")}`;
 
     const frascoLiquido = await FrascoLiquido.create({
       clonacionId,
       origenPlacaId: parsed.origenPlacaId,
-      etiqueta,
+      numeroGuia,
       fechaCreacion: parsed.fechaCreacion,
       estado: "valido",
     });

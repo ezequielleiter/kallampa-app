@@ -26,7 +26,7 @@ export async function GET() {
     const clonaciones = (await Clonacion.find({})
       .populate("fungusTypeId")
       .sort({ createdAt: -1 })
-      .lean()) as unknown as (LeanClonacion & { _id: unknown })[];
+      .lean()) as unknown as (LeanClonacion & { _id: unknown; cantidadFrascos?: number })[];
 
     const clonacionIds = clonaciones.map((c) => c._id) as Types.ObjectId[];
 
@@ -61,7 +61,10 @@ export async function GET() {
         _id: clonacion._id,
         numeroLote: clonacion.numeroLote,
         fungusTypeId: clonacion.fungusTypeId,
+        origenProceso: clonacion.origenProceso,
+        fechaInicio: clonacion.fechaInicio,
         colonizacion: clonacion.colonizacion,
+        cantidadFrascos: clonacion.cantidadFrascos,
         resumen,
       };
     });
@@ -72,113 +75,230 @@ export async function GET() {
   }
 }
 
+/**
+ * Genera en memoria y persiste N FrascoLiquido "directos" (sin Placa de
+ * origen), compartido entre los caminos "comprado" y "frascoGrano" -- los
+ * dos crean todos sus frascos de una sola vez al crear la Clonacion, con
+ * numeroGuia correlativo `${numeroLote}-L01`, `-L02`, etc.
+ */
+async function crearFrascosLiquidosDirectos(
+  clonacionId: Types.ObjectId,
+  numeroLote: string,
+  cantidadFrascos: number,
+  fechaInicio: Date
+) {
+  const frascosToCreate = Array.from({ length: cantidadFrascos }, (_, i) => ({
+    numeroGuia: `${numeroLote}-L${String(i + 1).padStart(2, "0")}`,
+    estado: "valido" as const,
+    fechaCreacion: fechaInicio,
+  }));
+
+  return FrascoLiquido.insertMany(
+    frascosToCreate.map((f) => ({ ...f, clonacionId }))
+  );
+}
+
 export async function POST(req: NextRequest) {
   try {
     await dbConnect();
     const body = await req.json();
     const parsed = createClonacionSchema.parse(body);
 
-    let fungusTypeId = parsed.fungusTypeId;
-    let origenTipo: "jar" | "recipiente" | undefined;
-    let origenJarId: string | undefined;
-    let origenRecipienteId: string | undefined;
-    let origenBatchId: string | undefined;
+    if (parsed.origenProceso === "placa") {
+      let fungusTypeId = parsed.fungusTypeId;
+      let origenTipo: "jar" | "recipiente" | undefined;
+      let origenJarId: string | undefined;
+      let origenRecipienteId: string | undefined;
+      let origenBatchId: string | undefined;
 
-    if (parsed.origenJarId) {
-      const jar = await Jar.findById(parsed.origenJarId).lean();
-      if (!jar) {
-        return fail("El frasco de origen indicado no existe", 400);
+      if (parsed.origenJarId) {
+        const jar = await Jar.findById(parsed.origenJarId).lean();
+        if (!jar) {
+          return fail("El frasco de origen indicado no existe", 400);
+        }
+        if (jar.estado !== "colonizado" && jar.estado !== "usado") {
+          return fail(
+            `El frasco '${jar.numeroGuia}' no está disponible para clonar (estado actual: '${jar.estado}')`,
+            409
+          );
+        }
+        const batch = await Batch.findById(jar.batchId).lean();
+        if (!batch) {
+          return fail("El lote de origen del frasco ya no existe", 400);
+        }
+        fungusTypeId = String(batch.fungusTypeId);
+        origenTipo = "jar";
+        origenJarId = parsed.origenJarId;
+        origenBatchId = String(jar.batchId);
+      } else if (parsed.origenRecipienteId) {
+        const recipiente = await Recipiente.findById(parsed.origenRecipienteId).lean();
+        if (!recipiente) {
+          return fail("El recipiente de origen indicado no existe", 400);
+        }
+        if (recipiente.estado !== "fructificando") {
+          return fail(
+            `El recipiente '${recipiente.numeroSeguimiento}' no está disponible para clonar (estado actual: '${recipiente.estado}', se necesita 'fructificando')`,
+            409
+          );
+        }
+        const batch = await Batch.findById(recipiente.batchId).lean();
+        if (!batch) {
+          return fail("El lote de origen del recipiente ya no existe", 400);
+        }
+        fungusTypeId = String(batch.fungusTypeId);
+        origenTipo = "recipiente";
+        origenRecipienteId = parsed.origenRecipienteId;
+        origenBatchId = String(recipiente.batchId);
       }
-      if (jar.estado !== "colonizado" && jar.estado !== "usado") {
-        return fail(
-          `El frasco '${jar.numeroGuia}' no está disponible para clonar (estado actual: '${jar.estado}')`,
-          409
+
+      const fungusType = await FungusType.findById(fungusTypeId).lean();
+      if (!fungusType) {
+        return fail("El tipo de hongo indicado no existe", 400);
+      }
+
+      const diasEsperados =
+        parsed.diasEsperados ?? fungusType.diasEsperadosDefault?.colonizacionPlacas;
+
+      if (!diasEsperados) {
+        throw badRequest(
+          "Este hongo no tiene configurado diasEsperadosDefault.colonizacionPlacas; indicá diasEsperados manualmente o completá el catálogo"
         );
       }
-      const batch = await Batch.findById(jar.batchId).lean();
-      if (!batch) {
-        return fail("El lote de origen del frasco ya no existe", 400);
-      }
-      fungusTypeId = String(batch.fungusTypeId);
-      origenTipo = "jar";
-      origenJarId = parsed.origenJarId;
-      origenBatchId = String(jar.batchId);
-    } else if (parsed.origenRecipienteId) {
-      const recipiente = await Recipiente.findById(parsed.origenRecipienteId).lean();
-      if (!recipiente) {
-        return fail("El recipiente de origen indicado no existe", 400);
-      }
-      if (recipiente.estado !== "fructificando") {
-        return fail(
-          `El recipiente '${recipiente.numeroSeguimiento}' no está disponible para clonar (estado actual: '${recipiente.estado}', se necesita 'fructificando')`,
-          409
+
+      // Armamos y validamos todo en memoria antes de persistir nada, mismo
+      // criterio que POST /api/batches.
+      const numeroLoteBase = await getNextNumeroClonacion(parsed.fechaInicio);
+      const numeroLote = fungusType.iniciales ? `${fungusType.iniciales}-${numeroLoteBase}` : numeroLoteBase;
+
+      const cantidadPlacas = parsed.cantidadPlacas!;
+      const placasToCreate = Array.from(
+        { length: cantidadPlacas },
+        (_, i) => ({
+          numeroPlaca: `${numeroLote}-P${String(i + 1).padStart(2, "0")}`,
+        })
+      );
+
+      const clonacion = await Clonacion.create({
+        numeroLote,
+        fungusTypeId,
+        origenProceso: "placa",
+        fechaInicio: parsed.fechaInicio,
+        ...(origenTipo ? { origenTipo } : {}),
+        ...(origenJarId ? { origenJarId } : {}),
+        ...(origenRecipienteId ? { origenRecipienteId } : {}),
+        ...(origenBatchId ? { origenBatchId } : {}),
+        colonizacion: {
+          cantidadPlacas,
+          fechaInicio: parsed.fechaInicio,
+          diasEsperados,
+        },
+        ...(parsed.recetaAgar ? { recetaAgar: parsed.recetaAgar } : {}),
+      });
+
+      // La Clonacion ya esta persistida (numeroLote unico reservado via
+      // Counter). Sin transaccion multi-documento (Mongo standalone, mismo
+      // criterio que POST /api/batches): si la insercion de Placas fallara a
+      // mitad de camino no hacemos rollback complejo.
+      let placas;
+      try {
+        placas = await Placa.insertMany(
+          placasToCreate.map((p) => ({ ...p, clonacionId: clonacion._id }))
         );
+      } catch (placaErr) {
+        return handleApiError(placaErr);
       }
-      const batch = await Batch.findById(recipiente.batchId).lean();
-      if (!batch) {
-        return fail("El lote de origen del recipiente ya no existe", 400);
-      }
-      fungusTypeId = String(batch.fungusTypeId);
-      origenTipo = "recipiente";
-      origenRecipienteId = parsed.origenRecipienteId;
-      origenBatchId = String(recipiente.batchId);
+
+      return ok({ ...clonacion.toObject(), placas }, 201);
     }
+
+    if (parsed.origenProceso === "comprado") {
+      const fungusTypeId = parsed.fungusTypeId;
+
+      const fungusType = await FungusType.findById(fungusTypeId).lean();
+      if (!fungusType) {
+        return fail("El tipo de hongo indicado no existe", 400);
+      }
+
+      const numeroLoteBase = await getNextNumeroClonacion(parsed.fechaInicio);
+      const numeroLote = fungusType.iniciales ? `${fungusType.iniciales}-${numeroLoteBase}` : numeroLoteBase;
+
+      const clonacion = await Clonacion.create({
+        numeroLote,
+        fungusTypeId,
+        origenProceso: "comprado",
+        fechaInicio: parsed.fechaInicio,
+        cantidadFrascos: parsed.cantidadFrascos,
+        ...(parsed.recetaAgar ? { recetaAgar: parsed.recetaAgar } : {}),
+      });
+
+      let frascos;
+      try {
+        frascos = await crearFrascosLiquidosDirectos(
+          clonacion._id,
+          numeroLote,
+          parsed.cantidadFrascos!,
+          parsed.fechaInicio
+        );
+      } catch (frascoErr) {
+        return handleApiError(frascoErr);
+      }
+
+      return ok({ ...clonacion.toObject(), frascosLiquidos: frascos }, 201);
+    }
+
+    // "frascoGrano": reusa el mismo bloque de validacion de origenJarId que
+    // usa el camino "placa" -- aca se ejecuta siempre porque Zod ya
+    // garantizo que parsed.origenJarId viene presente en este camino.
+    const jar = await Jar.findById(parsed.origenJarId).lean();
+    if (!jar) {
+      return fail("El frasco de origen indicado no existe", 400);
+    }
+    if (jar.estado !== "colonizado" && jar.estado !== "usado") {
+      return fail(
+        `El frasco '${jar.numeroGuia}' no está disponible para clonar (estado actual: '${jar.estado}')`,
+        409
+      );
+    }
+    const batch = await Batch.findById(jar.batchId).lean();
+    if (!batch) {
+      return fail("El lote de origen del frasco ya no existe", 400);
+    }
+    const fungusTypeId = String(batch.fungusTypeId);
+    const origenBatchId = String(jar.batchId);
 
     const fungusType = await FungusType.findById(fungusTypeId).lean();
     if (!fungusType) {
       return fail("El tipo de hongo indicado no existe", 400);
     }
 
-    const diasEsperados =
-      parsed.diasEsperados ?? fungusType.diasEsperadosDefault?.colonizacionPlacas;
-
-    if (!diasEsperados) {
-      throw badRequest(
-        "Este hongo no tiene configurado diasEsperadosDefault.colonizacionPlacas; indicá diasEsperados manualmente o completá el catálogo"
-      );
-    }
-
-    // Armamos y validamos todo en memoria antes de persistir nada, mismo
-    // criterio que POST /api/batches.
     const numeroLoteBase = await getNextNumeroClonacion(parsed.fechaInicio);
     const numeroLote = fungusType.iniciales ? `${fungusType.iniciales}-${numeroLoteBase}` : numeroLoteBase;
-
-    const placasToCreate = Array.from(
-      { length: parsed.cantidadPlacas },
-      (_, i) => ({
-        numeroPlaca: `${numeroLote}-P${String(i + 1).padStart(2, "0")}`,
-      })
-    );
 
     const clonacion = await Clonacion.create({
       numeroLote,
       fungusTypeId,
-      ...(origenTipo ? { origenTipo } : {}),
-      ...(origenJarId ? { origenJarId } : {}),
-      ...(origenRecipienteId ? { origenRecipienteId } : {}),
-      ...(origenBatchId ? { origenBatchId } : {}),
-      colonizacion: {
-        cantidadPlacas: parsed.cantidadPlacas,
-        fechaInicio: parsed.fechaInicio,
-        diasEsperados,
-      },
+      origenProceso: "frascoGrano",
+      fechaInicio: parsed.fechaInicio,
+      origenTipo: "jar",
+      origenJarId: parsed.origenJarId,
+      origenBatchId,
+      cantidadFrascos: parsed.cantidadFrascos,
       ...(parsed.recetaAgar ? { recetaAgar: parsed.recetaAgar } : {}),
     });
 
-    // La Clonacion ya esta persistida (numeroLote unico reservado via
-    // Counter). Sin transaccion multi-documento (Mongo standalone, mismo
-    // criterio que POST /api/batches): si la insercion de Placas fallara a
-    // mitad de camino no hacemos rollback complejo.
-    let placas;
+    let frascos;
     try {
-      placas = await Placa.insertMany(
-        placasToCreate.map((p) => ({ ...p, clonacionId: clonacion._id }))
+      frascos = await crearFrascosLiquidosDirectos(
+        clonacion._id,
+        numeroLote,
+        parsed.cantidadFrascos!,
+        parsed.fechaInicio
       );
-    } catch (placaErr) {
-      return handleApiError(placaErr);
+    } catch (frascoErr) {
+      return handleApiError(frascoErr);
     }
 
-    return ok({ ...clonacion.toObject(), placas }, 201);
+    return ok({ ...clonacion.toObject(), frascosLiquidos: frascos }, 201);
   } catch (err) {
     return handleApiError(err);
   }

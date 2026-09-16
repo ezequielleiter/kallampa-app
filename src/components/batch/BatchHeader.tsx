@@ -57,7 +57,7 @@ export function BatchHeader({
           {" · "}
           {batch.inoculacionGrano.cantidadFrascos} frasco(s)
           {typeof batch.origenFrascoLiquidoId === "object" && (
-            <> {" · desde micelio líquido "}{batch.origenFrascoLiquidoId.etiqueta}</>
+            <> {" · desde micelio líquido "}{batch.origenFrascoLiquidoId.numeroGuia}</>
           )}
         </p>
 

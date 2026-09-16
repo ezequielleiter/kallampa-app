@@ -4,10 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:agent": "MONGODB_URI=mongodb://127.0.0.1:27017/cultivo_hongos_agent next dev --port 3099",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:reset-agent": "mongosh mongodb://127.0.0.1:27017/cultivo_hongos_agent --quiet --eval \"db.dropDatabase()\""
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

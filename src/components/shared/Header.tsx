@@ -13,7 +13,7 @@ import type { JarSearchResult } from "@/lib/types";
 
 const NAV_LINKS = [
   { href: "/", label: "Producción" },
-  { href: "/clonacion", label: "Clonación" },
+  { href: "/clonacion", label: "Micelio" },
   { href: "/trazabilidad", label: "Trazabilidad" },
   { href: "/notas", label: "Notas" },
   { href: "/frascos", label: "Frascos" },
