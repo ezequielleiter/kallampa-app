@@ -47,6 +47,7 @@ describe("POST /api/auth/login", () => {
     });
     expect(status).toBe(401);
     expect(json.error).toBe(INVALID_CREDENTIALS_MESSAGE);
+    expect(json.code).toBe("credenciales_invalidas");
   });
 
   it("rechaza usuario inexistente con el mismo mensaje generico", async () => {
@@ -56,5 +57,6 @@ describe("POST /api/auth/login", () => {
     });
     expect(status).toBe(401);
     expect(json.error).toBe(INVALID_CREDENTIALS_MESSAGE);
+    expect(json.code).toBe("credenciales_invalidas");
   });
 });

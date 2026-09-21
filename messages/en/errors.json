@@ -1,0 +1,22 @@
+{
+  "errors": {
+    "usuario_email_en_uso": "Username or email is already in use",
+    "credenciales_invalidas": "Invalid username/email or password",
+    "usuario_no_encontrado": "User not found",
+    "locale_invalido": "Invalid language",
+    "usuario_muy_corto": "Username must be at least 3 characters",
+    "email_invalido": "Invalid email",
+    "password_muy_corta": "Password must be at least 8 characters",
+    "identificador_requerido": "Username or email is required",
+    "password_requerida": "Password is required",
+    "no_encontrado": "Not found",
+    "conflicto_estado": "State conflict",
+    "solicitud_invalida": "Invalid request",
+    "no_autorizado": "Unauthorized",
+    "acceso_denegado": "Access denied",
+    "datos_invalidos": "Invalid data",
+    "error_interno": "Internal server error",
+    "confirmar_password_requerida": "Confirm your password",
+    "passwords_no_coinciden": "Passwords don't match"
+  }
+}

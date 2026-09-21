@@ -4,7 +4,7 @@
 export interface Session {
   token: string;
   apiKey: string;
-  user: { _id: string; username: string; email: string };
+  user: { _id: string; username: string; email: string; locale: "es" | "en" };
 }
 
 const STORAGE_KEY = "session";

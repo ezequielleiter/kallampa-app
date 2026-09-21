@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
     const existing = await User.findOne({ $or: [{ username }, { email }] });
     if (existing) {
-      throw conflict("El nombre de usuario o el email ya están en uso");
+      throw conflict("usuario_email_en_uso:El nombre de usuario o el email ya están en uso");
     }
 
     const passwordHash = await hashPassword(parsed.password);
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       {
         token,
         apiKey,
-        user: { _id: user._id, username: user.username, email: user.email },
+        user: { _id: user._id, username: user.username, email: user.email, locale: user.locale },
       },
       201
     );

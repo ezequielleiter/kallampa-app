@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   Sprout,
   FlaskConical,
@@ -16,22 +17,26 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { clearSession, getSession, type Session } from "@/lib/session";
+import { useAppLocale } from "@/components/shared/LocaleProvider";
 
 const NAV_LINKS = [
-  { href: "/", label: "Producción", icon: Sprout },
-  { href: "/clonacion", label: "Micelio", icon: FlaskConical },
-  { href: "/calendario", label: "Calendario", icon: CalendarDays },
-  { href: "/trazabilidad", label: "Trazabilidad", icon: Network },
-  { href: "/notas", label: "Notas", icon: StickyNote },
-  { href: "/frascos", label: "Frascos", icon: Tag },
-  { href: "/catalogos", label: "Catálogos", icon: BookOpen },
-  { href: "/estadisticas", label: "Estadísticas", icon: BarChart3 },
+  { href: "/", key: "produccion" as const, icon: Sprout },
+  { href: "/clonacion", key: "micelio" as const, icon: FlaskConical },
+  { href: "/calendario", key: "calendario" as const, icon: CalendarDays },
+  { href: "/trazabilidad", key: "trazabilidad" as const, icon: Network },
+  { href: "/notas", key: "notas" as const, icon: StickyNote },
+  { href: "/frascos", key: "frascos" as const, icon: Tag },
+  { href: "/catalogos", key: "catalogos" as const, icon: BookOpen },
+  { href: "/estadisticas", key: "estadisticas" as const, icon: BarChart3 },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
+  const t = useTranslations("nav");
+  const tCommon = useTranslations("common");
+  const { locale, setLocale } = useAppLocale();
 
   useEffect(() => {
     void Promise.resolve().then(() => setSession(getSession()));
@@ -48,7 +53,7 @@ export function Sidebar() {
         href="/"
         className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4 text-base font-semibold"
       >
-        🍄 Cultivo
+        🍄 {tCommon("appName")}
       </Link>
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2">
         {NAV_LINKS.map((link) => {
@@ -67,7 +72,7 @@ export function Sidebar() {
               )}
             >
               <Icon className="size-4 shrink-0" />
-              {link.label}
+              {t(link.key)}
             </Link>
           );
         })}
@@ -78,13 +83,39 @@ export function Sidebar() {
             {session.user.username}
           </p>
         )}
+        <div className="flex items-center gap-1 px-1" aria-label={tCommon("language")}>
+          <button
+            type="button"
+            onClick={() => setLocale("es")}
+            className={cn(
+              "rounded px-1.5 py-0.5 text-xs font-medium transition-colors",
+              locale === "es"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted"
+            )}
+          >
+            ES
+          </button>
+          <button
+            type="button"
+            onClick={() => setLocale("en")}
+            className={cn(
+              "rounded px-1.5 py-0.5 text-xs font-medium transition-colors",
+              locale === "en"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted"
+            )}
+          >
+            EN
+          </button>
+        </div>
         <button
           type="button"
           onClick={handleLogout}
           className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <LogOut className="size-4 shrink-0" />
-          Cerrar sesión
+          {t("logout")}
         </button>
       </div>
     </aside>

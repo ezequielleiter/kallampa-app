@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Hanken_Grotesk, Fira_Code } from "next/font/google";
 import "./globals.css";
 import { AuthGate } from "@/components/shared/AuthGate";
+import { LocaleProvider } from "@/components/shared/LocaleProvider";
 import { Toaster } from "@/components/ui/sonner";
 
 const hankenGrotesk = Hanken_Grotesk({
@@ -28,8 +29,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${hankenGrotesk.variable} ${firaCode.variable} h-full antialiased`}
     >
       <body className="h-full flex bg-background text-foreground">
-        <AuthGate>{children}</AuthGate>
-        <Toaster />
+        <LocaleProvider>
+          <AuthGate>{children}</AuthGate>
+          <Toaster />
+        </LocaleProvider>
       </body>
     </html>
   );

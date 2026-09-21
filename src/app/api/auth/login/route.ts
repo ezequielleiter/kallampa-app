@@ -5,7 +5,7 @@ import { ok, unauthorized, handleApiError } from "@/lib/api-utils";
 import { loginSchema } from "@/lib/validations/auth.schema";
 import { verifyPassword, signSessionToken } from "@/lib/auth";
 
-const INVALID_CREDENTIALS_MESSAGE = "Usuario/email o contraseña incorrectos";
+const INVALID_CREDENTIALS_MESSAGE = "credenciales_invalidas:Usuario/email o contraseña incorrectos";
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     return ok({
       token,
       apiKey: user.apiKey,
-      user: { _id: user._id, username: user.username, email: user.email },
+      user: { _id: user._id, username: user.username, email: user.email, locale: user.locale },
     });
   } catch (err) {
     return handleApiError(err);

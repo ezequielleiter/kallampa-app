@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import type { JarSearchResult } from "@/lib/types";
 
 export function Header() {
   const router = useRouter();
+  const t = useTranslations("header");
   const [numeroGuia, setNumeroGuia] = useState("");
   const [buscando, setBuscando] = useState(false);
 
@@ -24,13 +26,13 @@ export function Header() {
         `/api/jars/search?numeroGuia=${encodeURIComponent(value)}`
       );
       if (!jar.batch) {
-        toast.error("El frasco existe pero no tiene un lote asociado");
+        toast.error(t("jarWithoutBatch"));
         return;
       }
       setNumeroGuia("");
       router.push(`/lotes/${jar.batch._id}`);
     } catch {
-      toast.error("No se encontró ningún frasco con ese número de guía");
+      toast.error(t("jarNotFound"));
     } finally {
       setBuscando(false);
     }
@@ -42,7 +44,7 @@ export function Header() {
         <Input
           value={numeroGuia}
           onChange={(e) => setNumeroGuia(e.target.value)}
-          placeholder="Buscar frasco por N° de guía…"
+          placeholder={t("searchPlaceholder")}
           className="h-8"
         />
         <Button type="submit" size="icon" variant="outline" disabled={buscando}>

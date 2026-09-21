@@ -1,0 +1,91 @@
+{
+  "common": {
+    "appName": "Cultivo",
+    "language": "Language"
+  },
+  "nav": {
+    "produccion": "Production",
+    "micelio": "Mycelium",
+    "calendario": "Calendar",
+    "trazabilidad": "Traceability",
+    "notas": "Notes",
+    "frascos": "Jars",
+    "catalogos": "Catalogs",
+    "estadisticas": "Statistics",
+    "logout": "Log out"
+  },
+  "auth": {
+    "login": {
+      "title": "Log in",
+      "subtitle": "Enter your credentials to continue",
+      "identificadorLabel": "Username or email",
+      "passwordLabel": "Password",
+      "submit": "Log in",
+      "genericError": "Error logging in",
+      "noAccount": "Don't have an account?",
+      "registerLink": "Sign up"
+    },
+    "register": {
+      "title": "Create account",
+      "subtitle": "Sign up to start using the system",
+      "usernameLabel": "Username",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "confirmPasswordLabel": "Confirm password",
+      "submit": "Sign up",
+      "genericError": "Error signing up",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Log in"
+    }
+  },
+  "header": {
+    "searchPlaceholder": "Search jar by tracking #…",
+    "jarWithoutBatch": "The jar exists but has no associated batch",
+    "jarNotFound": "No jar found with that tracking number"
+  },
+  "estados": {
+    "lote": {
+      "en_progreso": "In progress",
+      "finalizado": "Finished"
+    },
+    "jar": {
+      "colonizando": "Colonizing",
+      "colonizado": "Colonized",
+      "contaminado": "Contaminated",
+      "usado": "Used"
+    },
+    "placa": {
+      "colonizando": "Colonizing",
+      "colonizado": "Colonized",
+      "contaminado": "Contaminated"
+    },
+    "origenProceso": {
+      "placa": "Petri dishes",
+      "comprado": "Purchased mycelium",
+      "frascoGrano": "Mycelium from grain jars"
+    },
+    "frascoLiquido": {
+      "valido": "Valid",
+      "vacio": "Empty",
+      "finalizado": "Finished",
+      "contaminado": "Contaminated"
+    },
+    "recipiente": {
+      "incubando": "Incubating",
+      "fructificando": "Fruiting",
+      "finalizado": "Finished",
+      "contaminado": "Contaminated",
+      "descartado": "Discarded"
+    },
+    "tarea": {
+      "pendiente": "Pending",
+      "hecha": "Done"
+    },
+    "lotePill": {
+      "grano": "Grain",
+      "incubacion": "Incubation",
+      "fructificacion": "Fruiting",
+      "placas": "Plates"
+    }
+  }
+}

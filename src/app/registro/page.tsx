@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   Card,
   CardHeader,
@@ -17,30 +18,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiFetch } from "@/lib/api-client";
-import { saveSession } from "@/lib/session";
+import { saveSession, type Session } from "@/lib/session";
 import { registerSchema } from "@/lib/validations/auth.schema";
+import { translateErrorMessage } from "@/lib/error-messages";
+import { useAppLocale } from "@/components/shared/LocaleProvider";
+import { cn } from "@/lib/utils";
 
 // Extiende el schema del backend con un campo puramente client-side
 // (confirmarPassword) que nunca se envía a la API.
 const registerFormSchema = registerSchema
   .extend({
-    confirmarPassword: z.string().min(1, "Confirmá la contraseña"),
+    confirmarPassword: z.string().min(1, "confirmar_password_requerida:Confirmá la contraseña"),
   })
   .refine((data) => data.password === data.confirmarPassword, {
-    message: "Las contraseñas no coinciden",
+    message: "passwords_no_coinciden:Las contraseñas no coinciden",
     path: ["confirmarPassword"],
   });
 
 type RegisterFormInput = z.infer<typeof registerFormSchema>;
 
-interface RegisterResponse {
-  token: string;
-  apiKey: string;
-  user: { _id: string; username: string; email: string };
-}
-
 export default function RegistroPage() {
   const router = useRouter();
+  const t = useTranslations("auth.register");
+  const tCommon = useTranslations("common");
+  const { locale, setLocale } = useAppLocale();
   const {
     register,
     handleSubmit,
@@ -52,7 +53,7 @@ export default function RegistroPage() {
 
   async function onSubmit(data: RegisterFormInput) {
     try {
-      const result = await apiFetch<RegisterResponse>("/api/auth/register", {
+      const result = await apiFetch<Session>("/api/auth/register", {
         method: "POST",
         body: JSON.stringify({
           username: data.username,
@@ -63,60 +64,94 @@ export default function RegistroPage() {
       saveSession(result);
       router.push("/");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error al registrarse");
+      toast.error(err instanceof Error ? err.message : t("genericError"));
     }
   }
 
   return (
     <div className="flex min-h-full w-full items-center justify-center bg-background p-4">
       <div className="flex w-full max-w-sm flex-col gap-6">
+        <div className="flex items-center justify-center gap-1" aria-label={tCommon("language")}>
+          <button
+            type="button"
+            onClick={() => setLocale("es")}
+            className={cn(
+              "rounded px-1.5 py-0.5 text-xs font-medium transition-colors",
+              locale === "es"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted"
+            )}
+          >
+            ES
+          </button>
+          <button
+            type="button"
+            onClick={() => setLocale("en")}
+            className={cn(
+              "rounded px-1.5 py-0.5 text-xs font-medium transition-colors",
+              locale === "en"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted"
+            )}
+          >
+            EN
+          </button>
+        </div>
         <div className="flex flex-col items-center gap-1 text-center">
           <span className="text-3xl">🍄</span>
-          <h1 className="text-lg font-semibold">Cultivo</h1>
+          <h1 className="text-lg font-semibold">{tCommon("appName")}</h1>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Crear cuenta</CardTitle>
-            <CardDescription>Registrate para empezar a usar el sistema</CardDescription>
+            <CardTitle>{t("title")}</CardTitle>
+            <CardDescription>{t("subtitle")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
               <div className="flex flex-col gap-1.5">
-                <Label>Usuario</Label>
+                <Label>{t("usernameLabel")}</Label>
                 <Input {...register("username")} autoFocus />
                 {errors.username && (
-                  <p className="text-xs text-destructive">{errors.username.message}</p>
+                  <p className="text-xs text-destructive">
+                    {translateErrorMessage(errors.username.message)}
+                  </p>
                 )}
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label>Email</Label>
+                <Label>{t("emailLabel")}</Label>
                 <Input type="email" {...register("email")} />
                 {errors.email && (
-                  <p className="text-xs text-destructive">{errors.email.message}</p>
+                  <p className="text-xs text-destructive">
+                    {translateErrorMessage(errors.email.message)}
+                  </p>
                 )}
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label>Contraseña</Label>
+                <Label>{t("passwordLabel")}</Label>
                 <Input type="password" {...register("password")} />
                 {errors.password && (
-                  <p className="text-xs text-destructive">{errors.password.message}</p>
+                  <p className="text-xs text-destructive">
+                    {translateErrorMessage(errors.password.message)}
+                  </p>
                 )}
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label>Confirmar contraseña</Label>
+                <Label>{t("confirmPasswordLabel")}</Label>
                 <Input type="password" {...register("confirmarPassword")} />
                 {errors.confirmarPassword && (
-                  <p className="text-xs text-destructive">{errors.confirmarPassword.message}</p>
+                  <p className="text-xs text-destructive">
+                    {translateErrorMessage(errors.confirmarPassword.message)}
+                  </p>
                 )}
               </div>
               <Button type="submit" disabled={isSubmitting} className="mt-2">
-                Registrarme
+                {t("submit")}
               </Button>
             </form>
             <p className="mt-4 text-center text-sm text-muted-foreground">
-              ¿Ya tenés cuenta?{" "}
+              {t("hasAccount")}{" "}
               <Link href="/login" className="font-medium text-primary hover:underline">
-                Iniciá sesión
+                {t("loginLink")}
               </Link>
             </p>
           </CardContent>
