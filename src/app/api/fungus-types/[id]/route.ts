@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import FungusType from "@/models/FungusType";
 import { ok, handleApiError, notFound, conflict } from "@/lib/api-utils";
+import { requireAuth } from "@/lib/api-auth";
 import { fungusTypeUpdateSchema } from "@/lib/validations/catalog.schema";
 
 // No hay DELETE fisico: "borrar" del catalogo es PATCH { activo: false }.
@@ -10,12 +11,13 @@ export async function PATCH(
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const { id } = await ctx.params;
     const body = await req.json();
     const parsed = fungusTypeUpdateSchema.parse(body);
 
-    const current = await FungusType.findById(id);
+    const current = await FungusType.findOne({ _id: id, userId });
     if (!current) throw notFound("Tipo de hongo no encontrado");
 
     // Chequeo de unicidad de iniciales entre hongos activos: se evalua sobre
@@ -27,6 +29,7 @@ export async function PATCH(
     if (inicialesFinal && activoFinal) {
       const existente = await FungusType.findOne({
         _id: { $ne: id },
+        userId,
         iniciales: inicialesFinal,
         activo: true,
       }).lean();
@@ -45,8 +48,8 @@ export async function PATCH(
       };
     }
 
-    const updated = await FungusType.findByIdAndUpdate(
-      id,
+    const updated = await FungusType.findOneAndUpdate(
+      { _id: id, userId },
       { $set: update },
       { new: true, runValidators: true }
     );

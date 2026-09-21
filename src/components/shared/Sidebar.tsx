@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Sprout,
   FlaskConical,
@@ -11,8 +12,10 @@ import {
   BookOpen,
   BarChart3,
   CalendarDays,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { clearSession, getSession, type Session } from "@/lib/session";
 
 const NAV_LINKS = [
   { href: "/", label: "Producción", icon: Sprout },
@@ -27,6 +30,17 @@ const NAV_LINKS = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    void Promise.resolve().then(() => setSession(getSession()));
+  }, []);
+
+  function handleLogout() {
+    clearSession();
+    router.push("/login");
+  }
 
   return (
     <aside className="flex h-full w-56 shrink-0 flex-col border-r border-border bg-background">
@@ -58,6 +72,21 @@ export function Sidebar() {
           );
         })}
       </nav>
+      <div className="flex flex-col gap-2 border-t border-border p-3">
+        {session && (
+          <p className="truncate px-1 text-sm font-medium text-foreground">
+            {session.user.username}
+          </p>
+        )}
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <LogOut className="size-4 shrink-0" />
+          Cerrar sesión
+        </button>
+      </div>
     </aside>
   );
 }

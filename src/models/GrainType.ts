@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface GrainTypeDoc extends Document {
+  userId: mongoose.Types.ObjectId;
   nombre: string;
   notas?: string;
   activo: boolean;
@@ -10,12 +11,15 @@ export interface GrainTypeDoc extends Document {
 
 const grainTypeSchema = new Schema<GrainTypeDoc>(
   {
-    nombre: { type: String, required: true, unique: true, trim: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    nombre: { type: String, required: true, trim: true },
     notas: { type: String },
     activo: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
+
+grainTypeSchema.index({ userId: 1, nombre: 1 }, { unique: true });
 
 const GrainType: Model<GrainTypeDoc> =
   (mongoose.models.GrainType as Model<GrainTypeDoc>) ||

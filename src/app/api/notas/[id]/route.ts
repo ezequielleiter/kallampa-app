@@ -2,17 +2,19 @@ import type { NextRequest } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Nota from "@/models/Nota";
 import { ok, handleApiError, notFound } from "@/lib/api-utils";
+import { requireAuth } from "@/lib/api-auth";
 import { updateNotaSchema } from "@/lib/validations/nota.schema";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const { id } = await ctx.params;
 
-    const nota = await Nota.findById(id).lean();
+    const nota = await Nota.findOne({ _id: id, userId }).lean();
     if (!nota) throw notFound("Nota no encontrada");
 
     return ok(nota);
@@ -26,12 +28,17 @@ export async function PATCH(
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const { id } = await ctx.params;
     const body = await req.json();
     const parsed = updateNotaSchema.parse(body);
 
-    const nota = await Nota.findByIdAndUpdate(id, { $set: parsed }, { new: true, runValidators: true });
+    const nota = await Nota.findOneAndUpdate(
+      { _id: id, userId },
+      { $set: parsed },
+      { new: true, runValidators: true }
+    );
     if (!nota) throw notFound("Nota no encontrada");
 
     return ok(nota);
@@ -41,14 +48,15 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const { id } = await ctx.params;
 
-    const nota = await Nota.findByIdAndDelete(id);
+    const nota = await Nota.findOneAndDelete({ _id: id, userId });
     if (!nota) throw notFound("Nota no encontrada");
 
     return ok({ _id: id });

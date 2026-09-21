@@ -19,6 +19,7 @@ export interface InoculacionGrano {
 }
 
 export interface BatchDoc extends Document {
+  userId: Types.ObjectId;
   numeroLote: string;
   fungusTypeId: Types.ObjectId;
   // Si el lote se inicio a partir de un frasco de micelio liquido de
@@ -45,7 +46,8 @@ const inoculacionGranoSchema = new Schema<InoculacionGrano>(
 
 const batchSchema = new Schema<BatchDoc>(
   {
-    numeroLote: { type: String, required: true, unique: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    numeroLote: { type: String, required: true },
     fungusTypeId: {
       type: Schema.Types.ObjectId,
       ref: "FungusType",
@@ -60,6 +62,8 @@ const batchSchema = new Schema<BatchDoc>(
   },
   { timestamps: true }
 );
+
+batchSchema.index({ userId: 1, numeroLote: 1 }, { unique: true });
 
 const Batch: Model<BatchDoc> =
   (mongoose.models.Batch as Model<BatchDoc>) ||

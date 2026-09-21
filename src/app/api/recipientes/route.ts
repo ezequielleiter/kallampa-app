@@ -5,16 +5,18 @@ import Jar from "@/models/Jar";
 import Recipiente from "@/models/Recipiente";
 import FungusType from "@/models/FungusType";
 import { ok, fail, handleApiError, badRequest } from "@/lib/api-utils";
+import { requireAuth } from "@/lib/api-auth";
 import { createRecipienteSchema } from "@/lib/validations/recipiente.schema";
 
 // GET /api/recipientes?batchId=
 export async function GET(req: NextRequest) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const { searchParams } = new URL(req.url);
     const batchId = searchParams.get("batchId");
 
-    const filter: Record<string, unknown> = {};
+    const filter: Record<string, unknown> = { userId };
     if (batchId) filter.batchId = batchId;
 
     const recipientes = await Recipiente.find(filter)
@@ -30,11 +32,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const body = await req.json();
     const parsed = createRecipienteSchema.parse(body);
 
-    const batch = await Batch.findById(parsed.batchId).lean();
+    const batch = await Batch.findOne({ _id: parsed.batchId, userId }).lean();
     if (!batch) {
       return fail("El lote indicado no existe", 400);
     }
@@ -45,7 +48,7 @@ export async function POST(req: NextRequest) {
     // practica el grano de un mismo frasco a veces se reparte en mas de un
     // recipiente). No son validos: 'colonizando' (todavia no esta listo) ni
     // 'contaminado' (perdida).
-    const frascos = await Jar.find({ _id: { $in: parsed.origenFrascoIds } }).lean();
+    const frascos = await Jar.find({ userId, _id: { $in: parsed.origenFrascoIds } }).lean();
 
     if (frascos.length !== parsed.origenFrascoIds.length) {
       return fail("Alguno de los frascos de origen no existe", 400);
@@ -69,7 +72,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const fungusType = await FungusType.findById(batch.fungusTypeId).lean();
+    const fungusType = await FungusType.findOne({ _id: batch.fungusTypeId, userId }).lean();
     if (!fungusType) {
       throw badRequest("El tipo de hongo del lote ya no existe");
     }
@@ -80,10 +83,11 @@ export async function POST(req: NextRequest) {
     // Correlativo por lote (no global): cuenta cuantos recipientes ya tiene
     // este batchId. No hace falta atomicidad de Counter aca (app de un solo
     // operador, los recipientes de un lote se crean en momentos distintos).
-    const cantidadExistente = await Recipiente.countDocuments({ batchId: parsed.batchId });
+    const cantidadExistente = await Recipiente.countDocuments({ userId, batchId: parsed.batchId });
     const numeroSeguimiento = `${batch.numeroLote}-R${String(cantidadExistente + 1).padStart(2, "0")}`;
 
     const recipiente = await Recipiente.create({
+      userId,
       batchId: parsed.batchId,
       numeroSeguimiento,
       origenFrascoIds: parsed.origenFrascoIds,
@@ -99,7 +103,7 @@ export async function POST(req: NextRequest) {
     // el Recipiente ya quedo persistido; si esto fallara a mitad de camino
     // no hacemos rollback complejo.
     await Jar.updateMany(
-      { _id: { $in: parsed.origenFrascoIds } },
+      { userId, _id: { $in: parsed.origenFrascoIds } },
       { $set: { estado: "usado" } }
     );
 

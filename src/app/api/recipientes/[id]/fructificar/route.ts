@@ -4,6 +4,7 @@ import Batch from "@/models/Batch";
 import Recipiente from "@/models/Recipiente";
 import FungusType from "@/models/FungusType";
 import { ok, handleApiError, notFound, conflict, badRequest } from "@/lib/api-utils";
+import { requireAuth } from "@/lib/api-auth";
 import { fructificarRecipienteSchema } from "@/lib/validations/recipiente.schema";
 
 export async function POST(
@@ -11,12 +12,13 @@ export async function POST(
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const { id } = await ctx.params;
     const body = await req.json();
     const parsed = fructificarRecipienteSchema.parse(body);
 
-    const recipiente = await Recipiente.findById(id);
+    const recipiente = await Recipiente.findOne({ _id: id, userId });
     if (!recipiente) throw notFound("Recipiente no encontrado");
 
     if (recipiente.estado !== "incubando") {
@@ -27,9 +29,9 @@ export async function POST(
 
     let diasEsperadosFructificacion = parsed.diasEsperadosFructificacion;
     if (diasEsperadosFructificacion === undefined) {
-      const batch = await Batch.findById(recipiente.batchId).lean();
+      const batch = await Batch.findOne({ _id: recipiente.batchId, userId }).lean();
       if (!batch) throw badRequest("El lote del recipiente ya no existe");
-      const fungusType = await FungusType.findById(batch.fungusTypeId).lean();
+      const fungusType = await FungusType.findOne({ _id: batch.fungusTypeId, userId }).lean();
       if (!fungusType) throw badRequest("El tipo de hongo del lote ya no existe");
       diasEsperadosFructificacion = fungusType.diasEsperadosDefault.fructificacion;
     }

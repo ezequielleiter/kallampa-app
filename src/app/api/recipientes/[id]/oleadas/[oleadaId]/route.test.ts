@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { PATCH, DELETE } from "./route";
 import { POST as addOleada } from "../route";
 import {
@@ -7,16 +7,27 @@ import {
   colonizarJars,
   makeRecipiente,
   fructificarRecipiente,
+  makeUser,
+  authHeaders,
 } from "@/test-utils/api-test-helpers";
 
+let user: Awaited<ReturnType<typeof makeUser>>;
+let headers: Record<string, string>;
+
+beforeEach(async () => {
+  user = await makeUser();
+  headers = authHeaders(user);
+});
+
 async function setupRecipienteConOleada() {
-  const batch = await makeBatch({ cantidadFrascos: 1 });
-  const [jarId] = await colonizarJars(batch.jars);
-  const recipiente = await makeRecipiente({ batchId: batch._id, origenFrascoIds: [jarId] });
-  await fructificarRecipiente(recipiente._id);
+  const batch = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1 });
+  const [jarId] = await colonizarJars(batch.jars, { userId: user._id, headers });
+  const recipiente = await makeRecipiente({ userId: user._id, headers, batchId: batch._id, origenFrascoIds: [jarId] });
+  await fructificarRecipiente(recipiente._id, { userId: user._id, headers });
 
   const { json } = await callRoute(addOleada, {
     method: "POST",
+    headers,
     params: { id: recipiente._id },
     body: { fecha: new Date().toISOString(), pesoKg: 2 },
   });
@@ -29,6 +40,7 @@ describe("PATCH /api/recipientes/[id]/oleadas/[oleadaId]", () => {
 
     const { status, json } = await callRoute(PATCH, {
       method: "PATCH",
+      headers,
       params: { id: recipienteId, oleadaId },
       body: { pesoKg: 9 },
     });
@@ -42,6 +54,7 @@ describe("PATCH /api/recipientes/[id]/oleadas/[oleadaId]", () => {
 
     const { status } = await callRoute(PATCH, {
       method: "PATCH",
+      headers,
       params: { id: recipienteId, oleadaId: "507f1f77bcf86cd799439011" },
       body: { pesoKg: 9 },
     });
@@ -56,6 +69,7 @@ describe("DELETE /api/recipientes/[id]/oleadas/[oleadaId]", () => {
 
     const { status, json } = await callRoute(DELETE, {
       method: "DELETE",
+      headers,
       params: { id: recipienteId, oleadaId },
     });
 

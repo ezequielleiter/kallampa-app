@@ -22,6 +22,7 @@ export const ORIGEN_PROCESO = ["placa", "comprado", "frascoGrano"] as const;
 export type OrigenProceso = (typeof ORIGEN_PROCESO)[number];
 
 export interface ClonacionDoc extends Document {
+  userId: Types.ObjectId;
   numeroLote: string;
   fungusTypeId: Types.ObjectId;
   origenProceso: OrigenProceso;
@@ -67,7 +68,8 @@ const colonizacionSchema = new Schema<Colonizacion>(
 
 const clonacionSchema = new Schema<ClonacionDoc>(
   {
-    numeroLote: { type: String, required: true, unique: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    numeroLote: { type: String, required: true },
     fungusTypeId: {
       type: Schema.Types.ObjectId,
       ref: "FungusType",
@@ -91,6 +93,8 @@ const clonacionSchema = new Schema<ClonacionDoc>(
   },
   { timestamps: true }
 );
+
+clonacionSchema.index({ userId: 1, numeroLote: 1 }, { unique: true });
 
 const Clonacion: Model<ClonacionDoc> =
   (mongoose.models.Clonacion as Model<ClonacionDoc>) ||

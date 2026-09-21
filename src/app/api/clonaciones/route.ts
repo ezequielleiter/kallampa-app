@@ -9,6 +9,7 @@ import Jar from "@/models/Jar";
 import Recipiente from "@/models/Recipiente";
 import Batch from "@/models/Batch";
 import { ok, fail, handleApiError, badRequest } from "@/lib/api-utils";
+import { requireAuth } from "@/lib/api-auth";
 import { createClonacionSchema } from "@/lib/validations/clonacion.schema";
 import { getNextNumeroClonacion } from "@/lib/counters";
 import {
@@ -19,11 +20,12 @@ import {
 } from "@/lib/metrics";
 
 // GET /api/clonaciones
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
 
-    const clonaciones = (await Clonacion.find({})
+    const clonaciones = (await Clonacion.find({ userId })
       .populate("fungusTypeId")
       .sort({ createdAt: -1 })
       .lean()) as unknown as (LeanClonacion & { _id: unknown; cantidadFrascos?: number })[];
@@ -31,8 +33,8 @@ export async function GET() {
     const clonacionIds = clonaciones.map((c) => c._id) as Types.ObjectId[];
 
     const [placas, frascosLiquidos] = await Promise.all([
-      Placa.find({ clonacionId: { $in: clonacionIds } }).lean(),
-      FrascoLiquido.find({ clonacionId: { $in: clonacionIds } }).lean(),
+      Placa.find({ userId, clonacionId: { $in: clonacionIds } }).lean(),
+      FrascoLiquido.find({ userId, clonacionId: { $in: clonacionIds } }).lean(),
     ]);
 
     const placasByClonacion = new Map<string, LeanPlaca[]>();
@@ -82,6 +84,7 @@ export async function GET() {
  * numeroGuia correlativo `${numeroLote}-L01`, `-L02`, etc.
  */
 async function crearFrascosLiquidosDirectos(
+  userId: string,
   clonacionId: Types.ObjectId,
   numeroLote: string,
   cantidadFrascos: number,
@@ -94,12 +97,13 @@ async function crearFrascosLiquidosDirectos(
   }));
 
   return FrascoLiquido.insertMany(
-    frascosToCreate.map((f) => ({ ...f, clonacionId }))
+    frascosToCreate.map((f) => ({ ...f, clonacionId, userId }))
   );
 }
 
 export async function POST(req: NextRequest) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const body = await req.json();
     const parsed = createClonacionSchema.parse(body);
@@ -112,7 +116,7 @@ export async function POST(req: NextRequest) {
       let origenBatchId: string | undefined;
 
       if (parsed.origenJarId) {
-        const jar = await Jar.findById(parsed.origenJarId).lean();
+        const jar = await Jar.findOne({ _id: parsed.origenJarId, userId }).lean();
         if (!jar) {
           return fail("El frasco de origen indicado no existe", 400);
         }
@@ -122,7 +126,7 @@ export async function POST(req: NextRequest) {
             409
           );
         }
-        const batch = await Batch.findById(jar.batchId).lean();
+        const batch = await Batch.findOne({ _id: jar.batchId, userId }).lean();
         if (!batch) {
           return fail("El lote de origen del frasco ya no existe", 400);
         }
@@ -131,7 +135,7 @@ export async function POST(req: NextRequest) {
         origenJarId = parsed.origenJarId;
         origenBatchId = String(jar.batchId);
       } else if (parsed.origenRecipienteId) {
-        const recipiente = await Recipiente.findById(parsed.origenRecipienteId).lean();
+        const recipiente = await Recipiente.findOne({ _id: parsed.origenRecipienteId, userId }).lean();
         if (!recipiente) {
           return fail("El recipiente de origen indicado no existe", 400);
         }
@@ -141,7 +145,7 @@ export async function POST(req: NextRequest) {
             409
           );
         }
-        const batch = await Batch.findById(recipiente.batchId).lean();
+        const batch = await Batch.findOne({ _id: recipiente.batchId, userId }).lean();
         if (!batch) {
           return fail("El lote de origen del recipiente ya no existe", 400);
         }
@@ -151,7 +155,7 @@ export async function POST(req: NextRequest) {
         origenBatchId = String(recipiente.batchId);
       }
 
-      const fungusType = await FungusType.findById(fungusTypeId).lean();
+      const fungusType = await FungusType.findOne({ _id: fungusTypeId, userId }).lean();
       if (!fungusType) {
         return fail("El tipo de hongo indicado no existe", 400);
       }
@@ -167,7 +171,7 @@ export async function POST(req: NextRequest) {
 
       // Armamos y validamos todo en memoria antes de persistir nada, mismo
       // criterio que POST /api/batches.
-      const numeroLoteBase = await getNextNumeroClonacion(parsed.fechaInicio);
+      const numeroLoteBase = await getNextNumeroClonacion(userId, parsed.fechaInicio);
       const numeroLote = fungusType.iniciales ? `${fungusType.iniciales}-${numeroLoteBase}` : numeroLoteBase;
 
       const cantidadPlacas = parsed.cantidadPlacas!;
@@ -179,6 +183,7 @@ export async function POST(req: NextRequest) {
       );
 
       const clonacion = await Clonacion.create({
+        userId,
         numeroLote,
         fungusTypeId,
         origenProceso: "placa",
@@ -202,7 +207,7 @@ export async function POST(req: NextRequest) {
       let placas;
       try {
         placas = await Placa.insertMany(
-          placasToCreate.map((p) => ({ ...p, clonacionId: clonacion._id }))
+          placasToCreate.map((p) => ({ ...p, clonacionId: clonacion._id, userId }))
         );
       } catch (placaErr) {
         return handleApiError(placaErr);
@@ -214,15 +219,16 @@ export async function POST(req: NextRequest) {
     if (parsed.origenProceso === "comprado") {
       const fungusTypeId = parsed.fungusTypeId;
 
-      const fungusType = await FungusType.findById(fungusTypeId).lean();
+      const fungusType = await FungusType.findOne({ _id: fungusTypeId, userId }).lean();
       if (!fungusType) {
         return fail("El tipo de hongo indicado no existe", 400);
       }
 
-      const numeroLoteBase = await getNextNumeroClonacion(parsed.fechaInicio);
+      const numeroLoteBase = await getNextNumeroClonacion(userId, parsed.fechaInicio);
       const numeroLote = fungusType.iniciales ? `${fungusType.iniciales}-${numeroLoteBase}` : numeroLoteBase;
 
       const clonacion = await Clonacion.create({
+        userId,
         numeroLote,
         fungusTypeId,
         origenProceso: "comprado",
@@ -234,6 +240,7 @@ export async function POST(req: NextRequest) {
       let frascos;
       try {
         frascos = await crearFrascosLiquidosDirectos(
+          userId,
           clonacion._id,
           numeroLote,
           parsed.cantidadFrascos!,
@@ -249,7 +256,7 @@ export async function POST(req: NextRequest) {
     // "frascoGrano": reusa el mismo bloque de validacion de origenJarId que
     // usa el camino "placa" -- aca se ejecuta siempre porque Zod ya
     // garantizo que parsed.origenJarId viene presente en este camino.
-    const jar = await Jar.findById(parsed.origenJarId).lean();
+    const jar = await Jar.findOne({ _id: parsed.origenJarId, userId }).lean();
     if (!jar) {
       return fail("El frasco de origen indicado no existe", 400);
     }
@@ -259,22 +266,23 @@ export async function POST(req: NextRequest) {
         409
       );
     }
-    const batch = await Batch.findById(jar.batchId).lean();
+    const batch = await Batch.findOne({ _id: jar.batchId, userId }).lean();
     if (!batch) {
       return fail("El lote de origen del frasco ya no existe", 400);
     }
     const fungusTypeId = String(batch.fungusTypeId);
     const origenBatchId = String(jar.batchId);
 
-    const fungusType = await FungusType.findById(fungusTypeId).lean();
+    const fungusType = await FungusType.findOne({ _id: fungusTypeId, userId }).lean();
     if (!fungusType) {
       return fail("El tipo de hongo indicado no existe", 400);
     }
 
-    const numeroLoteBase = await getNextNumeroClonacion(parsed.fechaInicio);
+    const numeroLoteBase = await getNextNumeroClonacion(userId, parsed.fechaInicio);
     const numeroLote = fungusType.iniciales ? `${fungusType.iniciales}-${numeroLoteBase}` : numeroLoteBase;
 
     const clonacion = await Clonacion.create({
+      userId,
       numeroLote,
       fungusTypeId,
       origenProceso: "frascoGrano",
@@ -289,6 +297,7 @@ export async function POST(req: NextRequest) {
     let frascos;
     try {
       frascos = await crearFrascosLiquidosDirectos(
+        userId,
         clonacion._id,
         numeroLote,
         parsed.cantidadFrascos!,

@@ -1,9 +1,11 @@
+import type { NextRequest } from "next/server";
 import type { Types } from "mongoose";
 import dbConnect from "@/lib/mongodb";
 import Batch from "@/models/Batch";
 import Jar from "@/models/Jar";
 import Recipiente, { RECIPIENTE_ESTADOS } from "@/models/Recipiente";
 import { ok, handleApiError } from "@/lib/api-utils";
+import { requireAuth } from "@/lib/api-auth";
 import {
   resumenLote,
   agregarPorCatalogo,
@@ -19,11 +21,12 @@ import {
 // catalogo (hongo / grano / sustrato) via agregarPorCatalogo(), mas
 // unos KPIs generales. Formato pensado para graficos: arrays de
 // {label, value}.
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
 
-    const batches = (await Batch.find({})
+    const batches = (await Batch.find({ userId })
       .populate("fungusTypeId")
       .populate("inoculacionGrano.tipoGranoId")
       .lean()) as unknown as (LeanBatch & { _id: unknown })[];
@@ -31,8 +34,8 @@ export async function GET() {
     const batchIds = batches.map((b) => b._id) as Types.ObjectId[];
 
     const [jars, recipientes] = await Promise.all([
-      Jar.find({ batchId: { $in: batchIds } }).lean(),
-      Recipiente.find({ batchId: { $in: batchIds } })
+      Jar.find({ userId, batchId: { $in: batchIds } }).lean(),
+      Recipiente.find({ userId, batchId: { $in: batchIds } })
         .populate("tipoSustratoId")
         .lean(),
     ]);

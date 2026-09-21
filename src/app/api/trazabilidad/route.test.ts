@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { GET } from "./route";
 import {
   callRoute,
@@ -7,23 +7,39 @@ import {
   makeClonacion,
   colonizarPlacas,
   makeFrascoLiquido,
+  makeUser,
+  authHeaders,
 } from "@/test-utils/api-test-helpers";
+
+let user: Awaited<ReturnType<typeof makeUser>>;
+let headers: Record<string, string>;
+
+beforeEach(async () => {
+  user = await makeUser();
+  headers = authHeaders(user);
+});
 
 describe("GET /api/trazabilidad", () => {
   it("trae lotes, clonaciones y frascosLiquidos con los datos suficientes para reconstruir la cadena Lote A -> Clonacion C -> Lote B", async () => {
     // Lote A
-    const batchA = await makeBatch({ cantidadFrascos: 1 });
-    const [jarId] = await colonizarJars(batchA.jars);
+    const batchA = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1 });
+    const [jarId] = await colonizarJars(batchA.jars, { userId: user._id, headers });
 
     // Clonacion C, a partir de un jar de A
-    const clonacionC = await makeClonacion({ origenJarId: jarId, cantidadPlacas: 1, diasEsperados: 15 });
-    const [placaId] = await colonizarPlacas(clonacionC.placas);
-    const frasco = await makeFrascoLiquido({ origenPlacaId: placaId });
+    const clonacionC = await makeClonacion({
+      userId: user._id,
+      headers,
+      origenJarId: jarId,
+      cantidadPlacas: 1,
+      diasEsperados: 15,
+    });
+    const [placaId] = await colonizarPlacas(clonacionC.placas, { userId: user._id, headers });
+    const frasco = await makeFrascoLiquido({ userId: user._id, headers, origenPlacaId: placaId });
 
     // Lote B, a partir del frasco liquido de C
-    const batchB = await makeBatch({ cantidadFrascos: 1, origenFrascoLiquidoId: frasco._id });
+    const batchB = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1, origenFrascoLiquidoId: frasco._id });
 
-    const { status, json } = await callRoute(GET);
+    const { status, json } = await callRoute(GET, { headers });
 
     expect(status).toBe(200);
     const { lotes, clonaciones, frascosLiquidos } = json.data;

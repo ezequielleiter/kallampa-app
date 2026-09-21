@@ -2,6 +2,8 @@
 // handlers de src/app/api/**. No es un archivo *.test.ts, asi que Vitest
 // no lo recolecta como suite propia.
 import { NextRequest } from "next/server";
+import { hashPassword, generateApiKey, signSessionToken } from "@/lib/auth";
+import User from "@/models/User";
 
 // `P` es la forma real de `params` que declara cada route handler (ej.
 // `{ id: string }` o `{ id: string; oleadaId: string }`). Generico para que
@@ -18,6 +20,7 @@ interface CallOpts {
   body?: unknown;
   params?: Record<string, string>;
   searchParams?: Record<string, string>;
+  headers?: Record<string, string>;
 }
 
 /**
@@ -39,12 +42,64 @@ export async function callRoute<P extends Record<string, string> = Record<string
   const req = new NextRequest(url, {
     method,
     body: body !== undefined ? JSON.stringify(body) : undefined,
-    headers: body !== undefined ? { "content-type": "application/json" } : undefined,
+    headers: {
+      ...(body !== undefined ? { "content-type": "application/json" } : {}),
+      ...(opts.headers ?? {}),
+    },
   });
 
   const res = await handler(req, { params: Promise.resolve(params as P) });
   const json = await res.json().catch(() => ({}));
   return { status: res.status, json };
+}
+
+/**
+ * Crea un User real (via el modelo, no via la route de registro -- mas
+ * simple y no pasa por Zod) para usar como dueno de los fixtures de un
+ * test. Devuelve el doc con los datos necesarios para armar `authHeaders`.
+ * Nadie se loguea con password en estos tests (solo con headers), asi que
+ * no hace falta devolverla.
+ */
+export async function makeUser(overrides: Record<string, unknown> = {}) {
+  const rand = Math.random().toString(36).slice(2);
+  const doc = {
+    username: `user${rand}`,
+    email: `user${rand}@test.local`,
+    passwordHash: await hashPassword("Test1234!"),
+    apiKey: generateApiKey(),
+    ...overrides,
+  };
+  const user = await User.create(doc);
+  return {
+    _id: String(user._id),
+    username: user.username as string,
+    email: user.email as string,
+    apiKey: doc.apiKey as string,
+  };
+}
+
+/** Arma los headers de auth (x-api-key + JWT de sesion) que exige requireAuth. */
+export function authHeaders(user: { _id: string; apiKey: string }): Record<string, string> {
+  const token = signSessionToken(String(user._id));
+  return { "x-api-key": user.apiKey, Authorization: `Bearer ${token}` };
+}
+
+/**
+ * Todos los factories `makeX`/helpers de fixtures de este archivo requieren
+ * `userId` + `headers` (armados con `authHeaders(user)`) para saber a que
+ * cuenta pertenece lo que crean/modifican -- sin default, a proposito: cada
+ * test tiene que crear su(s) `makeUser()` explicitamente.
+ * `userId` no siempre hace falta dentro del propio factory (el dueno real
+ * lo determina `requireAuth` a partir de los headers), pero se pide
+ * igual por consistencia: various factories anidados lo re-propagan a
+ * otros factories, y los tests lo usan para armar/verificar cross-user.
+ * Cuando un factory no lo necesita direccamente, igual viaja en el `body`
+ * del POST -- los schemas de Zod ignoran claves desconocidas, así que no
+ * rompe nada.
+ */
+export interface AuthOpts {
+  userId: string;
+  headers: Record<string, string>;
 }
 
 // v2: 3 campos (inoculacionGrano/incubacion/fructificacion) -- "cosecha" ya
@@ -55,14 +110,16 @@ const DEFAULT_DIAS_ESPERADOS = {
   fructificacion: 10,
 };
 
-export async function makeFungusType(overrides: Record<string, unknown> = {}) {
+export async function makeFungusType(opts: AuthOpts & Record<string, unknown>) {
+  const { headers, ...rest } = opts;
   const { POST } = await import("@/app/api/fungus-types/route");
   const { status, json } = await callRoute(POST, {
     method: "POST",
+    headers,
     body: {
       nombre: `Hongo Test ${Math.random().toString(36).slice(2)}`,
       diasEsperadosDefault: DEFAULT_DIAS_ESPERADOS,
-      ...overrides,
+      ...rest,
     },
   });
   if (status !== 201) {
@@ -71,11 +128,13 @@ export async function makeFungusType(overrides: Record<string, unknown> = {}) {
   return json.data as { _id: string; nombre: string; diasEsperadosDefault: typeof DEFAULT_DIAS_ESPERADOS };
 }
 
-export async function makeGrainType(overrides: Record<string, unknown> = {}) {
+export async function makeGrainType(opts: AuthOpts & Record<string, unknown>) {
+  const { headers, ...rest } = opts;
   const { POST } = await import("@/app/api/grain-types/route");
   const { status, json } = await callRoute(POST, {
     method: "POST",
-    body: { nombre: `Grano Test ${Math.random().toString(36).slice(2)}`, ...overrides },
+    headers,
+    body: { nombre: `Grano Test ${Math.random().toString(36).slice(2)}`, ...rest },
   });
   if (status !== 201) {
     throw new Error(`No se pudo crear grainType de fixture: ${JSON.stringify(json)}`);
@@ -83,11 +142,13 @@ export async function makeGrainType(overrides: Record<string, unknown> = {}) {
   return json.data as { _id: string; nombre: string };
 }
 
-export async function makeSubstrateType(overrides: Record<string, unknown> = {}) {
+export async function makeSubstrateType(opts: AuthOpts & Record<string, unknown>) {
+  const { headers, ...rest } = opts;
   const { POST } = await import("@/app/api/substrate-types/route");
   const { status, json } = await callRoute(POST, {
     method: "POST",
-    body: { nombre: `Sustrato Test ${Math.random().toString(36).slice(2)}`, ...overrides },
+    headers,
+    body: { nombre: `Sustrato Test ${Math.random().toString(36).slice(2)}`, ...rest },
   });
   if (status !== 201) {
     throw new Error(`No se pudo crear substrateType de fixture: ${JSON.stringify(json)}`);
@@ -95,7 +156,7 @@ export async function makeSubstrateType(overrides: Record<string, unknown> = {})
   return json.data as { _id: string; nombre: string };
 }
 
-export interface MakeBatchOpts {
+export interface MakeBatchOpts extends AuthOpts {
   fungusTypeId?: string;
   origenFrascoLiquidoId?: string;
   tipoGranoId?: string;
@@ -112,15 +173,18 @@ export interface MakeBatchOpts {
  * default) o con `origenFrascoLiquidoId` (el hongo se deriva del frasco) --
  * si se pasa este ultimo, NO se autocompleta fungusTypeId.
  */
-export async function makeBatch(opts: MakeBatchOpts = {}) {
+export async function makeBatch(opts: MakeBatchOpts) {
+  const { userId, headers } = opts;
   const { POST } = await import("@/app/api/batches/route");
 
   const fungusTypeId =
-    opts.fungusTypeId ?? (opts.origenFrascoLiquidoId ? undefined : (await makeFungusType())._id);
-  const tipoGranoId = opts.tipoGranoId ?? (await makeGrainType())._id;
+    opts.fungusTypeId ??
+    (opts.origenFrascoLiquidoId ? undefined : (await makeFungusType({ userId, headers }))._id);
+  const tipoGranoId = opts.tipoGranoId ?? (await makeGrainType({ userId, headers }))._id;
 
   const { status, json } = await callRoute(POST, {
     method: "POST",
+    headers,
     body: {
       ...(fungusTypeId ? { fungusTypeId } : {}),
       ...(opts.origenFrascoLiquidoId ? { origenFrascoLiquidoId: opts.origenFrascoLiquidoId } : {}),
@@ -139,11 +203,12 @@ export async function makeBatch(opts: MakeBatchOpts = {}) {
 }
 
 /** Marca N jars de un batch (ya creado) como 'colonizado' y devuelve sus ids. */
-export async function colonizarJars(jars: { _id: string }[]) {
+export async function colonizarJars(jars: { _id: string }[], opts: AuthOpts) {
   const { PATCH } = await import("@/app/api/jars/[id]/route");
   for (const jar of jars) {
     await callRoute(PATCH, {
       method: "PATCH",
+      headers: opts.headers,
       params: { id: jar._id },
       body: { estado: "colonizado" },
     });
@@ -151,7 +216,7 @@ export async function colonizarJars(jars: { _id: string }[]) {
   return jars.map((j) => j._id);
 }
 
-export interface MakeRecipienteOpts {
+export interface MakeRecipienteOpts extends AuthOpts {
   batchId: string;
   origenFrascoIds: string[];
   tipoSustratoId?: string;
@@ -163,11 +228,13 @@ export interface MakeRecipienteOpts {
 
 /** Crea un recipiente a partir de uno o mas frascos de grano ya colonizados (Jar). */
 export async function makeRecipiente(opts: MakeRecipienteOpts) {
+  const { userId, headers } = opts;
   const { POST } = await import("@/app/api/recipientes/route");
-  const tipoSustratoId = opts.tipoSustratoId ?? (await makeSubstrateType())._id;
+  const tipoSustratoId = opts.tipoSustratoId ?? (await makeSubstrateType({ userId, headers }))._id;
 
   const { status, json } = await callRoute(POST, {
     method: "POST",
+    headers,
     body: {
       batchId: opts.batchId,
       origenFrascoIds: opts.origenFrascoIds,
@@ -187,23 +254,26 @@ export async function makeRecipiente(opts: MakeRecipienteOpts) {
 }
 
 /** Crea un batch con 1 frasco ya colonizado y un recipiente a partir de el. */
-export async function makeBatchConRecipiente(opts: MakeBatchOpts = {}) {
+export async function makeBatchConRecipiente(opts: MakeBatchOpts) {
+  const { userId, headers } = opts;
   const batch = await makeBatch({ cantidadFrascos: 1, ...opts });
-  const [jarId] = await colonizarJars(batch.jars);
-  const recipiente = await makeRecipiente({ batchId: batch._id, origenFrascoIds: [jarId] });
+  const [jarId] = await colonizarJars(batch.jars, { userId, headers });
+  const recipiente = await makeRecipiente({ userId, headers, batchId: batch._id, origenFrascoIds: [jarId] });
   return { batch, recipiente };
 }
 
 /** Hace fructificar un recipiente ya creado (debe estar 'incubando'). */
 export async function fructificarRecipiente(
   recipienteId: string,
-  overrides: Record<string, unknown> = {}
+  opts: AuthOpts & Record<string, unknown>
 ) {
+  const { headers, ...rest } = opts;
   const { POST } = await import("@/app/api/recipientes/[id]/fructificar/route");
   const { status, json } = await callRoute(POST, {
     method: "POST",
+    headers,
     params: { id: recipienteId },
-    body: { fechaInicioFructificacion: new Date().toISOString(), ...overrides },
+    body: { fechaInicioFructificacion: new Date().toISOString(), ...rest },
   });
   if (status !== 200) {
     throw new Error(`No se pudo fructificar el recipiente de fixture: ${JSON.stringify(json)}`);
@@ -211,7 +281,7 @@ export async function fructificarRecipiente(
   return json.data;
 }
 
-export interface MakeClonacionOpts {
+export interface MakeClonacionOpts extends AuthOpts {
   fungusTypeId?: string;
   origenJarId?: string;
   origenRecipienteId?: string;
@@ -229,7 +299,8 @@ export interface MakeClonacionOpts {
  * o con `origenJarId`/`origenRecipienteId` (el hongo se deriva del lote de
  * origen) -- si se pasa alguno de estos, NO se autocompleta fungusTypeId.
  */
-export async function makeClonacion(opts: MakeClonacionOpts = {}) {
+export async function makeClonacion(opts: MakeClonacionOpts) {
+  const { userId, headers } = opts;
   const { POST } = await import("@/app/api/clonaciones/route");
 
   const tieneOrigen = !!(opts.origenJarId || opts.origenRecipienteId);
@@ -239,12 +310,15 @@ export async function makeClonacion(opts: MakeClonacionOpts = {}) {
       ? undefined
       : (
           await makeFungusType({
+            userId,
+            headers,
             diasEsperadosDefault: { ...DEFAULT_DIAS_ESPERADOS, colonizacionPlacas: 15 },
           })
         )._id);
 
   const { status, json } = await callRoute(POST, {
     method: "POST",
+    headers,
     body: {
       ...(fungusTypeId ? { fungusTypeId } : {}),
       ...(opts.origenJarId ? { origenJarId: opts.origenJarId } : {}),
@@ -262,7 +336,7 @@ export async function makeClonacion(opts: MakeClonacionOpts = {}) {
   return json.data;
 }
 
-export interface MakeClonacionDirectaOpts {
+export interface MakeClonacionDirectaOpts extends AuthOpts {
   origenProceso: "comprado" | "frascoGrano";
   origenJarId?: string;
   fungusTypeId?: string;
@@ -278,10 +352,12 @@ export interface MakeClonacionDirectaOpts {
  * llama decide que fuente pasar segun el camino elegido.
  */
 export async function makeClonacionDirecta(opts: MakeClonacionDirectaOpts) {
+  const { headers } = opts;
   const { POST } = await import("@/app/api/clonaciones/route");
 
   const { status, json } = await callRoute(POST, {
     method: "POST",
+    headers,
     body: {
       origenProceso: opts.origenProceso,
       ...(opts.fungusTypeId ? { fungusTypeId: opts.fungusTypeId } : {}),
@@ -297,11 +373,12 @@ export async function makeClonacionDirecta(opts: MakeClonacionDirectaOpts) {
 }
 
 /** Marca N placas de una clonacion (ya creada) como 'colonizado' y devuelve sus ids. */
-export async function colonizarPlacas(placas: { _id: string }[]) {
+export async function colonizarPlacas(placas: { _id: string }[], opts: AuthOpts) {
   const { PATCH } = await import("@/app/api/placas/[id]/route");
   for (const placa of placas) {
     await callRoute(PATCH, {
       method: "PATCH",
+      headers: opts.headers,
       params: { id: placa._id },
       body: { estado: "colonizado" },
     });
@@ -309,17 +386,18 @@ export async function colonizarPlacas(placas: { _id: string }[]) {
   return placas.map((p) => p._id);
 }
 
-export interface MakeFrascoLiquidoOpts {
+export interface MakeFrascoLiquidoOpts extends AuthOpts {
   origenPlacaId: string;
   fechaCreacion?: string;
 }
 
-/** Crea un frasco liquido a partir de una placa ya colonizada. */
-export async function makeTarea(overrides: Record<string, unknown> = {}) {
+export async function makeTarea(opts: AuthOpts & Record<string, unknown>) {
+  const { headers, ...rest } = opts;
   const { POST } = await import("@/app/api/tareas/route");
   const { status, json } = await callRoute(POST, {
     method: "POST",
-    body: { titulo: "Tarea de prueba", fecha: new Date(), estado: "pendiente", ...overrides },
+    headers,
+    body: { titulo: "Tarea de prueba", fecha: new Date(), estado: "pendiente", ...rest },
   });
   if (status !== 201) {
     throw new Error(`No se pudo crear tarea de fixture: ${JSON.stringify(json)}`);
@@ -327,10 +405,12 @@ export async function makeTarea(overrides: Record<string, unknown> = {}) {
   return json.data as { _id: string; titulo: string; fecha: string; estado: string };
 }
 
+/** Crea un frasco liquido a partir de una placa ya colonizada. */
 export async function makeFrascoLiquido(opts: MakeFrascoLiquidoOpts) {
   const { POST } = await import("@/app/api/frascos-liquidos/route");
   const { status, json } = await callRoute(POST, {
     method: "POST",
+    headers: opts.headers,
     body: {
       origenPlacaId: opts.origenPlacaId,
       fechaCreacion: opts.fechaCreacion ?? new Date().toISOString(),

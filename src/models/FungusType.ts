@@ -8,6 +8,7 @@ export interface DiasEsperadosDefault {
 }
 
 export interface FungusTypeDoc extends Document {
+  userId: mongoose.Types.ObjectId;
   nombre: string;
   nombreCientifico?: string;
   notas?: string;
@@ -32,7 +33,8 @@ const diasEsperadosDefaultSchema = new Schema<DiasEsperadosDefault>(
 
 const fungusTypeSchema = new Schema<FungusTypeDoc>(
   {
-    nombre: { type: String, required: true, unique: true, trim: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    nombre: { type: String, required: true, trim: true },
     nombreCientifico: { type: String },
     notas: { type: String },
     iniciales: { type: String, trim: true, uppercase: true, match: /^[A-Z]{1,4}$/ },
@@ -44,6 +46,8 @@ const fungusTypeSchema = new Schema<FungusTypeDoc>(
   },
   { timestamps: true }
 );
+
+fungusTypeSchema.index({ userId: 1, nombre: 1 }, { unique: true });
 
 const FungusType: Model<FungusTypeDoc> =
   (mongoose.models.FungusType as Model<FungusTypeDoc>) ||

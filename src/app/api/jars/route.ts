@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Jar from "@/models/Jar";
 import { ok, handleApiError } from "@/lib/api-utils";
+import { requireAuth } from "@/lib/api-auth";
 
 // GET /api/jars?batchId=&estado=
 // Lista frascos de un lote, filtrable por estado. `estado` acepta una lista
@@ -11,12 +12,13 @@ import { ok, handleApiError } from "@/lib/api-utils";
 // solo se excluyen los que son pérdida (contaminado/descartado).
 export async function GET(req: NextRequest) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const { searchParams } = new URL(req.url);
     const batchId = searchParams.get("batchId");
     const estado = searchParams.get("estado");
 
-    const filter: Record<string, unknown> = {};
+    const filter: Record<string, unknown> = { userId };
     if (batchId) filter.batchId = batchId;
     if (estado) {
       const estados = estado.split(",").map((e) => e.trim()).filter(Boolean);

@@ -8,15 +8,17 @@ import FungusType from "@/models/FungusType";
 import FrascoLiquido from "@/models/FrascoLiquido";
 import Clonacion from "@/models/Clonacion";
 import { ok, fail, handleApiError, badRequest } from "@/lib/api-utils";
+import { requireAuth } from "@/lib/api-auth";
 import { createBatchSchema } from "@/lib/validations/batch.schema";
 import { getNextNumeroLote } from "@/lib/counters";
 import { resumenLote, type LeanBatch, type LeanJar, type LeanRecipiente } from "@/lib/metrics";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
 
-    const batches = (await Batch.find({})
+    const batches = (await Batch.find({ userId })
       .populate("fungusTypeId")
       .populate("origenFrascoLiquidoId", "numeroGuia")
       .sort({ createdAt: -1 })
@@ -25,8 +27,8 @@ export async function GET() {
     const batchIds = batches.map((b) => b._id) as Types.ObjectId[];
 
     const [jars, recipientes] = await Promise.all([
-      Jar.find({ batchId: { $in: batchIds } }).lean(),
-      Recipiente.find({ batchId: { $in: batchIds } }).lean(),
+      Jar.find({ userId, batchId: { $in: batchIds } }).lean(),
+      Recipiente.find({ userId, batchId: { $in: batchIds } }).lean(),
     ]);
 
     const jarsByBatch = new Map<string, LeanJar[]>();
@@ -68,6 +70,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const body = await req.json();
     const parsed = createBatchSchema.parse(body);
@@ -76,7 +79,10 @@ export async function POST(req: NextRequest) {
     let origenFrascoLiquidoId: string | undefined;
 
     if (parsed.origenFrascoLiquidoId) {
-      const frascoLiquido = await FrascoLiquido.findById(parsed.origenFrascoLiquidoId).lean();
+      const frascoLiquido = await FrascoLiquido.findOne({
+        _id: parsed.origenFrascoLiquidoId,
+        userId,
+      }).lean();
       if (!frascoLiquido) {
         return fail("El frasco de micelio líquido indicado no existe", 400);
       }
@@ -86,7 +92,7 @@ export async function POST(req: NextRequest) {
           409
         );
       }
-      const clonacion = await Clonacion.findById(frascoLiquido.clonacionId).lean();
+      const clonacion = await Clonacion.findOne({ _id: frascoLiquido.clonacionId, userId }).lean();
       if (!clonacion) {
         return fail("La clonación de origen del frasco ya no existe", 400);
       }
@@ -94,7 +100,7 @@ export async function POST(req: NextRequest) {
       origenFrascoLiquidoId = parsed.origenFrascoLiquidoId;
     }
 
-    const fungusType = await FungusType.findById(fungusTypeId).lean();
+    const fungusType = await FungusType.findOne({ _id: fungusTypeId, userId }).lean();
     if (!fungusType) {
       return fail("El tipo de hongo indicado no existe", 400);
     }
@@ -110,7 +116,7 @@ export async function POST(req: NextRequest) {
 
     // Armamos y validamos todo en memoria antes de persistir nada: si algo
     // de esto fallara, no queremos un Batch huerfano sin sus Jars.
-    const numeroLoteBase = await getNextNumeroLote(parsed.fechaInicio);
+    const numeroLoteBase = await getNextNumeroLote(userId, parsed.fechaInicio);
     const numeroLote = fungusType.iniciales ? `${fungusType.iniciales}-${numeroLoteBase}` : numeroLoteBase;
 
     const jarsToCreate = Array.from(
@@ -121,6 +127,7 @@ export async function POST(req: NextRequest) {
     );
 
     const batch = await Batch.create({
+      userId,
       numeroLote,
       fungusTypeId,
       ...(origenFrascoLiquidoId ? { origenFrascoLiquidoId } : {}),
@@ -141,7 +148,7 @@ export async function POST(req: NextRequest) {
     let jars;
     try {
       jars = await Jar.insertMany(
-        jarsToCreate.map((j) => ({ ...j, batchId: batch._id }))
+        jarsToCreate.map((j) => ({ ...j, batchId: batch._id, userId }))
       );
     } catch (jarErr) {
       return handleApiError(jarErr);

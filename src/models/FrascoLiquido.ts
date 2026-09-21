@@ -5,6 +5,7 @@ export const FRASCO_LIQUIDO_ESTADOS = ["valido", "vacio", "finalizado", "contami
 export type FrascoLiquidoEstado = (typeof FRASCO_LIQUIDO_ESTADOS)[number];
 
 export interface FrascoLiquidoDoc extends Document {
+  userId: Types.ObjectId;
   clonacionId: Types.ObjectId;
   // Solo presente para frascos nacidos de una Clonacion "placa". Los
   // frascos de "comprado"/"frascoGrano" no vienen de ninguna Placa, asi
@@ -19,6 +20,7 @@ export interface FrascoLiquidoDoc extends Document {
 
 const frascoLiquidoSchema = new Schema<FrascoLiquidoDoc>(
   {
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     // Denormalizado desde origenPlacaId.clonacionId para poder filtrar/
     // agrupar sin un join extra (mismo criterio que otros denormalizados
     // del proyecto, ej. Recipiente.batchId via Jar).
@@ -33,7 +35,7 @@ const frascoLiquidoSchema = new Schema<FrascoLiquidoDoc>(
       ref: "Placa",
       required: false,
     },
-    numeroGuia: { type: String, required: true, unique: true },
+    numeroGuia: { type: String, required: true },
     fechaCreacion: { type: Date, required: true },
     estado: {
       type: String,
@@ -43,6 +45,8 @@ const frascoLiquidoSchema = new Schema<FrascoLiquidoDoc>(
   },
   { timestamps: true }
 );
+
+frascoLiquidoSchema.index({ userId: 1, numeroGuia: 1 }, { unique: true });
 
 const FrascoLiquido: Model<FrascoLiquidoDoc> =
   (mongoose.models.FrascoLiquido as Model<FrascoLiquidoDoc>) ||

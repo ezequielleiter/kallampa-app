@@ -1,13 +1,22 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { PATCH } from "./route";
-import { makeFungusType, callRoute } from "@/test-utils/api-test-helpers";
+import { makeFungusType, callRoute, makeUser, authHeaders } from "@/test-utils/api-test-helpers";
+
+let user: Awaited<ReturnType<typeof makeUser>>;
+let headers: Record<string, string>;
+
+beforeEach(async () => {
+  user = await makeUser();
+  headers = authHeaders(user);
+});
 
 describe("PATCH /api/fungus-types/[id]", () => {
   it("soft-delete: PATCH {activo:false} desactiva sin borrar el documento", async () => {
-    const fungusType = await makeFungusType();
+    const fungusType = await makeFungusType({ userId: user._id, headers });
 
     const { status, json } = await callRoute(PATCH, {
       method: "PATCH",
+      headers,
       params: { id: fungusType._id },
       body: { activo: false },
     });
@@ -19,11 +28,14 @@ describe("PATCH /api/fungus-types/[id]", () => {
 
   it("merge parcial de diasEsperadosDefault: mandar 1 de los 3 campos no pisa los otros 2", async () => {
     const fungusType = await makeFungusType({
+      userId: user._id,
+      headers,
       diasEsperadosDefault: { inoculacionGrano: 14, incubacion: 20, fructificacion: 10 },
     });
 
     const { status, json } = await callRoute(PATCH, {
       method: "PATCH",
+      headers,
       params: { id: fungusType._id },
       body: { diasEsperadosDefault: { fructificacion: 99 } },
     });
@@ -39,6 +51,7 @@ describe("PATCH /api/fungus-types/[id]", () => {
   it("404 en un id inexistente", async () => {
     const { status } = await callRoute(PATCH, {
       method: "PATCH",
+      headers,
       params: { id: "507f1f77bcf86cd799439011" },
       body: { activo: false },
     });
@@ -47,11 +60,12 @@ describe("PATCH /api/fungus-types/[id]", () => {
   });
 
   it("rechaza cambiar iniciales a una que ya usa otro hongo activo con 409", async () => {
-    await makeFungusType({ iniciales: "OST" });
-    const otro = await makeFungusType({ iniciales: "REI" });
+    await makeFungusType({ userId: user._id, headers, iniciales: "OST" });
+    const otro = await makeFungusType({ userId: user._id, headers, iniciales: "REI" });
 
     const { status, json } = await callRoute(PATCH, {
       method: "PATCH",
+      headers,
       params: { id: otro._id },
       body: { iniciales: "OST" },
     });
@@ -61,18 +75,20 @@ describe("PATCH /api/fungus-types/[id]", () => {
   });
 
   it("rechaza reactivar un hongo cuyas iniciales colisionan con un hongo activo con 409", async () => {
-    const original = await makeFungusType({ iniciales: "OST" });
+    const original = await makeFungusType({ userId: user._id, headers, iniciales: "OST" });
     await callRoute(PATCH, {
       method: "PATCH",
+      headers,
       params: { id: original._id },
       body: { activo: false },
     });
     // Ahora que "OST" quedo libre (el original esta inactivo), otro hongo
     // puede crearse con esas mismas iniciales.
-    await makeFungusType({ iniciales: "OST" });
+    await makeFungusType({ userId: user._id, headers, iniciales: "OST" });
 
     const { status, json } = await callRoute(PATCH, {
       method: "PATCH",
+      headers,
       params: { id: original._id },
       body: { activo: true },
     });
@@ -82,10 +98,11 @@ describe("PATCH /api/fungus-types/[id]", () => {
   });
 
   it("permite cambiar iniciales a un valor unico", async () => {
-    const fungusType = await makeFungusType({ iniciales: "OST" });
+    const fungusType = await makeFungusType({ userId: user._id, headers, iniciales: "OST" });
 
     const { status, json } = await callRoute(PATCH, {
       method: "PATCH",
+      headers,
       params: { id: fungusType._id },
       body: { iniciales: "REI" },
     });
@@ -95,10 +112,11 @@ describe("PATCH /api/fungus-types/[id]", () => {
   });
 
   it("permite un PATCH que manda las mismas iniciales que ya tenia", async () => {
-    const fungusType = await makeFungusType({ iniciales: "OST" });
+    const fungusType = await makeFungusType({ userId: user._id, headers, iniciales: "OST" });
 
     const { status, json } = await callRoute(PATCH, {
       method: "PATCH",
+      headers,
       params: { id: fungusType._id },
       body: { iniciales: "OST" },
     });

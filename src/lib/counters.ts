@@ -2,13 +2,16 @@ import Counter from "@/models/Counter";
 
 /**
  * Genera y devuelve el siguiente numeroLote formateado como L-<anio>-<seq>,
- * con la secuencia scopeada por anio y padding a 3 digitos (001, 002, ...).
- * Usa findOneAndUpdate con $inc + upsert para que la asignacion sea atomica
- * incluso con requests concurrentes.
+ * con la secuencia scopeada por usuario y anio y padding a 3 digitos (001,
+ * 002, ...). Usa findOneAndUpdate con $inc + upsert para que la asignacion
+ * sea atomica incluso con requests concurrentes.
  */
-export async function getNextNumeroLote(date: Date = new Date()): Promise<string> {
+export async function getNextNumeroLote(
+  userId: string,
+  date: Date = new Date()
+): Promise<string> {
   const year = date.getFullYear();
-  const scopeId = `batch:${year}`;
+  const scopeId = `batch:${userId}:${year}`;
 
   const counter = await Counter.findOneAndUpdate(
     { _id: scopeId },
@@ -24,12 +27,15 @@ export async function getNextNumeroLote(date: Date = new Date()): Promise<string
 
 /**
  * Analoga a getNextNumeroLote, pero para Clonacion: genera C-<anio>-<seq>,
- * scopeada por anio en su propio contador (`clonacion:<anio>`), mismo
- * mecanismo atomico de findOneAndUpdate + $inc + upsert.
+ * scopeada por usuario y anio en su propio contador (`clonacion:<userId>:<anio>`),
+ * mismo mecanismo atomico de findOneAndUpdate + $inc + upsert.
  */
-export async function getNextNumeroClonacion(date: Date = new Date()): Promise<string> {
+export async function getNextNumeroClonacion(
+  userId: string,
+  date: Date = new Date()
+): Promise<string> {
   const year = date.getFullYear();
-  const scopeId = `clonacion:${year}`;
+  const scopeId = `clonacion:${userId}:${year}`;
 
   const counter = await Counter.findOneAndUpdate(
     { _id: scopeId },

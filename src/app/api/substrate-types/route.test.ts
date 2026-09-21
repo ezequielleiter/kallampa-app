@@ -1,12 +1,21 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { GET, POST } from "./route";
 import { PATCH } from "./[id]/route";
-import { callRoute } from "@/test-utils/api-test-helpers";
+import { callRoute, makeUser, authHeaders } from "@/test-utils/api-test-helpers";
+
+let user: Awaited<ReturnType<typeof makeUser>>;
+let headers: Record<string, string>;
+
+beforeEach(async () => {
+  user = await makeUser();
+  headers = authHeaders(user);
+});
 
 describe("catalogo substrate-types", () => {
   it("crea un tipo de sustrato", async () => {
     const { status, json } = await callRoute(POST, {
       method: "POST",
+      headers,
       body: { nombre: "Paja de trigo" },
     });
     expect(status).toBe(201);
@@ -15,9 +24,10 @@ describe("catalogo substrate-types", () => {
   });
 
   it("rechaza nombre duplicado con 409", async () => {
-    await callRoute(POST, { method: "POST", body: { nombre: "Paja de trigo" } });
+    await callRoute(POST, { method: "POST", headers, body: { nombre: "Paja de trigo" } });
     const { status, json } = await callRoute(POST, {
       method: "POST",
+      headers,
       body: { nombre: "Paja de trigo" },
     });
     expect(status).toBe(409);
@@ -27,11 +37,13 @@ describe("catalogo substrate-types", () => {
   it("PATCH {activo:false} es un soft-delete", async () => {
     const { json: created } = await callRoute(POST, {
       method: "POST",
+      headers,
       body: { nombre: "Paja de trigo" },
     });
 
     const { status, json } = await callRoute(PATCH, {
       method: "PATCH",
+      headers,
       params: { id: created.data._id },
       body: { activo: false },
     });
@@ -39,7 +51,7 @@ describe("catalogo substrate-types", () => {
     expect(status).toBe(200);
     expect(json.data.activo).toBe(false);
 
-    const { json: listado } = await callRoute(GET, { searchParams: { activo: "true" } });
+    const { json: listado } = await callRoute(GET, { headers, searchParams: { activo: "true" } });
     expect(listado.data).toHaveLength(0);
   });
 });

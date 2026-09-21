@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import type { Model, Document } from "mongoose";
 import dbConnect from "@/lib/mongodb";
 import { ok, fail, handleApiError, notFound } from "@/lib/api-utils";
+import { requireAuth } from "@/lib/api-auth";
 import {
   catalogCreateSchema,
   catalogUpdateSchema,
@@ -25,11 +26,12 @@ export function makeCatalogListCreateHandlers<T extends CatalogDoc>(
 ) {
   async function GET(req: NextRequest) {
     try {
+      const { userId } = await requireAuth(req);
       await dbConnect();
       const { searchParams } = new URL(req.url);
       const activoParam = searchParams.get("activo");
 
-      const filter: Record<string, unknown> = {};
+      const filter: Record<string, unknown> = { userId };
       if (activoParam !== null) {
         filter.activo = activoParam === "true";
       }
@@ -43,16 +45,17 @@ export function makeCatalogListCreateHandlers<T extends CatalogDoc>(
 
   async function POST(req: NextRequest) {
     try {
+      const { userId } = await requireAuth(req);
       await dbConnect();
       const body = await req.json();
       const parsed = catalogCreateSchema.parse(body);
 
-      const existing = await model.findOne({ nombre: parsed.nombre });
+      const existing = await model.findOne({ userId, nombre: parsed.nombre });
       if (existing) {
         return fail("Ya existe un registro con ese nombre", 409);
       }
 
-      const created = await model.create(parsed as Partial<T>);
+      const created = await model.create({ ...parsed, userId } as unknown as Partial<T>);
       return ok(created, 201);
     } catch (err) {
       return handleApiError(err);
@@ -70,13 +73,14 @@ export function makeCatalogItemHandlers<T extends CatalogDoc>(
     ctx: { params: Promise<{ id: string }> }
   ) {
     try {
+      const { userId } = await requireAuth(req);
       await dbConnect();
       const { id } = await ctx.params;
       const body = await req.json();
       const parsed = catalogUpdateSchema.parse(body);
 
-      const updated = await model.findByIdAndUpdate(
-        id,
+      const updated = await model.findOneAndUpdate(
+        { _id: id, userId },
         { $set: parsed },
         { new: true, runValidators: true }
       );

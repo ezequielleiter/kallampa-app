@@ -10,6 +10,7 @@ export const TAREA_ESTADOS = ["pendiente", "hecha"] as const;
 export type TareaEstado = (typeof TAREA_ESTADOS)[number];
 
 export interface TareaDoc extends Document {
+  userId: mongoose.Types.ObjectId;
   titulo: string;
   descripcion?: string;
   fecha: Date;
@@ -20,6 +21,7 @@ export interface TareaDoc extends Document {
 
 const tareaSchema = new Schema<TareaDoc>(
   {
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     titulo: { type: String, required: true, trim: true },
     // Sin `required`: igual que Nota.contenido, un string vacio se trata
     // como "ausente" para `required` y rechazaria una tarea valida sin

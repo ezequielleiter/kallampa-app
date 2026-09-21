@@ -4,6 +4,7 @@ import Placa from "@/models/Placa";
 import FrascoLiquido from "@/models/FrascoLiquido";
 import Clonacion from "@/models/Clonacion";
 import { ok, fail, handleApiError, conflict } from "@/lib/api-utils";
+import { requireAuth } from "@/lib/api-auth";
 import { createFrascoLiquidoSchema } from "@/lib/validations/clonacion.schema";
 
 // GET /api/frascos-liquidos?clonacionId=&estado=
@@ -13,12 +14,13 @@ import { createFrascoLiquidoSchema } from "@/lib/validations/clonacion.schema";
 // mismo patron que /api/jars y /api/placas.
 export async function GET(req: NextRequest) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const { searchParams } = new URL(req.url);
     const clonacionId = searchParams.get("clonacionId");
     const estado = searchParams.get("estado");
 
-    const filter: Record<string, unknown> = {};
+    const filter: Record<string, unknown> = { userId };
     if (clonacionId) filter.clonacionId = clonacionId;
     if (estado) {
       const estados = estado.split(",").map((e) => e.trim()).filter(Boolean);
@@ -46,11 +48,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const body = await req.json();
     const parsed = createFrascoLiquidoSchema.parse(body);
 
-    const placa = await Placa.findById(parsed.origenPlacaId).lean();
+    const placa = await Placa.findOne({ _id: parsed.origenPlacaId, userId }).lean();
     if (!placa) {
       return fail("La placa de origen indicada no existe", 400);
     }
@@ -61,17 +64,18 @@ export async function POST(req: NextRequest) {
 
     const clonacionId = placa.clonacionId;
 
-    const clonacion = await Clonacion.findById(clonacionId).lean();
+    const clonacion = await Clonacion.findOne({ _id: clonacionId, userId }).lean();
     if (!clonacion) {
       return fail("La clonación de origen ya no existe", 400);
     }
 
     // Correlativo por clonacion (no global, no atomico): mismo criterio que
     // numeroSeguimiento de Recipiente en POST /api/recipientes.
-    const cantidadExistente = await FrascoLiquido.countDocuments({ clonacionId });
+    const cantidadExistente = await FrascoLiquido.countDocuments({ userId, clonacionId });
     const numeroGuia = `${clonacion.numeroLote}-L${String(cantidadExistente + 1).padStart(2, "0")}`;
 
     const frascoLiquido = await FrascoLiquido.create({
+      userId,
       clonacionId,
       origenPlacaId: parsed.origenPlacaId,
       numeroGuia,

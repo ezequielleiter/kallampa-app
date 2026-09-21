@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import type { Types } from "mongoose";
 import dbConnect from "@/lib/mongodb";
 import Batch from "@/models/Batch";
@@ -7,6 +8,7 @@ import Clonacion from "@/models/Clonacion";
 import Placa from "@/models/Placa";
 import FrascoLiquido from "@/models/FrascoLiquido";
 import { ok, handleApiError } from "@/lib/api-utils";
+import { requireAuth } from "@/lib/api-auth";
 import {
   resumenLote,
   resumenClonacion,
@@ -21,22 +23,23 @@ import {
 /**
  * GET /api/trazabilidad
  *
- * Sin filtros, trae TODO (volumen chico, app de un solo operador). Da el
- * material crudo para que el frontend reconstruya el arbol completo
- * Lote -> Clonacion -> Lote -> ...: cruzando
+ * Sin filtros, trae TODO lo del usuario (volumen chico, app de un solo
+ * operador por cuenta). Da el material crudo para que el frontend
+ * reconstruya el arbol completo Lote -> Clonacion -> Lote -> ...: cruzando
  * lote.origenFrascoLiquidoId -> frascoLiquido.clonacionId -> esa Clonacion,
  * y clonacion.origenJarId/origenRecipienteId/origenBatchId -> ese Lote.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
 
     const [batches, clonaciones] = await Promise.all([
-      Batch.find({})
+      Batch.find({ userId })
         .populate("fungusTypeId", "nombre")
         .sort({ createdAt: -1 })
         .lean() as unknown as Promise<(LeanBatch & { _id: unknown })[]>,
-      Clonacion.find({})
+      Clonacion.find({ userId })
         .populate("fungusTypeId", "nombre")
         .populate("origenJarId", "numeroGuia")
         .populate("origenRecipienteId", "numeroSeguimiento")
@@ -49,11 +52,11 @@ export async function GET() {
 
     const [jars, recipientes, placas, frascosLiquidos, todosLosFrascosLiquidos] =
       await Promise.all([
-        Jar.find({ batchId: { $in: batchIds } }).lean(),
-        Recipiente.find({ batchId: { $in: batchIds } }).lean(),
-        Placa.find({ clonacionId: { $in: clonacionIds } }).lean(),
-        FrascoLiquido.find({ clonacionId: { $in: clonacionIds } }).lean(),
-        FrascoLiquido.find({}).select("numeroGuia clonacionId").lean(),
+        Jar.find({ userId, batchId: { $in: batchIds } }).lean(),
+        Recipiente.find({ userId, batchId: { $in: batchIds } }).lean(),
+        Placa.find({ userId, clonacionId: { $in: clonacionIds } }).lean(),
+        FrascoLiquido.find({ userId, clonacionId: { $in: clonacionIds } }).lean(),
+        FrascoLiquido.find({ userId }).select("numeroGuia clonacionId").lean(),
       ]);
 
     const jarsByBatch = new Map<string, LeanJar[]>();

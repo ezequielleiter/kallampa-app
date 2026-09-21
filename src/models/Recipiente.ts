@@ -27,6 +27,7 @@ export interface Oleada {
 }
 
 export interface RecipienteDoc extends Document {
+  userId: Types.ObjectId;
   batchId: Types.ObjectId;
   numeroSeguimiento: string;
   origenFrascoIds: Types.ObjectId[];
@@ -52,13 +53,14 @@ const oleadaSchema = new Schema<Oleada>({
 
 const recipienteSchema = new Schema<RecipienteDoc>(
   {
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     batchId: {
       type: Schema.Types.ObjectId,
       ref: "Batch",
       required: true,
       index: true,
     },
-    numeroSeguimiento: { type: String, required: true, unique: true },
+    numeroSeguimiento: { type: String, required: true },
     // Los frascos de micelio liquido de Clonacion NO originan recipientes
     // directamente -- se usan para iniciar un lote nuevo (ver
     // Batch.origenFrascoLiquidoId). Un recipiente siempre viene de uno o
@@ -94,6 +96,8 @@ const recipienteSchema = new Schema<RecipienteDoc>(
   },
   { timestamps: true }
 );
+
+recipienteSchema.index({ userId: 1, numeroSeguimiento: 1 }, { unique: true });
 
 const Recipiente: Model<RecipienteDoc> =
   (mongoose.models.Recipiente as Model<RecipienteDoc>) ||

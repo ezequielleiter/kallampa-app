@@ -8,6 +8,7 @@ export const PLACA_ESTADOS = ["colonizando", "colonizado", "contaminado"] as con
 export type PlacaEstado = (typeof PLACA_ESTADOS)[number];
 
 export interface PlacaDoc extends Document {
+  userId: Types.ObjectId;
   clonacionId: Types.ObjectId;
   numeroPlaca: string;
   estado: PlacaEstado;
@@ -17,13 +18,14 @@ export interface PlacaDoc extends Document {
 
 const placaSchema = new Schema<PlacaDoc>(
   {
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     clonacionId: {
       type: Schema.Types.ObjectId,
       ref: "Clonacion",
       required: true,
       index: true,
     },
-    numeroPlaca: { type: String, required: true, unique: true },
+    numeroPlaca: { type: String, required: true },
     estado: {
       type: String,
       enum: PLACA_ESTADOS,
@@ -32,6 +34,8 @@ const placaSchema = new Schema<PlacaDoc>(
   },
   { timestamps: true }
 );
+
+placaSchema.index({ userId: 1, numeroPlaca: 1 }, { unique: true });
 
 const Placa: Model<PlacaDoc> =
   (mongoose.models.Placa as Model<PlacaDoc>) ||

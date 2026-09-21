@@ -1,13 +1,22 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { GET, PATCH, DELETE } from "./route";
 import { POST as createNota } from "../route";
-import { callRoute } from "@/test-utils/api-test-helpers";
+import { callRoute, makeUser, authHeaders } from "@/test-utils/api-test-helpers";
 
 const NONEXISTENT_ID = "507f1f77bcf86cd799439011";
 
-async function makeNota(overrides: Record<string, unknown> = {}) {
+let user: Awaited<ReturnType<typeof makeUser>>;
+let headers: Record<string, string>;
+
+beforeEach(async () => {
+  user = await makeUser();
+  headers = authHeaders(user);
+});
+
+async function makeNota(overrides: Record<string, unknown> = {}, opts: { headers: Record<string, string> } = { headers }) {
   const { json } = await callRoute(createNota, {
     method: "POST",
+    headers: opts.headers,
     body: { titulo: "Nota de prueba", contenido: "contenido", ...overrides },
   });
   return json.data as { _id: string; titulo: string; contenido: string };
@@ -15,16 +24,16 @@ async function makeNota(overrides: Record<string, unknown> = {}) {
 
 describe("GET /api/notas/[id]", () => {
   it("devuelve la nota completa", async () => {
-    const nota = await makeNota({ titulo: "Detalle", contenido: "## Título\n\ncuerpo" });
+    const nota = await makeNota({ titulo: "Detalle", contenido: "## Título\n\ncuerpo" }, { headers });
 
-    const { status, json } = await callRoute(GET, { params: { id: nota._id } });
+    const { status, json } = await callRoute(GET, { headers, params: { id: nota._id } });
     expect(status).toBe(200);
     expect(json.data.titulo).toBe("Detalle");
     expect(json.data.contenido).toBe("## Título\n\ncuerpo");
   });
 
   it("404 en un id inexistente", async () => {
-    const { status, json } = await callRoute(GET, { params: { id: NONEXISTENT_ID } });
+    const { status, json } = await callRoute(GET, { headers, params: { id: NONEXISTENT_ID } });
     expect(status).toBe(404);
     expect(json.error).toMatch(/no encontrada/i);
   });
@@ -32,10 +41,11 @@ describe("GET /api/notas/[id]", () => {
 
 describe("PATCH /api/notas/[id]", () => {
   it("edita el titulo y/o el contenido parcialmente", async () => {
-    const nota = await makeNota({ titulo: "Original", contenido: "v1" });
+    const nota = await makeNota({ titulo: "Original", contenido: "v1" }, { headers });
 
     const { status, json } = await callRoute(PATCH, {
       method: "PATCH",
+      headers,
       params: { id: nota._id },
       body: { contenido: "v2" },
     });
@@ -48,6 +58,7 @@ describe("PATCH /api/notas/[id]", () => {
   it("404 en un id inexistente", async () => {
     const { status } = await callRoute(PATCH, {
       method: "PATCH",
+      headers,
       params: { id: NONEXISTENT_ID },
       body: { titulo: "x" },
     });
@@ -57,17 +68,45 @@ describe("PATCH /api/notas/[id]", () => {
 
 describe("DELETE /api/notas/[id]", () => {
   it("borra la nota (fisico)", async () => {
-    const nota = await makeNota();
+    const nota = await makeNota({}, { headers });
 
-    const { status } = await callRoute(DELETE, { params: { id: nota._id } });
+    const { status } = await callRoute(DELETE, { headers, params: { id: nota._id } });
     expect(status).toBe(200);
 
-    const { status: status404 } = await callRoute(GET, { params: { id: nota._id } });
+    const { status: status404 } = await callRoute(GET, { headers, params: { id: nota._id } });
     expect(status404).toBe(404);
   });
 
   it("404 en un id inexistente", async () => {
-    const { status } = await callRoute(DELETE, { params: { id: NONEXISTENT_ID } });
+    const { status } = await callRoute(DELETE, { headers, params: { id: NONEXISTENT_ID } });
     expect(status).toBe(404);
+  });
+});
+
+describe("aislamiento cross-user: Nota de otra cuenta", () => {
+  it("GET/PATCH/DELETE de una nota de otro usuario devuelven 404 (nunca 403)", async () => {
+    const nota = await makeNota({ titulo: "De usuario A" }, { headers });
+
+    const otroUsuario = await makeUser();
+    const otrosHeaders = authHeaders(otroUsuario);
+
+    const getRes = await callRoute(GET, { headers: otrosHeaders, params: { id: nota._id } });
+    expect(getRes.status).toBe(404);
+
+    const patchRes = await callRoute(PATCH, {
+      method: "PATCH",
+      headers: otrosHeaders,
+      params: { id: nota._id },
+      body: { titulo: "Hackeada" },
+    });
+    expect(patchRes.status).toBe(404);
+
+    const deleteRes = await callRoute(DELETE, { headers: otrosHeaders, params: { id: nota._id } });
+    expect(deleteRes.status).toBe(404);
+
+    // La nota sigue intacta y accesible para su dueno original.
+    const { status, json } = await callRoute(GET, { headers, params: { id: nota._id } });
+    expect(status).toBe(200);
+    expect(json.data.titulo).toBe("De usuario A");
   });
 });

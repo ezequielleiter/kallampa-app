@@ -2,17 +2,19 @@ import type { NextRequest } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Tarea from "@/models/Tarea";
 import { ok, handleApiError, notFound } from "@/lib/api-utils";
+import { requireAuth } from "@/lib/api-auth";
 import { updateTareaSchema } from "@/lib/validations/tarea.schema";
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const { id } = await ctx.params;
 
-    const tarea = await Tarea.findById(id).lean();
+    const tarea = await Tarea.findOne({ _id: id, userId }).lean();
     if (!tarea) throw notFound("Tarea no encontrada");
 
     return ok(tarea);
@@ -26,12 +28,17 @@ export async function PATCH(
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const { id } = await ctx.params;
     const body = await req.json();
     const parsed = updateTareaSchema.parse(body);
 
-    const tarea = await Tarea.findByIdAndUpdate(id, { $set: parsed }, { new: true, runValidators: true });
+    const tarea = await Tarea.findOneAndUpdate(
+      { _id: id, userId },
+      { $set: parsed },
+      { new: true, runValidators: true }
+    );
     if (!tarea) throw notFound("Tarea no encontrada");
 
     return ok(tarea);
@@ -41,14 +48,15 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { userId } = await requireAuth(req);
     await dbConnect();
     const { id } = await ctx.params;
 
-    const tarea = await Tarea.findByIdAndDelete(id);
+    const tarea = await Tarea.findOneAndDelete({ _id: id, userId });
     if (!tarea) throw notFound("Tarea no encontrada");
 
     return ok({ _id: id });
