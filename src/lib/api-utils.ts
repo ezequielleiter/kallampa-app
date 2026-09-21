@@ -51,3 +51,11 @@ export function conflict(message = "Conflicto de estado") {
 export function badRequest(message = "Solicitud invalida") {
   return new ApiError(message, 400);
 }
+
+export function unauthorized(message = "No autorizado") {
+  return new ApiError(message, 401);
+}
+
+export function forbidden(message = "Acceso denegado") {
+  return new ApiError(message, 403);
+}

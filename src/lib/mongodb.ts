@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 // nunca importa un modelo referenciado (ej. GrainType desde batches/[id])
 // dispara MissingSchemaError al popular ese campo, aunque el modelo sí
 // exista en el proyecto — el registro es por proceso, no por import local.
+import "@/models/User";
 import "@/models/Counter";
 import "@/models/FungusType";
 import "@/models/GrainType";

@@ -19,6 +19,7 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     env: {
       MONGODB_URI: TEST_MONGODB_URI,
+      JWT_SECRET: "test-jwt-secret-nunca-usar-en-produccion",
     },
     // Los tests de integracion comparten una unica base de test; se
     // ejecutan los archivos secuencialmente para que la limpieza
