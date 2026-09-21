@@ -315,6 +315,18 @@ export interface MakeFrascoLiquidoOpts {
 }
 
 /** Crea un frasco liquido a partir de una placa ya colonizada. */
+export async function makeTarea(overrides: Record<string, unknown> = {}) {
+  const { POST } = await import("@/app/api/tareas/route");
+  const { status, json } = await callRoute(POST, {
+    method: "POST",
+    body: { titulo: "Tarea de prueba", fecha: new Date(), estado: "pendiente", ...overrides },
+  });
+  if (status !== 201) {
+    throw new Error(`No se pudo crear tarea de fixture: ${JSON.stringify(json)}`);
+  }
+  return json.data as { _id: string; titulo: string; fecha: string; estado: string };
+}
+
 export async function makeFrascoLiquido(opts: MakeFrascoLiquidoOpts) {
   const { POST } = await import("@/app/api/frascos-liquidos/route");
   const { status, json } = await callRoute(POST, {

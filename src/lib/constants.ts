@@ -168,3 +168,31 @@ export const STATUS_COLORS = {
 
 // Paleta categorica general para graficos de una sola serie por categoria.
 export const CHART_PALETTE = ["#0c5cfc", "#fc7100", "#5b6376", "#0a4bcc", "#d15e00"];
+
+// --- Tarea (Calendario, entidad nueva) ------------------------------------
+
+export const TAREA_ESTADOS = ["pendiente", "hecha"] as const;
+export type TareaEstado = (typeof TAREA_ESTADOS)[number];
+
+export const TAREA_ESTADO_LABELS: Record<TareaEstado, string> = {
+  pendiente: "Pendiente",
+  hecha: "Hecha",
+};
+
+// --- Pills automaticos del Calendario (grano/incubacion/fructificacion/placas) --
+
+export type LotePillTipo = "grano" | "incubacion" | "fructificacion" | "placas";
+
+export const LOTE_PILL_LABELS: Record<LotePillTipo, string> = {
+  grano: "Grano",
+  incubacion: "Incubación",
+  fructificacion: "Fructificación",
+  placas: "Placas",
+};
+
+export const LOTE_PILL_COLORS: Record<LotePillTipo, string> = {
+  grano: "#0c5cfc",
+  incubacion: "#0c5cfc",
+  fructificacion: "#fc7100",
+  placas: "#5b6376",
+};

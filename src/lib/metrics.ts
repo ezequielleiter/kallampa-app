@@ -1,8 +1,9 @@
-import { differenceInCalendarDays } from "date-fns";
+import { differenceInCalendarDays, addDays } from "date-fns";
 import type { JarEstado } from "@/models/Jar";
 import type { RecipienteEstado } from "@/models/Recipiente";
 import type { PlacaEstado } from "@/models/Placa";
 import type { FrascoLiquidoEstado } from "@/models/FrascoLiquido";
+import type { LotePill } from "@/lib/types";
 
 /**
  * v2: ya no hay un unico Batch-documento con todas las etapas embebidas.
@@ -72,6 +73,16 @@ export function diasEnEtapa(
   if (!inicio) return null;
   const fin = toDate(fechaFin) ?? new Date();
   return differenceInCalendarDays(fin, inicio);
+}
+
+/** Fecha en la que una etapa "deberia terminar" (fechaInicio + diasEsperados), o null si falta algun dato. */
+export function fechaEsperada(
+  fechaInicio: Date | string | undefined,
+  diasEsperados: number | undefined
+): Date | null {
+  const inicio = toDate(fechaInicio);
+  if (!inicio || diasEsperados === undefined) return null;
+  return addDays(inicio, diasEsperados);
 }
 
 /** Fecha de la ultima oleada de un recipiente (o undefined si no tiene). */
@@ -499,4 +510,101 @@ export function agregarPorCatalogo(
     return agregarRecipientesPorSustrato(recipientesTodos);
   }
   return agregarLotesPorCatalogo(lotes, campo);
+}
+
+// --- Calendario (pills automaticos de lote/clonacion) ---------------------
+//
+// Un "pill" indica que una etapa del dominio "deberia terminar" en una
+// fecha (fechaInicio + diasEsperados de esa etapa), calculada 100% al
+// vuelo -- nunca se persiste nada. Se oculta apenas la etapa ya termino,
+// por eso las queries que alimentan esta funcion (ver
+// src/app/api/calendario/route.ts) ya filtran por el estado "activo" de
+// cada etapa (jar/placa "colonizando", recipiente "incubando"/
+// "fructificando") antes de llegar aca.
+
+function pillEnRango(fecha: Date | null, desde: Date, hasta: Date): boolean {
+  return fecha !== null && fecha >= desde && fecha < hasta;
+}
+
+export interface LotePillsPendientesParams {
+  jarsColonizando: Pick<LeanJar, "batchId">[];
+  batches: LeanBatch[];
+  recipientesIncubando: LeanRecipiente[];
+  recipientesFructificando: LeanRecipiente[];
+  placasColonizando: Pick<LeanPlaca, "clonacionId">[];
+  clonaciones: LeanClonacion[];
+  desde: Date;
+  hasta: Date; // [desde, hasta) del mes pedido
+}
+
+/**
+ * Arma los 4 tipos de pill del Calendario a partir de datos ya traidos de
+ * Mongo (no hace queries): un pill por batch con algun jar "colonizando"
+ * (grano), uno por recipiente "incubando"/"fructificando", y uno por
+ * clonacion (origen "placa") con alguna placa "colonizando". Filtra el
+ * resultado a los que caen en `[desde, hasta)`.
+ */
+export function lotePillsPendientes(params: LotePillsPendientesParams): LotePill[] {
+  const {
+    jarsColonizando,
+    batches,
+    recipientesIncubando,
+    recipientesFructificando,
+    placasColonizando,
+    clonaciones,
+    desde,
+    hasta,
+  } = params;
+
+  const pills: LotePill[] = [];
+
+  const batchIdsColonizando = new Set(jarsColonizando.map((j) => idToString(j.batchId)));
+  for (const batch of batches) {
+    if (!batchIdsColonizando.has(idToString(batch._id))) continue;
+    const fecha = fechaEsperada(batch.inoculacionGrano?.fechaInicio, batch.inoculacionGrano?.diasEsperados);
+    if (!pillEnRango(fecha, desde, hasta)) continue;
+    pills.push({
+      tipo: "grano",
+      fechaEsperada: fecha!.toISOString(),
+      codigo: batch.numeroLote,
+      href: `/lotes/${idToString(batch._id)}`,
+    });
+  }
+
+  for (const recipiente of recipientesIncubando) {
+    const fecha = fechaEsperada(recipiente.fechaInicioIncubacion, recipiente.diasEsperadosIncubacion);
+    if (!pillEnRango(fecha, desde, hasta)) continue;
+    pills.push({
+      tipo: "incubacion",
+      fechaEsperada: fecha!.toISOString(),
+      codigo: recipiente.numeroSeguimiento ?? "",
+      href: `/lotes/${idToString(recipiente.batchId)}`,
+    });
+  }
+
+  for (const recipiente of recipientesFructificando) {
+    const fecha = fechaEsperada(recipiente.fechaInicioFructificacion, recipiente.diasEsperadosFructificacion);
+    if (!pillEnRango(fecha, desde, hasta)) continue;
+    pills.push({
+      tipo: "fructificacion",
+      fechaEsperada: fecha!.toISOString(),
+      codigo: recipiente.numeroSeguimiento ?? "",
+      href: `/lotes/${idToString(recipiente.batchId)}`,
+    });
+  }
+
+  const clonacionIdsColonizando = new Set(placasColonizando.map((p) => idToString(p.clonacionId)));
+  for (const clonacion of clonaciones) {
+    if (!clonacionIdsColonizando.has(idToString(clonacion._id))) continue;
+    const fecha = fechaEsperada(clonacion.colonizacion?.fechaInicio, clonacion.colonizacion?.diasEsperados);
+    if (!pillEnRango(fecha, desde, hasta)) continue;
+    pills.push({
+      tipo: "placas",
+      fechaEsperada: fecha!.toISOString(),
+      codigo: clonacion.numeroLote,
+      href: `/clonacion/${idToString(clonacion._id)}`,
+    });
+  }
+
+  return pills;
 }

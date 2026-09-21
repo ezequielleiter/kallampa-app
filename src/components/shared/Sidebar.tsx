@@ -10,12 +10,14 @@ import {
   Tag,
   BookOpen,
   BarChart3,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { href: "/", label: "Producción", icon: Sprout },
   { href: "/clonacion", label: "Micelio", icon: FlaskConical },
+  { href: "/calendario", label: "Calendario", icon: CalendarDays },
   { href: "/trazabilidad", label: "Trazabilidad", icon: Network },
   { href: "/notas", label: "Notas", icon: StickyNote },
   { href: "/frascos", label: "Frascos", icon: Tag },

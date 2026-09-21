@@ -8,6 +8,8 @@ import type {
   RecipienteEstado,
   PlacaEstado,
   FrascoLiquidoEstado,
+  TareaEstado,
+  LotePillTipo,
 } from "@/lib/constants";
 import type { AgregadoCatalogo, ResumenLote, ResumenClonacion } from "@/lib/metrics";
 
@@ -325,4 +327,30 @@ export interface Nota {
   contenido: string; // Markdown crudo
   createdAt: string;
   updatedAt: string;
+}
+
+// --- Calendario (tareas manuales + pills automaticos de etapa) ----------
+
+export interface Tarea {
+  _id: string;
+  titulo: string;
+  descripcion?: string;
+  fecha: string; // ISO
+  estado: TareaEstado;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Pill "esta etapa deberia terminar en esta fecha", 100% calculado (nunca
+// persistido) -- ver `lotePillsPendientes` en src/lib/metrics.ts.
+export interface LotePill {
+  tipo: LotePillTipo;
+  fechaEsperada: string; // ISO
+  codigo: string;
+  href: string;
+}
+
+export interface CalendarioResponse {
+  tareas: Tarea[];
+  lotePills: LotePill[];
 }
