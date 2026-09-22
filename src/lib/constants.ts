@@ -9,11 +9,6 @@
 export const ESTADO_DERIVADO = ["en_progreso", "finalizado"] as const;
 export type EstadoDerivado = (typeof ESTADO_DERIVADO)[number];
 
-export const ESTADO_DERIVADO_LABELS: Record<EstadoDerivado, string> = {
-  en_progreso: "En progreso",
-  finalizado: "Finalizado",
-};
-
 export const ESTADO_DERIVADO_COLORS: Record<EstadoDerivado, string> = {
   en_progreso: "#0c5cfc", // azul
   finalizado: "#3a4152", // ink (asentado/terminado)
@@ -38,13 +33,6 @@ export const JAR_ESTADOS = [
 
 export type JarEstado = (typeof JAR_ESTADOS)[number];
 
-export const JAR_ESTADO_LABELS: Record<JarEstado, string> = {
-  colonizando: "Colonizando",
-  colonizado: "Colonizado",
-  contaminado: "Contaminado",
-  usado: "Usado",
-};
-
 export const JAR_ESTADO_BADGE_VARIANT: Record<
   JarEstado,
   "default" | "secondary" | "destructive" | "outline"
@@ -61,12 +49,6 @@ export const PLACA_ESTADOS = ["colonizando", "colonizado", "contaminado"] as con
 
 export type PlacaEstado = (typeof PLACA_ESTADOS)[number];
 
-export const PLACA_ESTADO_LABELS: Record<PlacaEstado, string> = {
-  colonizando: "Colonizando",
-  colonizado: "Colonizado",
-  contaminado: "Contaminado",
-};
-
 export const PLACA_ESTADO_BADGE_VARIANT: Record<
   PlacaEstado,
   "default" | "secondary" | "destructive" | "outline"
@@ -76,26 +58,11 @@ export const PLACA_ESTADO_BADGE_VARIANT: Record<
   contaminado: "destructive",
 };
 
-// --- Origen de proceso de una Clonación (Micelio) ------------------------
-
-export const ORIGEN_PROCESO_LABELS: Record<"placa" | "comprado" | "frascoGrano", string> = {
-  placa: "Placas Petri",
-  comprado: "Micelio comprado",
-  frascoGrano: "Micelio de frascos de grano",
-};
-
 // --- Frasco de micelio líquido (Clonación, entidad nueva) ----------------
 
 export const FRASCO_LIQUIDO_ESTADOS = ["valido", "vacio", "finalizado", "contaminado"] as const;
 
 export type FrascoLiquidoEstado = (typeof FRASCO_LIQUIDO_ESTADOS)[number];
-
-export const FRASCO_LIQUIDO_ESTADO_LABELS: Record<FrascoLiquidoEstado, string> = {
-  valido: "Válido",
-  vacio: "Vacío",
-  finalizado: "Finalizado",
-  contaminado: "Contaminado",
-};
 
 export const FRASCO_LIQUIDO_ESTADO_BADGE_VARIANT: Record<
   FrascoLiquidoEstado,
@@ -118,14 +85,6 @@ export const RECIPIENTE_ESTADOS = [
 ] as const;
 
 export type RecipienteEstado = (typeof RECIPIENTE_ESTADOS)[number];
-
-export const RECIPIENTE_ESTADO_LABELS: Record<RecipienteEstado, string> = {
-  incubando: "Incubando",
-  fructificando: "Fructificando",
-  finalizado: "Finalizado",
-  contaminado: "Contaminado",
-  descartado: "Descartado",
-};
 
 // Misma paleta categorica usada en el resto de la app (ver skill de dataviz):
 // un color fijo por estado, consistente en badges y graficos.
@@ -174,21 +133,9 @@ export const CHART_PALETTE = ["#0c5cfc", "#fc7100", "#5b6376", "#0a4bcc", "#d15e
 export const TAREA_ESTADOS = ["pendiente", "hecha"] as const;
 export type TareaEstado = (typeof TAREA_ESTADOS)[number];
 
-export const TAREA_ESTADO_LABELS: Record<TareaEstado, string> = {
-  pendiente: "Pendiente",
-  hecha: "Hecha",
-};
-
 // --- Pills automaticos del Calendario (grano/incubacion/fructificacion/placas) --
 
 export type LotePillTipo = "grano" | "incubacion" | "fructificacion" | "placas";
-
-export const LOTE_PILL_LABELS: Record<LotePillTipo, string> = {
-  grano: "Grano",
-  incubacion: "Incubación",
-  fructificacion: "Fructificación",
-  placas: "Placas",
-};
 
 export const LOTE_PILL_COLORS: Record<LotePillTipo, string> = {
   grano: "#0c5cfc",
