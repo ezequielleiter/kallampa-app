@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { apiFetch } from "@/lib/api-client";
+import { translateErrorMessage } from "@/lib/error-messages";
 import {
   catalogCreateSchema,
   type CatalogCreateInput,
@@ -45,6 +47,7 @@ export function CatalogFormDialog({
   item,
   onSuccess,
 }: CatalogFormDialogProps) {
+  const t = useTranslations("components.catalogFormDialog");
   const isEdit = !!item;
   const {
     register,
@@ -65,18 +68,18 @@ export function CatalogFormDialog({
           method: "PATCH",
           body: JSON.stringify(data),
         });
-        toast.success("Registro actualizado");
+        toast.success(t("updatedMessage"));
       } else {
         await apiFetch(endpoint, {
           method: "POST",
           body: JSON.stringify(data),
         });
-        toast.success("Registro creado");
+        toast.success(t("createdMessage"));
       }
       onOpenChange(false);
       onSuccess();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo guardar");
+      toast.error(err instanceof Error ? err.message : t("errorMessage"));
     }
   }
 
@@ -84,23 +87,25 @@ export function CatalogFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Editar" : "Nuevo"} registro</DialogTitle>
+          <DialogTitle>{isEdit ? t("editTitle") : t("newTitle")}</DialogTitle>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1.5">
-            <Label>Nombre</Label>
+            <Label>{t("nombre")}</Label>
             <Input {...register("nombre")} />
             {errors.nombre && (
-              <p className="text-xs text-destructive">{errors.nombre.message}</p>
+              <p className="text-xs text-destructive">
+                {translateErrorMessage(errors.nombre.message)}
+              </p>
             )}
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Notas (opcional)</Label>
+            <Label>{t("notas")}</Label>
             <Textarea {...register("notas")} />
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting}>
-              Guardar
+              {t("guardar")}
             </Button>
           </DialogFooter>
         </form>

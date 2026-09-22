@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { TriangleAlert, Network } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import type { ClonacionDetail } from "@/lib/types";
 export default function ClonacionDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const t = useTranslations("pages.clonacionDetalle");
   const [clonacion, setClonacion] = useState<ClonacionDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -26,22 +28,22 @@ export default function ClonacionDetailPage() {
       const data = await apiFetch<ClonacionDetail>(`/api/clonaciones/${params.id}`);
       setClonacion(data);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo cargar la clonación");
+      toast.error(err instanceof Error ? err.message : t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, [params.id]);
+  }, [params.id, t]);
 
   useEffect(() => {
     void Promise.resolve().then(() => cargar());
   }, [cargar]);
 
   if (loading) {
-    return <p className="p-4 text-sm text-muted-foreground">Cargando…</p>;
+    return <p className="p-4 text-sm text-muted-foreground">{t("loading")}</p>;
   }
 
   if (!clonacion) {
-    return <p className="p-4 text-sm text-muted-foreground">Clonación no encontrada.</p>;
+    return <p className="p-4 text-sm text-muted-foreground">{t("notFound")}</p>;
   }
 
   const placasDemoradas = clonacion.placas.filter((p) => {
@@ -64,10 +66,10 @@ export default function ClonacionDetailPage() {
     <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Button variant="ghost" size="sm" className="w-fit" onClick={() => router.push("/clonacion")}>
-          ← Volver a clonación
+          {t("backToClonaciones")}
         </Button>
         <Button variant="outline" size="sm" render={<Link href="/trazabilidad" />}>
-          <Network /> Ver árbol de trazabilidad
+          <Network /> {t("viewTraceability")}
         </Button>
       </div>
 
@@ -77,8 +79,7 @@ export default function ClonacionDetailPage() {
             <h1 className="text-xl font-semibold">{clonacion.numeroLote}</h1>
             {placasDemoradas > 0 && (
               <Badge variant="destructive">
-                <TriangleAlert /> {placasDemoradas} placa{placasDemoradas === 1 ? "" : "s"} demorada
-                {placasDemoradas === 1 ? "" : "s"}
+                <TriangleAlert /> {t("delayedPlacas", { count: placasDemoradas })}
               </Badge>
             )}
           </div>
@@ -87,17 +88,19 @@ export default function ClonacionDetailPage() {
             {clonacion.fungusTypeId?.nombreCientifico
               ? ` (${clonacion.fungusTypeId.nombreCientifico})`
               : ""}
-            {" · Iniciada el "}
+            {" · "}
+            {t("startedOn")}{" "}
             {formatFechaCorta(clonacion.fechaInicio)}
           </p>
           {clonacion.origenProceso !== "placa" && clonacion.cantidadFrascos !== undefined && (
             <p className="text-sm text-muted-foreground">
-              Cantidad de frascos: <span className="font-medium">{clonacion.cantidadFrascos}</span>
+              {t("cantidadFrascosLabel")}:{" "}
+              <span className="font-medium">{clonacion.cantidadFrascos}</span>
             </p>
           )}
           {origenBatch && (
             <p className="text-sm text-muted-foreground">
-              Iniciada desde el lote{" "}
+              {t("startedFromBatch")}{" "}
               <Link href={`/lotes/${origenBatch._id}`} className="font-medium text-primary hover:underline">
                 {origenBatch.numeroLote}
               </Link>
@@ -110,28 +113,28 @@ export default function ClonacionDetailPage() {
       {clonacion.origenProceso === "placa" && (
         <Card>
           <CardHeader>
-            <CardTitle>1. Colonización de placas</CardTitle>
+            <CardTitle>{t("colonizacionTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
               <div className="flex flex-col gap-0.5">
-                <span className="text-xs text-muted-foreground">Cantidad de placas</span>
+                <span className="text-xs text-muted-foreground">{t("cantidadPlacas")}</span>
                 <span className="font-medium">{clonacion.colonizacion?.cantidadPlacas}</span>
               </div>
               <div className="flex flex-col gap-0.5">
-                <span className="text-xs text-muted-foreground">Fecha de inicio</span>
+                <span className="text-xs text-muted-foreground">{t("fechaInicio")}</span>
                 <span className="font-medium">
                   {formatFechaCorta(clonacion.colonizacion?.fechaInicio ?? "")}
                 </span>
               </div>
               <div className="flex flex-col gap-0.5">
-                <span className="text-xs text-muted-foreground">Días esperados</span>
+                <span className="text-xs text-muted-foreground">{t("diasEsperados")}</span>
                 <span className="font-medium">{clonacion.colonizacion?.diasEsperados}</span>
               </div>
             </div>
             {clonacion.recetaAgar && (
               <div className="flex flex-col gap-0.5">
-                <span className="text-xs text-muted-foreground">Receta de agar</span>
+                <span className="text-xs text-muted-foreground">{t("recetaAgar")}</span>
                 <p className="whitespace-pre-wrap text-sm">{clonacion.recetaAgar}</p>
               </div>
             )}
@@ -142,7 +145,7 @@ export default function ClonacionDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Micelio líquido</CardTitle>
+          <CardTitle>{t("micelioLiquido")}</CardTitle>
         </CardHeader>
         <CardContent>
           <FrascosLiquidosSection

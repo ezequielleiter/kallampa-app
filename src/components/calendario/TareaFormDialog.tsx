@@ -5,6 +5,7 @@ import { useForm, Controller, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 import {
   Dialog,
@@ -36,7 +37,7 @@ import {
 } from "@/components/ui/select";
 import { apiFetch } from "@/lib/api-client";
 import type { Tarea } from "@/lib/types";
-import { TAREA_ESTADOS, TAREA_ESTADO_LABELS } from "@/lib/constants";
+import { TAREA_ESTADOS } from "@/lib/constants";
 
 // Schema LOCAL, no importado de `src/lib/validations/tarea.schema.ts` (que
 // sí tiene el shape equivalente): ese archivo importa `TAREA_ESTADOS` desde
@@ -74,6 +75,8 @@ export function TareaFormDialog({
   onSuccess,
   onDeleted,
 }: TareaFormDialogProps) {
+  const t = useTranslations("components.tareaFormDialog");
+  const tEstado = useTranslations("estados.tarea");
   const isEdit = !!tarea;
   const [borrarOpen, setBorrarOpen] = useState(false);
   const [borrando, setBorrando] = useState(false);
@@ -106,18 +109,18 @@ export function TareaFormDialog({
           method: "PATCH",
           body: JSON.stringify(data),
         });
-        toast.success("Tarea actualizada");
+        toast.success(t("updatedMessage"));
       } else {
         await apiFetch("/api/tareas", {
           method: "POST",
           body: JSON.stringify(data),
         });
-        toast.success("Tarea creada");
+        toast.success(t("createdMessage"));
       }
       onOpenChange(false);
       onSuccess();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo guardar la tarea");
+      toast.error(err instanceof Error ? err.message : t("saveErrorMessage"));
     }
   }
 
@@ -126,12 +129,12 @@ export function TareaFormDialog({
     setBorrando(true);
     try {
       await apiFetch(`/api/tareas/${tarea._id}`, { method: "DELETE" });
-      toast.success("Tarea eliminada");
+      toast.success(t("deletedMessage"));
       setBorrarOpen(false);
       onOpenChange(false);
       onDeleted?.();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo eliminar la tarea");
+      toast.error(err instanceof Error ? err.message : t("deleteErrorMessage"));
     } finally {
       setBorrando(false);
     }
@@ -142,22 +145,22 @@ export function TareaFormDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{isEdit ? "Editar tarea" : "Nueva tarea"}</DialogTitle>
+            <DialogTitle>{isEdit ? t("editTitle") : t("newTitle")}</DialogTitle>
           </DialogHeader>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-1.5">
-              <Label>Título</Label>
+              <Label>{t("titulo")}</Label>
               <Input {...register("titulo")} />
               {errors.titulo && (
                 <p className="text-xs text-destructive">{errors.titulo.message}</p>
               )}
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Descripción (opcional)</Label>
+              <Label>{t("descripcion")}</Label>
               <Textarea {...register("descripcion")} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Fecha</Label>
+              <Label>{t("fecha")}</Label>
               <Input
                 type="date"
                 defaultValue={tarea ? tarea.fecha.slice(0, 10) : fechaInicial ?? ""}
@@ -169,14 +172,14 @@ export function TareaFormDialog({
             </div>
             {isEdit && (
               <div className="flex flex-col gap-1.5">
-                <Label>Estado</Label>
+                <Label>{t("estado")}</Label>
                 <Controller
                   control={control}
                   name="estado"
                   render={({ field }) => (
                     <Select
                       items={TAREA_ESTADOS.map((e) => ({
-                        label: TAREA_ESTADO_LABELS[e],
+                        label: tEstado(e),
                         value: e,
                       }))}
                       value={field.value}
@@ -188,7 +191,7 @@ export function TareaFormDialog({
                       <SelectContent>
                         {TAREA_ESTADOS.map((e) => (
                           <SelectItem key={e} value={e}>
-                            {TAREA_ESTADO_LABELS[e]}
+                            {tEstado(e)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -206,17 +209,17 @@ export function TareaFormDialog({
                   size="sm"
                   onClick={() => setBorrarOpen(true)}
                 >
-                  <Trash2 /> Eliminar
+                  <Trash2 /> {t("eliminar")}
                 </Button>
               ) : (
                 <span />
               )}
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                  Cancelar
+                  {t("cancelar")}
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  Guardar
+                  {t("guardar")}
                 </Button>
               </div>
             </DialogFooter>
@@ -228,15 +231,13 @@ export function TareaFormDialog({
         <AlertDialog open={borrarOpen} onOpenChange={setBorrarOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Eliminar &ldquo;{tarea?.titulo}&rdquo;</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta acción no se puede deshacer: la tarea se borra por completo.
-              </AlertDialogDescription>
+              <AlertDialogTitle>{t("deleteTitle", { titulo: tarea?.titulo ?? "" })}</AlertDialogTitle>
+              <AlertDialogDescription>{t("deleteDescription")}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogCancel>{t("cancelar")}</AlertDialogCancel>
               <AlertDialogAction variant="destructive" disabled={borrando} onClick={handleBorrar}>
-                Eliminar
+                {t("eliminar")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

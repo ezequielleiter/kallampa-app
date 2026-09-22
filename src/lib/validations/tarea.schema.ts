@@ -2,10 +2,13 @@ import { z } from "zod";
 import { TAREA_ESTADOS } from "@/models/Tarea";
 
 export const createTareaSchema = z.object({
-  titulo: z.string().trim().min(1, "El título es requerido"),
+  titulo: z.string().trim().min(1, "titulo_requerido:El título es requerido"),
   descripcion: z.string().optional().default(""),
   fecha: z.coerce.date(),
-  estado: z.enum(TAREA_ESTADOS).optional().default("pendiente"),
+  estado: z
+    .enum(TAREA_ESTADOS, "estado_tarea_invalido:Estado de tarea invalido")
+    .optional()
+    .default("pendiente"),
 });
 export type CreateTareaInput = z.infer<typeof createTareaSchema>;
 

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Pencil, Trash2 } from "lucide-react";
@@ -25,6 +26,7 @@ import type { Nota } from "@/lib/types";
 export default function NotaDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const t = useTranslations("pages.notasDetalle");
   const [nota, setNota] = useState<Nota | null>(null);
   const [loading, setLoading] = useState(true);
   const [borrarOpen, setBorrarOpen] = useState(false);
@@ -35,11 +37,11 @@ export default function NotaDetailPage() {
       const data = await apiFetch<Nota>(`/api/notas/${params.id}`);
       setNota(data);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo cargar la nota");
+      toast.error(err instanceof Error ? err.message : t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, [params.id]);
+  }, [params.id, t]);
 
   useEffect(() => {
     void Promise.resolve().then(() => cargar());
@@ -49,27 +51,27 @@ export default function NotaDetailPage() {
     setBorrando(true);
     try {
       await apiFetch(`/api/notas/${params.id}`, { method: "DELETE" });
-      toast.success("Nota eliminada");
+      toast.success(t("deletedSuccess"));
       router.push("/notas");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo eliminar la nota");
+      toast.error(err instanceof Error ? err.message : t("deleteError"));
       setBorrando(false);
     }
   }
 
   if (loading) {
-    return <p className="p-4 text-sm text-muted-foreground">Cargando…</p>;
+    return <p className="p-4 text-sm text-muted-foreground">{t("loading")}</p>;
   }
 
   if (!nota) {
-    return <p className="p-4 text-sm text-muted-foreground">Nota no encontrada.</p>;
+    return <p className="p-4 text-sm text-muted-foreground">{t("notFound")}</p>;
   }
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Button variant="ghost" size="sm" className="w-fit" onClick={() => router.push("/notas")}>
-          ← Volver a notas
+          {t("backToNotas")}
         </Button>
         <div className="flex gap-2">
           <Button
@@ -77,10 +79,10 @@ export default function NotaDetailPage() {
             size="sm"
             onClick={() => router.push(`/notas/${nota._id}/editar`)}
           >
-            <Pencil /> Editar
+            <Pencil /> {t("edit")}
           </Button>
           <Button variant="destructive" size="sm" onClick={() => setBorrarOpen(true)}>
-            <Trash2 /> Eliminar
+            <Trash2 /> {t("delete")}
           </Button>
         </div>
       </div>
@@ -90,7 +92,7 @@ export default function NotaDetailPage() {
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h1 className="text-xl font-semibold">{nota.titulo}</h1>
             <span className="text-xs text-muted-foreground">
-              Última edición: {formatFechaCorta(nota.updatedAt)}
+              {t("lastEdited")}: {formatFechaCorta(nota.updatedAt)}
             </span>
           </div>
           <div className="prose prose-sm dark:prose-invert max-w-none">
@@ -102,15 +104,13 @@ export default function NotaDetailPage() {
       <AlertDialog open={borrarOpen} onOpenChange={setBorrarOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar &ldquo;{nota.titulo}&rdquo;</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta acción no se puede deshacer: la nota se borra por completo.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t("deleteDialogTitle", { titulo: nota.titulo })}</AlertDialogTitle>
+            <AlertDialogDescription>{t("deleteDialogDescription")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction variant="destructive" disabled={borrando} onClick={handleBorrar}>
-              Eliminar
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

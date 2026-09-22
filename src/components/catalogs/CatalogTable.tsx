@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Plus, Pencil } from "lucide-react";
 import {
   Table,
@@ -25,6 +26,7 @@ interface CatalogTableProps {
 // la forma {nombre, notas?, activo}. FungusType tiene su propia tabla porque
 // necesita mostrar/editar los diasEsperadosDefault.
 export function CatalogTable({ endpoint, itemLabel }: CatalogTableProps) {
+  const t = useTranslations("components.catalogTable");
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogTarget, setDialogTarget] = useState<CatalogItem | "new" | null>(null);
@@ -35,11 +37,11 @@ export function CatalogTable({ endpoint, itemLabel }: CatalogTableProps) {
       const data = await apiFetch<CatalogItem[]>(endpoint);
       setItems(data);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo cargar el catálogo");
+      toast.error(err instanceof Error ? err.message : t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, [endpoint]);
+  }, [endpoint, t]);
 
   useEffect(() => {
     void Promise.resolve().then(() => cargar());
@@ -51,10 +53,10 @@ export function CatalogTable({ endpoint, itemLabel }: CatalogTableProps) {
         method: "PATCH",
         body: JSON.stringify({ activo: !item.activo }),
       });
-      toast.success(item.activo ? "Desactivado" : "Activado");
+      toast.success(item.activo ? t("desactivadoMessage") : t("activadoMessage"));
       cargar();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo actualizar");
+      toast.error(err instanceof Error ? err.message : t("updateError"));
     }
   }
 
@@ -62,21 +64,21 @@ export function CatalogTable({ endpoint, itemLabel }: CatalogTableProps) {
     <div className="flex flex-col gap-3">
       <div className="flex justify-end">
         <Button size="sm" onClick={() => setDialogTarget("new")}>
-          <Plus /> Nuevo {itemLabel}
+          <Plus /> {t("newItem", { item: itemLabel })}
         </Button>
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">Cargando…</p>
+        <p className="text-sm text-muted-foreground">{t("cargando")}</p>
       ) : items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No hay registros todavía.</p>
+        <p className="text-sm text-muted-foreground">{t("emptyState")}</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Notas</TableHead>
-              <TableHead>Estado</TableHead>
+              <TableHead>{t("nombre")}</TableHead>
+              <TableHead>{t("notas")}</TableHead>
+              <TableHead>{t("estado")}</TableHead>
               <TableHead className="w-32" />
             </TableRow>
           </TableHeader>
@@ -89,7 +91,7 @@ export function CatalogTable({ endpoint, itemLabel }: CatalogTableProps) {
                 </TableCell>
                 <TableCell>
                   <Badge variant={item.activo ? "default" : "secondary"}>
-                    {item.activo ? "Activo" : "Inactivo"}
+                    {item.activo ? t("activo") : t("inactivo")}
                   </Badge>
                 </TableCell>
                 <TableCell className="flex justify-end gap-1">
@@ -97,7 +99,7 @@ export function CatalogTable({ endpoint, itemLabel }: CatalogTableProps) {
                     <Pencil />
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => toggleActivo(item)}>
-                    {item.activo ? "Desactivar" : "Activar"}
+                    {item.activo ? t("desactivar") : t("activar")}
                   </Button>
                 </TableCell>
               </TableRow>

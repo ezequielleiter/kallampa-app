@@ -23,11 +23,11 @@ export async function POST(
     const parsed = marcarEstadoRecipienteSchema.parse(body);
 
     const recipiente = await Recipiente.findOne({ _id: id, userId });
-    if (!recipiente) throw notFound("Recipiente no encontrado");
+    if (!recipiente) throw notFound("recipiente_no_encontrado:Recipiente no encontrado");
 
     if (ESTADOS_TERMINALES.has(recipiente.estado)) {
       throw conflict(
-        `El recipiente ya esta en un estado terminal ('${recipiente.estado}'), no se puede volver a marcar`
+        `recipiente_estado_terminal:El recipiente ya esta en un estado terminal ('${recipiente.estado}'), no se puede volver a marcar`
       );
     }
 

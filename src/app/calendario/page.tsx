@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import {
   startOfMonth,
@@ -15,10 +16,9 @@ import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
 import type { CalendarioResponse, Tarea, LotePill } from "@/lib/types";
-import { LOTE_PILL_LABELS, LOTE_PILL_COLORS } from "@/lib/constants";
+import { LOTE_PILL_COLORS } from "@/lib/constants";
 import { TareaFormDialog } from "@/components/calendario/TareaFormDialog";
-
-const DIAS_SEMANA = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+import { useAppLocale } from "@/components/shared/LocaleProvider";
 
 // Clave YYYY-MM-DD en horario LOCAL (para comparar contra celdas de la
 // grilla, que tambien se generan en horario local). Distinto del criterio
@@ -32,6 +32,18 @@ function toKey(date: Date): string {
 
 export default function CalendarioPage() {
   const router = useRouter();
+  const t = useTranslations("pages.calendario");
+  const tPill = useTranslations("estados.lotePill");
+  const { locale } = useAppLocale();
+  const DIAS_SEMANA = [
+    t("dayMon"),
+    t("dayTue"),
+    t("dayWed"),
+    t("dayThu"),
+    t("dayFri"),
+    t("daySat"),
+    t("daySun"),
+  ];
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1); // 1-12
@@ -50,11 +62,11 @@ export default function CalendarioPage() {
       );
       setData(res);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo cargar el calendario");
+      toast.error(err instanceof Error ? err.message : t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, [year, month]);
+  }, [year, month, t]);
 
   useEffect(() => {
     void Promise.resolve().then(() => cargar());
@@ -115,12 +127,12 @@ export default function CalendarioPage() {
   }, [data]);
 
   const tituloMes = useMemo(() => {
-    const raw = new Date(year, month - 1, 1).toLocaleDateString("es-AR", {
-      month: "long",
-      year: "numeric",
-    });
+    const raw = new Date(year, month - 1, 1).toLocaleDateString(
+      locale === "en" ? "en-US" : "es-AR",
+      { month: "long", year: "numeric" }
+    );
     return raw.charAt(0).toUpperCase() + raw.slice(1);
-  }, [year, month]);
+  }, [year, month, locale]);
 
   const hoyKey = toKey(new Date());
 
@@ -139,16 +151,16 @@ export default function CalendarioPage() {
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">Calendario</h1>
+        <h1 className="text-lg font-semibold">{t("title")}</h1>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={irHoy}>
-            Hoy
+            {t("today")}
           </Button>
           <Button
             variant="outline"
             size="icon-sm"
             onClick={irMesAnterior}
-            aria-label="Mes anterior"
+            aria-label={t("prevMonth")}
           >
             <ChevronLeft />
           </Button>
@@ -159,7 +171,7 @@ export default function CalendarioPage() {
             variant="outline"
             size="icon-sm"
             onClick={irMesSiguiente}
-            aria-label="Mes siguiente"
+            aria-label={t("nextMonth")}
           >
             <ChevronRight />
           </Button>
@@ -167,7 +179,7 @@ export default function CalendarioPage() {
       </div>
 
       {loading && !data ? (
-        <p className="text-sm text-muted-foreground">Cargando…</p>
+        <p className="text-sm text-muted-foreground">{t("loading")}</p>
       ) : (
         <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-border bg-border text-sm">
           {DIAS_SEMANA.map((d) => (
@@ -230,9 +242,9 @@ export default function CalendarioPage() {
                       }}
                       style={{ backgroundColor: LOTE_PILL_COLORS[p.tipo] }}
                       className="truncate rounded px-1.5 py-0.5 text-left text-xs text-white hover:opacity-90"
-                      title={`${LOTE_PILL_LABELS[p.tipo]} · ${p.codigo}`}
+                      title={`${tPill(p.tipo)} · ${p.codigo}`}
                     >
-                      {LOTE_PILL_LABELS[p.tipo]} · {p.codigo}
+                      {tPill(p.tipo)} · {p.codigo}
                     </button>
                   ))}
                 </div>

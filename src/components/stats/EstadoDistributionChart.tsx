@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   BarChart,
   Bar,
@@ -12,7 +13,6 @@ import {
 } from "recharts";
 import {
   RECIPIENTE_ESTADO_COLORS,
-  RECIPIENTE_ESTADO_LABELS,
   CHART_PALETTE,
   type RecipienteEstado,
 } from "@/lib/constants";
@@ -29,11 +29,19 @@ interface EstadoDistributionChartProps {
 // devolviendo otras claves, el fallback de abajo (paleta generica + label
 // crudo) evita que el grafico rompa.
 export function EstadoDistributionChart({ data }: EstadoDistributionChartProps) {
+  const t = useTranslations("components.estadoDistributionChart");
+  const tEstado = useTranslations("estados.recipiente");
   const chartData = data.map((d, i) => {
     const key = d.label as RecipienteEstado;
+    let label = d.label;
+    try {
+      label = tEstado(key);
+    } catch {
+      // etiqueta desconocida (backend devolvió otra clave): usar el label crudo.
+    }
     return {
       estado: d.label,
-      label: RECIPIENTE_ESTADO_LABELS[key] ?? d.label,
+      label,
       value: d.value,
       color: RECIPIENTE_ESTADO_COLORS[key] ?? CHART_PALETTE[i % CHART_PALETTE.length],
     };
@@ -53,10 +61,10 @@ export function EstadoDistributionChart({ data }: EstadoDistributionChartProps) 
         />
         <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
         <Tooltip
-          formatter={(value) => [`${value} recipiente(s)`, "Cantidad"] as [string, string]}
+          formatter={(value) => [t("countUnit", { count: Number(value) }), t("cantidad")] as [string, string]}
           contentStyle={{ fontSize: 12, borderRadius: 8 }}
         />
-        <Bar dataKey="value" radius={[4, 4, 0, 0]} name="Recipientes">
+        <Bar dataKey="value" radius={[4, 4, 0, 0]} name={t("recipientes")}>
           {chartData.map((entry) => (
             <Cell key={entry.estado} fill={entry.color} />
           ))}

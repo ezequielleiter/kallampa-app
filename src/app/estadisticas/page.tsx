@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiCards } from "@/components/stats/KpiCards";
 import { EstadoDistributionChart } from "@/components/stats/EstadoDistributionChart";
@@ -15,6 +16,7 @@ import type { AgregadoCatalogo } from "@/lib/metrics";
 import type { StatsResponse } from "@/lib/types";
 
 export default function EstadisticasPage() {
+  const t = useTranslations("pages.estadisticas");
   const [stats, setStats] = useState<StatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedLoteIds, setSelectedLoteIds] = useState<string[]>([]);
@@ -36,29 +38,27 @@ export default function EstadisticasPage() {
   useEffect(() => {
     apiFetch<StatsResponse>("/api/stats")
       .then(setStats)
-      .catch((err) =>
-        toast.error(err instanceof Error ? err.message : "No se pudieron cargar las estadísticas")
-      )
+      .catch((err) => toast.error(err instanceof Error ? err.message : t("loadError")))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   if (loading) {
-    return <p className="p-4 text-sm text-muted-foreground">Cargando…</p>;
+    return <p className="p-4 text-sm text-muted-foreground">{t("loading")}</p>;
   }
 
   if (!stats) {
-    return <p className="p-4 text-sm text-muted-foreground">No hay datos disponibles.</p>;
+    return <p className="p-4 text-sm text-muted-foreground">{t("noData")}</p>;
   }
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
-      <h1 className="text-lg font-semibold">Estadísticas</h1>
+      <h1 className="text-lg font-semibold">{t("title")}</h1>
 
       <KpiCards kpis={stats.kpis} />
 
       <Card>
         <CardHeader>
-          <CardTitle>Comparar lotes</CardTitle>
+          <CardTitle>{t("compararLotes")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <LoteSelector
@@ -74,26 +74,26 @@ export default function EstadisticasPage() {
                 <AgregadoComparisonChart
                   data={comparisonData}
                   metric="eficienciaBiologicaPromedio"
-                  title="Eficiencia biológica"
+                  title={t("eficienciaBiologica")}
                   unit="%"
                   color={CHART_PALETTE[0]}
-                  emptyMessage="Ninguno de los lotes seleccionados tiene eficiencia biológica calculable todavía (falta el peso de sustrato)."
+                  emptyMessage={t("emptyEficiencia")}
                 />
                 <AgregadoComparisonChart
                   data={comparisonData}
                   metric="diasTotalesPromedio"
-                  title="Días totales"
+                  title={t("diasTotales")}
                   unit="d"
                   color={CHART_PALETTE[1]}
-                  emptyMessage="Sin datos de días totales para los lotes seleccionados."
+                  emptyMessage={t("emptyDiasTotales")}
                 />
                 <AgregadoComparisonChart
                   data={comparisonData}
                   metric="costoPorKgPromedio"
-                  title="Costo por kg"
+                  title={t("costoPorKg")}
                   unit="$"
                   color={CHART_PALETTE[2]}
-                  emptyMessage="Ninguno de los lotes seleccionados tiene cosecha registrada todavía."
+                  emptyMessage={t("emptyCosto")}
                 />
               </div>
             </>
@@ -103,7 +103,7 @@ export default function EstadisticasPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recipientes por estado</CardTitle>
+          <CardTitle>{t("recipientesPorEstado")}</CardTitle>
         </CardHeader>
         <CardContent>
           <EstadoDistributionChart data={stats.distribucionPorEstado} />
@@ -112,7 +112,7 @@ export default function EstadisticasPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Lotes demorados</CardTitle>
+          <CardTitle>{t("lotesDemorados")}</CardTitle>
         </CardHeader>
         <CardContent>
           <LotesDemoradosPanel lotes={stats.lotesDemorados} />
@@ -121,97 +121,97 @@ export default function EstadisticasPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Comparativa por tipo de hongo</CardTitle>
+          <CardTitle>{t("comparativaHongo")}</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <AgregadoComparisonChart
             data={stats.agregados.porHongo}
             metric="eficienciaBiologicaPromedio"
-            title="Eficiencia biológica"
+            title={t("eficienciaBiologica")}
             unit="%"
             color={CHART_PALETTE[0]}
           />
           <AgregadoComparisonChart
             data={stats.agregados.porHongo}
             metric="diasTotalesPromedio"
-            title="Días totales"
+            title={t("diasTotales")}
             unit="d"
             color={CHART_PALETTE[1]}
           />
           <AgregadoComparisonChart
             data={stats.agregados.porHongo}
             metric="costoPorKgPromedio"
-            title="Costo por kg"
+            title={t("costoPorKg")}
             unit="$"
             color={CHART_PALETTE[2]}
           />
         </CardContent>
         <CardContent className="pt-0 text-xs text-muted-foreground">
-          Calculado solo sobre lotes finalizados.
+          {t("soloFinalizados")}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Comparativa por tipo de grano</CardTitle>
+          <CardTitle>{t("comparativaGrano")}</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <AgregadoComparisonChart
             data={stats.agregados.porGrano}
             metric="eficienciaBiologicaPromedio"
-            title="Eficiencia biológica"
+            title={t("eficienciaBiologica")}
             unit="%"
             color={CHART_PALETTE[0]}
           />
           <AgregadoComparisonChart
             data={stats.agregados.porGrano}
             metric="diasTotalesPromedio"
-            title="Días totales"
+            title={t("diasTotales")}
             unit="d"
             color={CHART_PALETTE[1]}
           />
           <AgregadoComparisonChart
             data={stats.agregados.porGrano}
             metric="costoPorKgPromedio"
-            title="Costo por kg"
+            title={t("costoPorKg")}
             unit="$"
             color={CHART_PALETTE[2]}
           />
         </CardContent>
         <CardContent className="pt-0 text-xs text-muted-foreground">
-          Calculado solo sobre lotes finalizados.
+          {t("soloFinalizados")}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Comparativa por tipo de sustrato</CardTitle>
+          <CardTitle>{t("comparativaSustrato")}</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <AgregadoComparisonChart
             data={stats.agregados.porSustrato}
             metric="eficienciaBiologicaPromedio"
-            title="Eficiencia biológica"
+            title={t("eficienciaBiologica")}
             unit="%"
             color={CHART_PALETTE[0]}
           />
           <AgregadoComparisonChart
             data={stats.agregados.porSustrato}
             metric="diasTotalesPromedio"
-            title="Días totales"
+            title={t("diasTotales")}
             unit="d"
             color={CHART_PALETTE[1]}
           />
           <AgregadoComparisonChart
             data={stats.agregados.porSustrato}
             metric="costoPorKgPromedio"
-            title="Costo por kg"
+            title={t("costoPorKg")}
             unit="$"
             color={CHART_PALETTE[2]}
           />
         </CardContent>
         <CardContent className="pt-0 text-xs text-muted-foreground">
-          Calculado solo sobre lotes finalizados.
+          {t("soloFinalizados")}
         </CardContent>
       </Card>
     </div>

@@ -55,18 +55,20 @@ export async function POST(req: NextRequest) {
 
     const placa = await Placa.findOne({ _id: parsed.origenPlacaId, userId }).lean();
     if (!placa) {
-      return fail("La placa de origen indicada no existe", 400);
+      return fail("placa_origen_no_existe:La placa de origen indicada no existe", 400);
     }
 
     if (placa.estado === "contaminado") {
-      throw conflict("La placa está contaminada y no se puede usar como origen");
+      throw conflict(
+        "placa_contaminada:La placa está contaminada y no se puede usar como origen"
+      );
     }
 
     const clonacionId = placa.clonacionId;
 
     const clonacion = await Clonacion.findOne({ _id: clonacionId, userId }).lean();
     if (!clonacion) {
-      return fail("La clonación de origen ya no existe", 400);
+      return fail("clonacion_origen_no_existe:La clonación de origen ya no existe", 400);
     }
 
     // Correlativo por clonacion (no global, no atomico): mismo criterio que

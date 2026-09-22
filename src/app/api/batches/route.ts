@@ -84,17 +84,23 @@ export async function POST(req: NextRequest) {
         userId,
       }).lean();
       if (!frascoLiquido) {
-        return fail("El frasco de micelio líquido indicado no existe", 400);
+        return fail(
+          "frasco_liquido_origen_no_existe:El frasco de micelio líquido indicado no existe",
+          400
+        );
       }
       if (frascoLiquido.estado !== "valido") {
         return fail(
-          `El frasco de micelio líquido '${frascoLiquido.numeroGuia}' no está disponible (estado actual: '${frascoLiquido.estado}')`,
+          `frasco_liquido_no_disponible:El frasco de micelio líquido '${frascoLiquido.numeroGuia}' no está disponible (estado actual: '${frascoLiquido.estado}')`,
           409
         );
       }
       const clonacion = await Clonacion.findOne({ _id: frascoLiquido.clonacionId, userId }).lean();
       if (!clonacion) {
-        return fail("La clonación de origen del frasco ya no existe", 400);
+        return fail(
+          "clonacion_origen_frasco_no_existe:La clonación de origen del frasco ya no existe",
+          400
+        );
       }
       fungusTypeId = String(clonacion.fungusTypeId);
       origenFrascoLiquidoId = parsed.origenFrascoLiquidoId;
@@ -102,7 +108,7 @@ export async function POST(req: NextRequest) {
 
     const fungusType = await FungusType.findOne({ _id: fungusTypeId, userId }).lean();
     if (!fungusType) {
-      return fail("El tipo de hongo indicado no existe", 400);
+      return fail("tipo_hongo_no_existe:El tipo de hongo indicado no existe", 400);
     }
 
     const diasEsperados =
@@ -110,7 +116,7 @@ export async function POST(req: NextRequest) {
 
     if (!diasEsperados) {
       throw badRequest(
-        "No se pudo determinar diasEsperados para inoculacion de grano"
+        "dias_esperados_indeterminados_inoculacion:No se pudo determinar diasEsperados para inoculacion de grano"
       );
     }
 

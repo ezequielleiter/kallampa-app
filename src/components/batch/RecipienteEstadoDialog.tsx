@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -15,7 +16,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { apiFetch } from "@/lib/api-client";
-import { RECIPIENTE_ESTADO_LABELS, type RecipienteEstado } from "@/lib/constants";
+import type { RecipienteEstado } from "@/lib/constants";
 import type { Recipiente } from "@/lib/types";
 
 interface RecipienteEstadoDialogProps {
@@ -27,10 +28,10 @@ interface RecipienteEstadoDialogProps {
   onSuccess: () => void;
 }
 
-const DESCRIPCIONES: Record<RecipienteEstadoDialogProps["estadoObjetivo"], string> = {
-  finalizado: "Se cierra el recipiente: ya no va a dar más cosecha.",
-  contaminado: "Se marca el recipiente como perdido por contaminación. Esta acción no se puede deshacer.",
-  descartado: "Se marca el recipiente como descartado. Esta acción no se puede deshacer.",
+const DESCRIPCION_KEYS: Record<RecipienteEstadoDialogProps["estadoObjetivo"], string> = {
+  finalizado: "descripcionFinalizado",
+  contaminado: "descripcionContaminado",
+  descartado: "descripcionDescartado",
 };
 
 export function RecipienteEstadoDialog({
@@ -41,6 +42,8 @@ export function RecipienteEstadoDialog({
   estadoObjetivo,
   onSuccess,
 }: RecipienteEstadoDialogProps) {
+  const t = useTranslations("components.recipienteEstadoDialog");
+  const tEstado = useTranslations("estados.recipiente");
   const [motivo, setMotivo] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -51,12 +54,12 @@ export function RecipienteEstadoDialog({
         method: "POST",
         body: JSON.stringify({ estado: estadoObjetivo, motivo: motivo.trim() || undefined }),
       });
-      toast.success(`Recipiente ${RECIPIENTE_ESTADO_LABELS[estadoObjetivo].toLowerCase()}`);
+      toast.success(t("successMessage", { estado: tEstado(estadoObjetivo).toLowerCase() }));
       setMotivo("");
       onOpenChange(false);
       onSuccess();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo actualizar el recipiente");
+      toast.error(err instanceof Error ? err.message : t("errorMessage"));
     } finally {
       setSubmitting(false);
     }
@@ -67,22 +70,22 @@ export function RecipienteEstadoDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {RECIPIENTE_ESTADO_LABELS[estadoObjetivo]} — {numeroSeguimiento}
+            {tEstado(estadoObjetivo)} — {numeroSeguimiento}
           </AlertDialogTitle>
-          <AlertDialogDescription>{DESCRIPCIONES[estadoObjetivo]}</AlertDialogDescription>
+          <AlertDialogDescription>{t(DESCRIPCION_KEYS[estadoObjetivo])}</AlertDialogDescription>
         </AlertDialogHeader>
         <div className="flex flex-col gap-1.5">
-          <Label>Motivo (opcional)</Label>
+          <Label>{t("motivo")}</Label>
           <Textarea
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
-            placeholder="Ej: contaminación por Trichoderma"
+            placeholder={t("motivoPlaceholder")}
           />
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel>{t("cancelar")}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" disabled={submitting} onClick={handleConfirm}>
-            Confirmar
+            {t("confirmar")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

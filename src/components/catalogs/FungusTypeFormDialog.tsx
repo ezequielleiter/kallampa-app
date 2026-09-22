@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { apiFetch } from "@/lib/api-client";
+import { translateErrorMessage } from "@/lib/error-messages";
 import type { FungusType } from "@/lib/types";
 import {
   fungusTypeCreateSchema,
@@ -38,6 +40,7 @@ export function FungusTypeFormDialog({
   fungusType,
   onSuccess,
 }: FungusTypeFormDialogProps) {
+  const t = useTranslations("components.fungusTypeFormDialog");
   const isEdit = !!fungusType;
   const {
     register,
@@ -66,18 +69,18 @@ export function FungusTypeFormDialog({
           method: "PATCH",
           body: JSON.stringify(data),
         });
-        toast.success("Tipo de hongo actualizado");
+        toast.success(t("updatedMessage"));
       } else {
         await apiFetch("/api/fungus-types", {
           method: "POST",
           body: JSON.stringify(data),
         });
-        toast.success("Tipo de hongo creado");
+        toast.success(t("createdMessage"));
       }
       onOpenChange(false);
       onSuccess();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo guardar");
+      toast.error(err instanceof Error ? err.message : t("errorMessage"));
     }
   }
 
@@ -85,41 +88,41 @@ export function FungusTypeFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Editar" : "Nuevo"} tipo de hongo</DialogTitle>
+          <DialogTitle>{isEdit ? t("editTitle") : t("newTitle")}</DialogTitle>
         </DialogHeader>
         <form className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1.5">
-            <Label>Nombre</Label>
+            <Label>{t("nombre")}</Label>
             <Input {...register("nombre")} />
             {errors.nombre && (
-              <p className="text-xs text-destructive">{errors.nombre.message}</p>
+              <p className="text-xs text-destructive">
+                {translateErrorMessage(errors.nombre.message)}
+              </p>
             )}
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Nombre científico (opcional)</Label>
+            <Label>{t("nombreCientifico")}</Label>
             <Input {...register("nombreCientifico")} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Iniciales (opcional)</Label>
+            <Label>{t("iniciales")}</Label>
             <Input {...register("iniciales")} maxLength={4} className="uppercase" />
-            <p className="text-xs text-muted-foreground">
-              Se antepone a los códigos generados (ej: &quot;OST&quot; → OST-L-2026-003-F01).
-            </p>
+            <p className="text-xs text-muted-foreground">{t("inicialesHelp")}</p>
             {errors.iniciales && (
-              <p className="text-xs text-destructive">{errors.iniciales.message}</p>
+              <p className="text-xs text-destructive">
+                {translateErrorMessage(errors.iniciales.message)}
+              </p>
             )}
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Notas (opcional)</Label>
+            <Label>{t("notas")}</Label>
             <Textarea {...register("notas")} />
           </div>
 
-          <p className="text-xs font-medium text-muted-foreground">
-            Días esperados por defecto en cada etapa
-          </p>
+          <p className="text-xs font-medium text-muted-foreground">{t("diasEsperadosTitle")}</p>
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label>Inoculación en grano</Label>
+              <Label>{t("inoculacionGrano")}</Label>
               <Input
                 type="number"
                 {...register("diasEsperadosDefault.inoculacionGrano", {
@@ -128,12 +131,12 @@ export function FungusTypeFormDialog({
               />
               {errors.diasEsperadosDefault?.inoculacionGrano && (
                 <p className="text-xs text-destructive">
-                  {errors.diasEsperadosDefault.inoculacionGrano.message}
+                  {translateErrorMessage(errors.diasEsperadosDefault.inoculacionGrano.message)}
                 </p>
               )}
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Incubación</Label>
+              <Label>{t("incubacion")}</Label>
               <Input
                 type="number"
                 {...register("diasEsperadosDefault.incubacion", {
@@ -142,12 +145,12 @@ export function FungusTypeFormDialog({
               />
               {errors.diasEsperadosDefault?.incubacion && (
                 <p className="text-xs text-destructive">
-                  {errors.diasEsperadosDefault.incubacion.message}
+                  {translateErrorMessage(errors.diasEsperadosDefault.incubacion.message)}
                 </p>
               )}
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Fructificación</Label>
+              <Label>{t("fructificacion")}</Label>
               <Input
                 type="number"
                 {...register("diasEsperadosDefault.fructificacion", {
@@ -156,12 +159,12 @@ export function FungusTypeFormDialog({
               />
               {errors.diasEsperadosDefault?.fructificacion && (
                 <p className="text-xs text-destructive">
-                  {errors.diasEsperadosDefault.fructificacion.message}
+                  {translateErrorMessage(errors.diasEsperadosDefault.fructificacion.message)}
                 </p>
               )}
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Colonización de placas (opcional)</Label>
+              <Label>{t("colonizacionPlacas")}</Label>
               <Input
                 type="number"
                 {...register("diasEsperadosDefault.colonizacionPlacas", {
@@ -170,7 +173,7 @@ export function FungusTypeFormDialog({
               />
               {errors.diasEsperadosDefault?.colonizacionPlacas && (
                 <p className="text-xs text-destructive">
-                  {errors.diasEsperadosDefault.colonizacionPlacas.message}
+                  {translateErrorMessage(errors.diasEsperadosDefault.colonizacionPlacas.message)}
                 </p>
               )}
             </div>
@@ -178,7 +181,7 @@ export function FungusTypeFormDialog({
 
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting}>
-              Guardar
+              {t("guardar")}
             </Button>
           </DialogFooter>
         </form>

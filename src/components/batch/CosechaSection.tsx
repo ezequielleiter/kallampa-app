@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Plus, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import {
@@ -23,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { apiFetch } from "@/lib/api-client";
 import { formatFechaCorta } from "@/lib/format";
-import { RECIPIENTE_ESTADO_BADGE_VARIANT, RECIPIENTE_ESTADO_LABELS } from "@/lib/constants";
+import { RECIPIENTE_ESTADO_BADGE_VARIANT } from "@/lib/constants";
 import { pesoCosechadoRecipiente } from "@/lib/recipiente-utils";
 import type { Oleada, Recipiente } from "@/lib/types";
 import { OleadaFormDialog } from "./OleadaFormDialog";
@@ -35,16 +36,13 @@ interface CosechaSectionProps {
 }
 
 export function CosechaSection({ recipientes, onChanged }: CosechaSectionProps) {
+  const t = useTranslations("components.cosechaSection");
   const cosechables = recipientes.filter(
     (r) => r.estado === "fructificando" || r.estado === "finalizado"
   );
 
   if (cosechables.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Todavía no hay recipientes en fructificación ni finalizados.
-      </p>
-    );
+    return <p className="text-sm text-muted-foreground">{t("emptyState")}</p>;
   }
 
   return (
@@ -63,6 +61,8 @@ function RecipienteCosecha({
   recipiente: Recipiente;
   onChanged: () => void;
 }) {
+  const t = useTranslations("components.cosechaSection");
+  const tEstado = useTranslations("estados.recipiente");
   const [dialogTarget, setDialogTarget] = useState<Oleada | "new" | null>(null);
   const [finalizarOpen, setFinalizarOpen] = useState(false);
 
@@ -73,16 +73,17 @@ function RecipienteCosecha({
   const total = pesoCosechadoRecipiente(recipiente);
 
   async function handleDelete(oleada: Oleada) {
-    if (!window.confirm(`¿Eliminar la oleada del ${formatFechaCorta(oleada.fecha)}?`)) return;
+    if (!window.confirm(t("confirmDeleteOleada", { fecha: formatFechaCorta(oleada.fecha) })))
+      return;
     try {
       await apiFetch<Recipiente>(
         `/api/recipientes/${recipiente._id}/oleadas/${oleada._id}`,
         { method: "DELETE" }
       );
-      toast.success("Oleada eliminada");
+      toast.success(t("oleadaDeleted"));
       onChanged();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo eliminar la oleada");
+      toast.error(err instanceof Error ? err.message : t("oleadaDeleteError"));
     }
   }
 
@@ -92,33 +93,33 @@ function RecipienteCosecha({
         <CardTitle className="flex items-center gap-2 text-sm">
           {recipiente.numeroSeguimiento}
           <Badge variant={RECIPIENTE_ESTADO_BADGE_VARIANT[recipiente.estado]}>
-            {RECIPIENTE_ESTADO_LABELS[recipiente.estado]}
+            {tEstado(recipiente.estado)}
           </Badge>
         </CardTitle>
         <div className="flex items-center gap-2">
           {editable && (
             <Button size="sm" onClick={() => setDialogTarget("new")}>
-              <Plus /> Agregar oleada
+              <Plus /> {t("addOleada")}
             </Button>
           )}
           {editable && (
             <Button size="sm" variant="outline" onClick={() => setFinalizarOpen(true)}>
-              Marcar finalizado
+              {t("markFinalized")}
             </Button>
           )}
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         {oleadas.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Todavía no se registraron oleadas.</p>
+          <p className="text-sm text-muted-foreground">{t("emptyOleadas")}</p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>N°</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Peso (kg)</TableHead>
-                <TableHead>Notas</TableHead>
+                <TableHead>{t("numero")}</TableHead>
+                <TableHead>{t("fecha")}</TableHead>
+                <TableHead>{t("pesoKg")}</TableHead>
+                <TableHead>{t("notas")}</TableHead>
                 {editable && <TableHead className="w-8" />}
               </TableRow>
             </TableHeader>
@@ -143,13 +144,13 @@ function RecipienteCosecha({
                         />
                         <DropdownMenuContent>
                           <DropdownMenuItem onClick={() => setDialogTarget(oleada)}>
-                            <Pencil /> Editar
+                            <Pencil /> {t("edit")}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             variant="destructive"
                             onClick={() => handleDelete(oleada)}
                           >
-                            <Trash2 /> Eliminar
+                            <Trash2 /> {t("delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -160,7 +161,7 @@ function RecipienteCosecha({
             </TableBody>
             <TableFooter>
               <TableRow>
-                <TableCell colSpan={2}>Total</TableCell>
+                <TableCell colSpan={2}>{t("total")}</TableCell>
                 <TableCell>{total.toFixed(2)}</TableCell>
                 <TableCell colSpan={editable ? 2 : 1} />
               </TableRow>

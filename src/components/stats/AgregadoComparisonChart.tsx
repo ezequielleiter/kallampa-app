@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   BarChart,
   Bar,
@@ -26,8 +27,10 @@ export function AgregadoComparisonChart({
   title,
   unit,
   color,
-  emptyMessage = "Sin datos suficientes (se calcula solo sobre lotes finalizados).",
+  emptyMessage,
 }: AgregadoComparisonChartProps) {
+  const t = useTranslations("components.agregadoComparisonChart");
+  const resolvedEmptyMessage = emptyMessage ?? t("emptyMessage");
   const chartData = data
     .filter((d) => d[metric] !== null)
     .map((d) => ({ label: d.label, value: Number((d[metric] as number).toFixed(2)) }));
@@ -36,7 +39,7 @@ export function AgregadoComparisonChart({
     <div className="flex flex-col gap-1">
       <h3 className="text-xs font-medium text-muted-foreground">{title}</h3>
       {chartData.length === 0 ? (
-        <p className="py-8 text-center text-xs text-muted-foreground">{emptyMessage}</p>
+        <p className="py-8 text-center text-xs text-muted-foreground">{resolvedEmptyMessage}</p>
       ) : (
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>

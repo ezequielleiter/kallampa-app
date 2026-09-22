@@ -22,7 +22,7 @@ export async function PATCH(
       { new: true, runValidators: true }
     );
 
-    if (!updated) throw notFound("Frasco líquido no encontrado");
+    if (!updated) throw notFound("frasco_liquido_no_encontrado:Frasco líquido no encontrado");
 
     return ok(updated);
   } catch (err) {

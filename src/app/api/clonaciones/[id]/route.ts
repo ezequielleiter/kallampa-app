@@ -22,7 +22,7 @@ export async function GET(
       .populate("origenBatchId", "numeroLote")
       .lean();
 
-    if (!clonacion) throw notFound("Clonación no encontrada");
+    if (!clonacion) throw notFound("clonacion_no_encontrada:Clonación no encontrada");
 
     const [placas, frascosLiquidos] = await Promise.all([
       Placa.find({ clonacionId: id, userId }).sort({ numeroPlaca: 1 }).lean(),

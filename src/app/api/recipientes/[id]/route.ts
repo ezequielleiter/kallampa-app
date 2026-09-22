@@ -19,7 +19,7 @@ export async function GET(
     const { id } = await ctx.params;
 
     const recipiente = await Recipiente.findOne({ _id: id, userId }).lean();
-    if (!recipiente) throw notFound("Recipiente no encontrado");
+    if (!recipiente) throw notFound("recipiente_no_encontrado:Recipiente no encontrado");
 
     const batch = await Batch.findOne({ _id: recipiente.batchId, userId })
       .select("numeroLote fungusTypeId")

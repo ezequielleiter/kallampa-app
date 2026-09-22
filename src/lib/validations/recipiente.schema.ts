@@ -1,35 +1,43 @@
 import { z } from "zod";
 import { RECIPIENTE_ESTADOS } from "@/models/Recipiente";
 
-const objectIdString = z.string().min(1, "Id requerido");
+const objectIdString = z.string().min(1, "id_requerido:Id requerido");
 
 export const createRecipienteSchema = z.object({
   batchId: objectIdString,
-  origenFrascoIds: z.array(objectIdString).min(1, "Se requiere al menos un frasco de origen"),
+  origenFrascoIds: z
+    .array(objectIdString)
+    .min(1, "frascos_origen_requeridos:Se requiere al menos un frasco de origen"),
   tipoSustratoId: objectIdString,
-  pesoSustratoKg: z.number().positive(),
-  precioPorKg: z.number().positive(),
+  pesoSustratoKg: z.number().positive("numero_positivo_requerido:Debe ser un número positivo"),
+  precioPorKg: z.number().positive("numero_positivo_requerido:Debe ser un número positivo"),
   fechaInicioIncubacion: z.coerce.date(),
-  diasEsperadosIncubacion: z.number().positive().optional(),
+  diasEsperadosIncubacion: z
+    .number()
+    .positive("numero_positivo_requerido:Debe ser un número positivo")
+    .optional(),
 });
 export type CreateRecipienteInput = z.infer<typeof createRecipienteSchema>;
 
 export const fructificarRecipienteSchema = z.object({
   fechaInicioFructificacion: z.coerce.date(),
-  diasEsperadosFructificacion: z.number().positive().optional(),
+  diasEsperadosFructificacion: z
+    .number()
+    .positive("numero_positivo_requerido:Debe ser un número positivo")
+    .optional(),
 });
 export type FructificarRecipienteInput = z.infer<typeof fructificarRecipienteSchema>;
 
 export const addOleadaSchema = z.object({
   fecha: z.coerce.date(),
-  pesoKg: z.number().positive(),
+  pesoKg: z.number().positive("numero_positivo_requerido:Debe ser un número positivo"),
   notas: z.string().trim().optional(),
 });
 export type AddOleadaInput = z.infer<typeof addOleadaSchema>;
 
 export const updateOleadaSchema = z.object({
   fecha: z.coerce.date().optional(),
-  pesoKg: z.number().positive().optional(),
+  pesoKg: z.number().positive("numero_positivo_requerido:Debe ser un número positivo").optional(),
   notas: z.string().trim().optional(),
 });
 export type UpdateOleadaInput = z.infer<typeof updateOleadaSchema>;
@@ -38,7 +46,10 @@ export type UpdateOleadaInput = z.infer<typeof updateOleadaSchema>;
 // 'fructificando' se alcanzan por su propio flujo (creacion / fructificar),
 // nunca via este endpoint.
 export const marcarEstadoRecipienteSchema = z.object({
-  estado: z.enum(["finalizado", "contaminado", "descartado"] as const),
+  estado: z.enum(
+    ["finalizado", "contaminado", "descartado"] as const,
+    "estado_recipiente_invalido:Estado de recipiente invalido"
+  ),
   motivo: z.string().trim().optional(),
 });
 export type MarcarEstadoRecipienteInput = z.infer<typeof marcarEstadoRecipienteSchema>;

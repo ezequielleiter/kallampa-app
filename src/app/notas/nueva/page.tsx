@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,7 @@ import type { Nota } from "@/lib/types";
 
 export default function NuevaNotaPage() {
   const router = useRouter();
+  const t = useTranslations("pages.notasNueva");
   const [titulo, setTitulo] = useState("");
   const [contenido, setContenido] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +22,7 @@ export default function NuevaNotaPage() {
 
   async function handleGuardar() {
     if (!titulo.trim()) {
-      setError("El título es requerido");
+      setError(t("tituloRequerido"));
       return;
     }
     setError(null);
@@ -30,10 +32,10 @@ export default function NuevaNotaPage() {
         method: "POST",
         body: JSON.stringify({ titulo, contenido }),
       });
-      toast.success("Nota creada");
+      toast.success(t("createdSuccess"));
       router.push(`/notas/${nota._id}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo crear la nota");
+      toast.error(err instanceof Error ? err.message : t("createError"));
     } finally {
       setGuardando(false);
     }
@@ -41,29 +43,29 @@ export default function NuevaNotaPage() {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-      <h1 className="text-lg font-semibold">Nueva nota</h1>
+      <h1 className="text-lg font-semibold">{t("title")}</h1>
       <Card>
         <CardHeader>
-          <CardTitle>Contenido</CardTitle>
+          <CardTitle>{t("cardTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label>Título</Label>
+            <Label>{t("tituloLabel")}</Label>
             <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} autoFocus />
             {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Nota (Markdown)</Label>
+            <Label>{t("contenidoLabel")}</Label>
             <NotaEditor content={contenido} onChange={setContenido} />
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => router.push("/notas")}>
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button type="button" disabled={guardando} onClick={handleGuardar}>
-              Crear nota
+              {t("submit")}
             </Button>
           </div>
         </CardContent>

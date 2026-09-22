@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { TriangleAlert } from "lucide-react";
 import type { StatsLoteDemorado } from "@/lib/types";
 
@@ -8,8 +9,9 @@ interface LotesDemoradosPanelProps {
 }
 
 export function LotesDemoradosPanel({ lotes }: LotesDemoradosPanelProps) {
+  const t = useTranslations("components.lotesDemoradosPanel");
   if (lotes.length === 0) {
-    return <p className="text-sm text-muted-foreground">Ningún lote está demorado. 👍</p>;
+    return <p className="text-sm text-muted-foreground">{t("emptyState")}</p>;
   }
 
   return (
@@ -22,7 +24,7 @@ export function LotesDemoradosPanel({ lotes }: LotesDemoradosPanelProps) {
           <TriangleAlert className="size-4 shrink-0 text-destructive" />
           <span className="font-medium">{lote.numeroLote}</span>
           <span className="ml-auto font-medium text-destructive">
-            +{lote.diasDeDemora} día(s)
+            {t("diasDemora", { count: lote.diasDeDemora })}
           </span>
         </li>
       ))}

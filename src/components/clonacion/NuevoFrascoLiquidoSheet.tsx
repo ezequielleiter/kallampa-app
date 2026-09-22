@@ -5,6 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Check } from "lucide-react";
 import {
   Sheet,
@@ -47,6 +48,7 @@ export function NuevoFrascoLiquidoSheet({
   clonacionId,
   onSuccess,
 }: NuevoFrascoLiquidoSheetProps) {
+  const t = useTranslations("components.nuevoFrascoLiquidoSheet");
   const [placasDisponibles, setPlacasDisponibles] = useState<Placa[]>([]);
   const [loadingPlacas, setLoadingPlacas] = useState(false);
 
@@ -70,11 +72,11 @@ export function NuevoFrascoLiquidoSheet({
       apiFetch<Placa[]>(`/api/placas?clonacionId=${clonacionId}&estado=colonizado`)
         .then(setPlacasDisponibles)
         .catch((err) =>
-          toast.error(err instanceof Error ? err.message : "No se pudieron cargar las placas")
+          toast.error(err instanceof Error ? err.message : t("loadPlacasError"))
         )
         .finally(() => setLoadingPlacas(false));
     });
-  }, [open, clonacionId, reset]);
+  }, [open, clonacionId, reset, t]);
 
   async function onSubmit(data: NuevoFrascoLiquidoInput) {
     try {
@@ -82,11 +84,11 @@ export function NuevoFrascoLiquidoSheet({
         method: "POST",
         body: JSON.stringify(data),
       });
-      toast.success("Frasco de micelio líquido creado");
+      toast.success(t("successMessage"));
       onOpenChange(false);
       onSuccess();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo crear el frasco líquido");
+      toast.error(err instanceof Error ? err.message : t("errorMessage"));
     }
   }
 
@@ -94,28 +96,27 @@ export function NuevoFrascoLiquidoSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>Nuevo frasco de micelio líquido</SheetTitle>
-          <SheetDescription>
-            Elegí la placa colonizada de origen. Una misma placa se puede usar para crear varios
-            frascos: no se consume.
-          </SheetDescription>
+          <SheetTitle>{t("title")}</SheetTitle>
+          <SheetDescription>{t("description")}</SheetDescription>
         </SheetHeader>
         <form
           className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-2"
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="flex flex-col gap-1.5">
-            <Label>Placa de origen</Label>
+            <Label>{t("placaOrigen")}</Label>
             <Controller
               control={control}
               name="origenPlacaId"
               render={({ field }) => (
                 <div className="flex max-h-56 flex-col gap-1 overflow-y-auto rounded-md border p-1">
                   {loadingPlacas ? (
-                    <p className="p-3 text-center text-sm text-muted-foreground">Cargando…</p>
+                    <p className="p-3 text-center text-sm text-muted-foreground">
+                      {t("cargando")}
+                    </p>
                   ) : placasDisponibles.length === 0 ? (
                     <p className="p-3 text-center text-sm text-muted-foreground">
-                      No hay placas colonizadas disponibles.
+                      {t("noHayPlacas")}
                     </p>
                   ) : (
                     placasDisponibles.map((placa) => {
@@ -148,7 +149,7 @@ export function NuevoFrascoLiquidoSheet({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Fecha de creación</Label>
+            <Label>{t("fechaCreacion")}</Label>
             <Input
               type="date"
               defaultValue={todayInputValue()}
@@ -161,10 +162,10 @@ export function NuevoFrascoLiquidoSheet({
 
           <SheetFooter className="px-0">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              Crear frasco
+              {t("crear")}
             </Button>
           </SheetFooter>
         </form>

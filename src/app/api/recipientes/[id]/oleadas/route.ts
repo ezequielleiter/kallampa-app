@@ -18,11 +18,11 @@ export async function POST(
     const parsed = addOleadaSchema.parse(body);
 
     const recipiente = await Recipiente.findOne({ _id: id, userId });
-    if (!recipiente) throw notFound("Recipiente no encontrado");
+    if (!recipiente) throw notFound("recipiente_no_encontrado:Recipiente no encontrado");
 
     if (recipiente.estado !== "fructificando") {
       throw conflict(
-        `Solo se pueden agregar oleadas cuando el recipiente esta en estado 'fructificando' (estado actual: '${recipiente.estado}')`
+        `recipiente_no_fructificando:Solo se pueden agregar oleadas cuando el recipiente esta en estado 'fructificando' (estado actual: '${recipiente.estado}')`
       );
     }
 

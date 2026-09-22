@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { TriangleAlert, Dna } from "lucide-react";
 import {
   Table,
@@ -14,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatFechaCorta } from "@/lib/format";
-import { RECIPIENTE_ESTADO_BADGE_VARIANT, RECIPIENTE_ESTADO_LABELS } from "@/lib/constants";
+import { RECIPIENTE_ESTADO_BADGE_VARIANT } from "@/lib/constants";
 import { alertaRecipiente } from "@/lib/recipiente-utils";
 import type { FungusType, Recipiente } from "@/lib/types";
 import { FructificarSheet } from "./FructificarSheet";
@@ -30,14 +31,12 @@ export function FructificacionSection({
   recipientes,
   onChanged,
 }: FructificacionSectionProps) {
+  const t = useTranslations("components.fructificacionSection");
+  const tEstado = useTranslations("estados.recipiente");
   const [target, setTarget] = useState<Recipiente | null>(null);
 
   if (recipientes.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Todavía no hay recipientes en incubación para pasar a fructificación.
-      </p>
-    );
+    return <p className="text-sm text-muted-foreground">{t("emptyState")}</p>;
   }
 
   return (
@@ -45,10 +44,10 @@ export function FructificacionSection({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>N° de seguimiento</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead>Inicio fructificación</TableHead>
-            <TableHead>Días</TableHead>
+            <TableHead>{t("numeroSeguimiento")}</TableHead>
+            <TableHead>{t("estado")}</TableHead>
+            <TableHead>{t("inicioFructificacion")}</TableHead>
+            <TableHead>{t("dias")}</TableHead>
             <TableHead className="w-48" />
           </TableRow>
         </TableHeader>
@@ -60,7 +59,7 @@ export function FructificacionSection({
                 <TableCell className="font-medium">{r.numeroSeguimiento}</TableCell>
                 <TableCell>
                   <Badge variant={RECIPIENTE_ESTADO_BADGE_VARIANT[r.estado]}>
-                    {RECIPIENTE_ESTADO_LABELS[r.estado]}
+                    {tEstado(r.estado)}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -83,7 +82,7 @@ export function FructificacionSection({
                   <div className="flex items-center gap-2">
                     {r.estado === "incubando" && (
                       <Button size="sm" onClick={() => setTarget(r)}>
-                        Pasar a fructificación
+                        {t("pasarAFructificacion")}
                       </Button>
                     )}
                     {r.estado === "fructificando" && (
@@ -92,7 +91,7 @@ export function FructificacionSection({
                         size="sm"
                         render={<Link href={`/clonacion/nueva?origenRecipienteId=${r._id}`} />}
                       >
-                        <Dna /> Clonar
+                        <Dna /> {t("clonar")}
                       </Button>
                     )}
                   </div>

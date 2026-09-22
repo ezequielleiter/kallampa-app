@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import type { StatsKpis } from "@/lib/types";
 
@@ -14,24 +15,25 @@ interface KpiCardsProps {
 }
 
 export function KpiCards({ kpis }: KpiCardsProps) {
+  const t = useTranslations("components.kpiCards");
   const items = [
-    { label: "Lotes activos", value: kpis.lotesActivos },
-    { label: "Lotes finalizados", value: kpis.lotesFinalizados },
-    { label: "Lotes descartados", value: kpis.lotesDescartados },
-    { label: "Lotes demorados", value: kpis.lotesDemorados },
+    { label: t("lotesActivos"), value: kpis.lotesActivos },
+    { label: t("lotesFinalizados"), value: kpis.lotesFinalizados },
+    { label: t("lotesDescartados"), value: kpis.lotesDescartados },
+    { label: t("lotesDemorados"), value: kpis.lotesDemorados },
     {
-      label: "Eficiencia biológica promedio",
+      label: t("eficienciaBiologicaPromedio"),
       value:
         kpis.eficienciaBiologicaPromedio !== null
           ? `${kpis.eficienciaBiologicaPromedio.toFixed(1)}%`
           : "—",
     },
     {
-      label: "Costo por kg promedio",
+      label: t("costoPorKgPromedio"),
       value:
         kpis.costoPorKgPromedio !== null ? currency.format(kpis.costoPorKgPromedio) : "—",
     },
-    { label: "Peso total producido", value: `${kpis.pesoTotalProducidoKg.toFixed(1)} kg` },
+    { label: t("pesoTotalProducido"), value: `${kpis.pesoTotalProducidoKg.toFixed(1)} kg` },
   ];
 
   return (

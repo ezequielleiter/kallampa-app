@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Plus, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,30 +19,40 @@ import { apiFetch } from "@/lib/api-client";
 import { formatFechaCorta } from "@/lib/format";
 import type { ClonacionListItem, ClonacionResumen } from "@/lib/types";
 
-function placasResumenLabel(resumen: ClonacionResumen): string {
+function placasResumenLabel(
+  resumen: ClonacionResumen,
+  t: ReturnType<typeof useTranslations>
+): string {
   const partes = [
-    resumen.placasColonizado > 0 && `${resumen.placasColonizado} colonizado`,
-    resumen.placasColonizando > 0 && `${resumen.placasColonizando} colonizando`,
-    resumen.placasContaminado > 0 && `${resumen.placasContaminado} contaminado`,
+    resumen.placasColonizado > 0 && t("resumenColonizado", { count: resumen.placasColonizado }),
+    resumen.placasColonizando > 0 &&
+      t("resumenColonizando", { count: resumen.placasColonizando }),
+    resumen.placasContaminado > 0 &&
+      t("resumenContaminado", { count: resumen.placasContaminado }),
   ].filter(Boolean);
   return partes.length > 0 ? partes.join(", ") : "—";
 }
 
-function frascosLiquidosResumenLabel(resumen: ClonacionResumen): string {
+function frascosLiquidosResumenLabel(
+  resumen: ClonacionResumen,
+  t: ReturnType<typeof useTranslations>
+): string {
   const partes = [
-    resumen.frascosLiquidosValidos > 0 && `${resumen.frascosLiquidosValidos} válido${resumen.frascosLiquidosValidos === 1 ? "" : "s"}`,
+    resumen.frascosLiquidosValidos > 0 &&
+      t("resumenValido", { count: resumen.frascosLiquidosValidos }),
     resumen.frascosLiquidosVacios > 0 &&
-      `${resumen.frascosLiquidosVacios} vacío${resumen.frascosLiquidosVacios === 1 ? "" : "s"}`,
+      t("resumenVacio", { count: resumen.frascosLiquidosVacios }),
     resumen.frascosLiquidosFinalizados > 0 &&
-      `${resumen.frascosLiquidosFinalizados} finalizado${resumen.frascosLiquidosFinalizados === 1 ? "" : "s"}`,
+      t("resumenFinalizado", { count: resumen.frascosLiquidosFinalizados }),
     resumen.frascosLiquidosContaminados > 0 &&
-      `${resumen.frascosLiquidosContaminados} contaminado${resumen.frascosLiquidosContaminados === 1 ? "" : "s"}`,
+      t("resumenFrascoContaminado", { count: resumen.frascosLiquidosContaminados }),
   ].filter(Boolean);
   return partes.length > 0 ? partes.join(", ") : "—";
 }
 
 export default function ClonacionPage() {
   const router = useRouter();
+  const t = useTranslations("pages.clonacion");
   const [clonaciones, setClonaciones] = useState<ClonacionListItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -51,11 +62,11 @@ export default function ClonacionPage() {
       const data = await apiFetch<ClonacionListItem[]>("/api/clonaciones");
       setClonaciones(data);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudieron cargar las clonaciones");
+      toast.error(err instanceof Error ? err.message : t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void Promise.resolve().then(() => cargar());
@@ -64,26 +75,26 @@ export default function ClonacionPage() {
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">Micelio</h1>
+        <h1 className="text-lg font-semibold">{t("title")}</h1>
         <Button size="sm" onClick={() => router.push("/clonacion/nueva")}>
-          <Plus /> Nueva clonación
+          <Plus /> {t("newClonacion")}
         </Button>
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">Cargando…</p>
+        <p className="text-sm text-muted-foreground">{t("loading")}</p>
       ) : clonaciones.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Todavía no hay clonaciones cargadas.</p>
+        <p className="text-sm text-muted-foreground">{t("empty")}</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N° de clonación</TableHead>
-              <TableHead>Hongo</TableHead>
-              <TableHead>Fecha de inicio</TableHead>
-              <TableHead>Placas</TableHead>
-              <TableHead>Frascos líquidos</TableHead>
-              <TableHead>Alertas</TableHead>
+              <TableHead>{t("colNumero")}</TableHead>
+              <TableHead>{t("colHongo")}</TableHead>
+              <TableHead>{t("colFecha")}</TableHead>
+              <TableHead>{t("colPlacas")}</TableHead>
+              <TableHead>{t("colFrascosLiquidos")}</TableHead>
+              <TableHead>{t("colAlertas")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -97,16 +108,15 @@ export default function ClonacionPage() {
                 <TableCell>{clonacion.fungusTypeId?.nombre}</TableCell>
                 <TableCell>{formatFechaCorta(clonacion.fechaInicio)}</TableCell>
                 <TableCell className="text-muted-foreground">
-                  {placasResumenLabel(clonacion.resumen)}
+                  {placasResumenLabel(clonacion.resumen, t)}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {frascosLiquidosResumenLabel(clonacion.resumen)}
+                  {frascosLiquidosResumenLabel(clonacion.resumen, t)}
                 </TableCell>
                 <TableCell>
                   {clonacion.resumen.alertas > 0 && (
                     <Badge variant="destructive">
-                      <TriangleAlert /> {clonacion.resumen.alertas} alerta
-                      {clonacion.resumen.alertas === 1 ? "" : "s"}
+                      <TriangleAlert /> {t("alertCount", { count: clonacion.resumen.alertas })}
                     </Badge>
                   )}
                 </TableCell>

@@ -15,7 +15,7 @@ export async function GET(
     const { id } = await ctx.params;
 
     const tarea = await Tarea.findOne({ _id: id, userId }).lean();
-    if (!tarea) throw notFound("Tarea no encontrada");
+    if (!tarea) throw notFound("tarea_no_encontrada:Tarea no encontrada");
 
     return ok(tarea);
   } catch (err) {
@@ -39,7 +39,7 @@ export async function PATCH(
       { $set: parsed },
       { new: true, runValidators: true }
     );
-    if (!tarea) throw notFound("Tarea no encontrada");
+    if (!tarea) throw notFound("tarea_no_encontrada:Tarea no encontrada");
 
     return ok(tarea);
   } catch (err) {
@@ -57,7 +57,7 @@ export async function DELETE(
     const { id } = await ctx.params;
 
     const tarea = await Tarea.findOneAndDelete({ _id: id, userId });
-    if (!tarea) throw notFound("Tarea no encontrada");
+    if (!tarea) throw notFound("tarea_no_encontrada:Tarea no encontrada");
 
     return ok({ _id: id });
   } catch (err) {

@@ -2,12 +2,12 @@ import { z } from "zod";
 
 // Schema generico reutilizado por los catalogos simples (GrainType, SubstrateType)
 export const catalogCreateSchema = z.object({
-  nombre: z.string().trim().min(1, "El nombre es requerido"),
+  nombre: z.string().trim().min(1, "nombre_requerido:El nombre es requerido"),
   notas: z.string().trim().optional(),
 });
 
 export const catalogUpdateSchema = z.object({
-  nombre: z.string().trim().min(1, "El nombre es requerido").optional(),
+  nombre: z.string().trim().min(1, "nombre_requerido:El nombre es requerido").optional(),
   notas: z.string().trim().optional(),
   activo: z.boolean().optional(),
 });
@@ -25,7 +25,10 @@ const inicialesSchema = z
     const trimmed = v?.trim().toUpperCase();
     if (!trimmed) return undefined;
     if (!/^[A-Z]{1,4}$/.test(trimmed)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Iniciales: 1 a 4 letras mayúsculas" });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "iniciales_invalidas:Iniciales: 1 a 4 letras mayúsculas",
+      });
       return z.NEVER;
     }
     return trimmed;
@@ -36,16 +39,19 @@ const inicialesSchema = z
 // actividad abierta por recipiente (oleadas sucesivas), no tiene sentido
 // un "dias esperados" fijo para esa etapa.
 export const diasEsperadosDefaultSchema = z.object({
-  inoculacionGrano: z.number().positive(),
-  incubacion: z.number().positive(),
-  fructificacion: z.number().positive(),
+  inoculacionGrano: z.number().positive("numero_positivo_requerido:Debe ser un número positivo"),
+  incubacion: z.number().positive("numero_positivo_requerido:Debe ser un número positivo"),
+  fructificacion: z.number().positive("numero_positivo_requerido:Debe ser un número positivo"),
   // Opcional: agregado para Clonacion. Los hongos ya creados en la base
   // real no lo tienen, y no forzamos requerirlo aca para no romperlos.
-  colonizacionPlacas: z.number().positive().optional(),
+  colonizacionPlacas: z
+    .number()
+    .positive("numero_positivo_requerido:Debe ser un número positivo")
+    .optional(),
 });
 
 export const fungusTypeCreateSchema = z.object({
-  nombre: z.string().trim().min(1, "El nombre es requerido"),
+  nombre: z.string().trim().min(1, "nombre_requerido:El nombre es requerido"),
   nombreCientifico: z.string().trim().optional(),
   notas: z.string().trim().optional(),
   iniciales: inicialesSchema,
@@ -53,7 +59,7 @@ export const fungusTypeCreateSchema = z.object({
 });
 
 export const fungusTypeUpdateSchema = z.object({
-  nombre: z.string().trim().min(1).optional(),
+  nombre: z.string().trim().min(1, "nombre_requerido:El nombre es requerido").optional(),
   nombreCientifico: z.string().trim().optional(),
   notas: z.string().trim().optional(),
   iniciales: inicialesSchema,

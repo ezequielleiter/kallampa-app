@@ -23,7 +23,7 @@ export async function GET(
       .populate("origenFrascoLiquidoId", "numeroGuia")
       .lean();
 
-    if (!batch) throw notFound("Lote no encontrado");
+    if (!batch) throw notFound("lote_no_encontrado:Lote no encontrado");
 
     const [jars, recipientes] = await Promise.all([
       Jar.find({ batchId: id, userId }).sort({ numeroGuia: 1 }).lean(),

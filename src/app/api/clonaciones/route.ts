@@ -118,17 +118,17 @@ export async function POST(req: NextRequest) {
       if (parsed.origenJarId) {
         const jar = await Jar.findOne({ _id: parsed.origenJarId, userId }).lean();
         if (!jar) {
-          return fail("El frasco de origen indicado no existe", 400);
+          return fail("frasco_origen_no_existe:El frasco de origen indicado no existe", 400);
         }
         if (jar.estado !== "colonizado" && jar.estado !== "usado") {
           return fail(
-            `El frasco '${jar.numeroGuia}' no está disponible para clonar (estado actual: '${jar.estado}')`,
+            `frasco_no_disponible_clonar:El frasco '${jar.numeroGuia}' no está disponible para clonar (estado actual: '${jar.estado}')`,
             409
           );
         }
         const batch = await Batch.findOne({ _id: jar.batchId, userId }).lean();
         if (!batch) {
-          return fail("El lote de origen del frasco ya no existe", 400);
+          return fail("lote_origen_frasco_no_existe:El lote de origen del frasco ya no existe", 400);
         }
         fungusTypeId = String(batch.fungusTypeId);
         origenTipo = "jar";
@@ -137,17 +137,23 @@ export async function POST(req: NextRequest) {
       } else if (parsed.origenRecipienteId) {
         const recipiente = await Recipiente.findOne({ _id: parsed.origenRecipienteId, userId }).lean();
         if (!recipiente) {
-          return fail("El recipiente de origen indicado no existe", 400);
+          return fail(
+            "recipiente_origen_no_existe:El recipiente de origen indicado no existe",
+            400
+          );
         }
         if (recipiente.estado !== "fructificando") {
           return fail(
-            `El recipiente '${recipiente.numeroSeguimiento}' no está disponible para clonar (estado actual: '${recipiente.estado}', se necesita 'fructificando')`,
+            `recipiente_no_disponible_clonar:El recipiente '${recipiente.numeroSeguimiento}' no está disponible para clonar (estado actual: '${recipiente.estado}', se necesita 'fructificando')`,
             409
           );
         }
         const batch = await Batch.findOne({ _id: recipiente.batchId, userId }).lean();
         if (!batch) {
-          return fail("El lote de origen del recipiente ya no existe", 400);
+          return fail(
+            "lote_origen_recipiente_no_existe:El lote de origen del recipiente ya no existe",
+            400
+          );
         }
         fungusTypeId = String(batch.fungusTypeId);
         origenTipo = "recipiente";
@@ -157,7 +163,7 @@ export async function POST(req: NextRequest) {
 
       const fungusType = await FungusType.findOne({ _id: fungusTypeId, userId }).lean();
       if (!fungusType) {
-        return fail("El tipo de hongo indicado no existe", 400);
+        return fail("tipo_hongo_no_existe:El tipo de hongo indicado no existe", 400);
       }
 
       const diasEsperados =
@@ -165,7 +171,7 @@ export async function POST(req: NextRequest) {
 
       if (!diasEsperados) {
         throw badRequest(
-          "Este hongo no tiene configurado diasEsperadosDefault.colonizacionPlacas; indicá diasEsperados manualmente o completá el catálogo"
+          "dias_esperados_colonizacion_no_configurado:Este hongo no tiene configurado diasEsperadosDefault.colonizacionPlacas; indicá diasEsperados manualmente o completá el catálogo"
         );
       }
 
@@ -221,7 +227,7 @@ export async function POST(req: NextRequest) {
 
       const fungusType = await FungusType.findOne({ _id: fungusTypeId, userId }).lean();
       if (!fungusType) {
-        return fail("El tipo de hongo indicado no existe", 400);
+        return fail("tipo_hongo_no_existe:El tipo de hongo indicado no existe", 400);
       }
 
       const numeroLoteBase = await getNextNumeroClonacion(userId, parsed.fechaInicio);
@@ -258,24 +264,24 @@ export async function POST(req: NextRequest) {
     // garantizo que parsed.origenJarId viene presente en este camino.
     const jar = await Jar.findOne({ _id: parsed.origenJarId, userId }).lean();
     if (!jar) {
-      return fail("El frasco de origen indicado no existe", 400);
+      return fail("frasco_origen_no_existe:El frasco de origen indicado no existe", 400);
     }
     if (jar.estado !== "colonizado" && jar.estado !== "usado") {
       return fail(
-        `El frasco '${jar.numeroGuia}' no está disponible para clonar (estado actual: '${jar.estado}')`,
+        `frasco_no_disponible_clonar:El frasco '${jar.numeroGuia}' no está disponible para clonar (estado actual: '${jar.estado}')`,
         409
       );
     }
     const batch = await Batch.findOne({ _id: jar.batchId, userId }).lean();
     if (!batch) {
-      return fail("El lote de origen del frasco ya no existe", 400);
+      return fail("lote_origen_frasco_no_existe:El lote de origen del frasco ya no existe", 400);
     }
     const fungusTypeId = String(batch.fungusTypeId);
     const origenBatchId = String(jar.batchId);
 
     const fungusType = await FungusType.findOne({ _id: fungusTypeId, userId }).lean();
     if (!fungusType) {
-      return fail("El tipo de hongo indicado no existe", 400);
+      return fail("tipo_hongo_no_existe:El tipo de hongo indicado no existe", 400);
     }
 
     const numeroLoteBase = await getNextNumeroClonacion(userId, parsed.fechaInicio);

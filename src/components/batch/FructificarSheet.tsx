@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   Sheet,
   SheetContent,
@@ -43,6 +44,7 @@ export function FructificarSheet({
   fungusType,
   onSuccess,
 }: FructificarSheetProps) {
+  const t = useTranslations("components.fructificarSheet");
   const {
     register,
     handleSubmit,
@@ -60,11 +62,11 @@ export function FructificarSheet({
         method: "POST",
         body: JSON.stringify(data),
       });
-      toast.success("Recipiente pasado a fructificación");
+      toast.success(t("successMessage"));
       onOpenChange(false);
       onSuccess();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo pasar a fructificación");
+      toast.error(err instanceof Error ? err.message : t("errorMessage"));
     }
   }
 
@@ -72,7 +74,7 @@ export function FructificarSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>Pasar a fructificación</SheetTitle>
+          <SheetTitle>{t("title")}</SheetTitle>
           <SheetDescription>{recipiente.numeroSeguimiento}</SheetDescription>
         </SheetHeader>
         <form
@@ -80,7 +82,7 @@ export function FructificarSheet({
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="flex flex-col gap-1.5">
-            <Label>Fecha de inicio</Label>
+            <Label>{t("fechaInicio")}</Label>
             <Input
               type="date"
               defaultValue={todayInputValue()}
@@ -94,7 +96,7 @@ export function FructificarSheet({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Días esperados</Label>
+            <Label>{t("diasEsperados")}</Label>
             <Input
               type="number"
               {...register("diasEsperadosFructificacion", {
@@ -110,10 +112,10 @@ export function FructificarSheet({
 
           <SheetFooter className="px-0">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              Confirmar
+              {t("confirmar")}
             </Button>
           </SheetFooter>
         </form>

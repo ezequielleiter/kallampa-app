@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api-client";
+import { translateErrorMessage } from "@/lib/error-messages";
 import type { FungusType, GrainType, Batch, FrascoLiquido } from "@/lib/types";
 import {
   createBatchSchema,
@@ -32,6 +34,7 @@ type OrigenLote = "hongo" | "frascoLiquido";
 
 export default function NuevoLotePage() {
   const router = useRouter();
+  const t = useTranslations("pages.loteNuevo");
   const [origen, setOrigen] = useState<OrigenLote>("hongo");
   const [fungusTypes, setFungusTypes] = useState<FungusType[]>([]);
   const [grainTypes, setGrainTypes] = useState<GrainType[]>([]);
@@ -97,24 +100,24 @@ export default function NuevoLotePage() {
         method: "POST",
         body: JSON.stringify(data),
       });
-      toast.success(`Lote ${batch.numeroLote} creado`);
+      toast.success(t("createdSuccess", { numeroLote: batch.numeroLote }));
       router.push(`/lotes/${batch._id}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo crear el lote");
+      toast.error(err instanceof Error ? err.message : t("createError"));
     }
   }
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-4 p-4">
-      <h1 className="text-lg font-semibold">Nuevo lote</h1>
+      <h1 className="text-lg font-semibold">{t("title")}</h1>
       <Card>
         <CardHeader>
-          <CardTitle>Datos de inoculación en grano</CardTitle>
+          <CardTitle>{t("cardTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-1.5">
-              <Label>Origen del lote</Label>
+              <Label>{t("origenLote")}</Label>
               <div className="flex gap-2">
                 <Button
                   type="button"
@@ -122,7 +125,7 @@ export default function NuevoLotePage() {
                   variant={origen === "hongo" ? "default" : "outline"}
                   onClick={() => handleOrigenChange("hongo")}
                 >
-                  Tipo de hongo
+                  {t("tipoHongo")}
                 </Button>
                 <Button
                   type="button"
@@ -130,17 +133,19 @@ export default function NuevoLotePage() {
                   variant={origen === "frascoLiquido" ? "default" : "outline"}
                   onClick={() => handleOrigenChange("frascoLiquido")}
                 >
-                  Frasco de micelio líquido
+                  {t("frascoLiquido")}
                 </Button>
               </div>
               {errors.fungusTypeId && origen === "frascoLiquido" && (
-                <p className="text-xs text-destructive">{errors.fungusTypeId.message}</p>
+                <p className="text-xs text-destructive">
+                  {translateErrorMessage(errors.fungusTypeId.message)}
+                </p>
               )}
             </div>
 
             {origen === "hongo" ? (
               <div className="flex flex-col gap-1.5">
-                <Label>Tipo de hongo</Label>
+                <Label>{t("tipoHongo")}</Label>
                 <Controller
                   control={control}
                   name="fungusTypeId"
@@ -151,7 +156,7 @@ export default function NuevoLotePage() {
                       onValueChange={(v) => handleFungusChange(v, field.onChange)}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Elegí un hongo" />
+                        <SelectValue placeholder={t("elegirHongo")} />
                       </SelectTrigger>
                       <SelectContent>
                         {fungusTypes.map((f) => (
@@ -164,15 +169,15 @@ export default function NuevoLotePage() {
                   )}
                 />
                 {errors.fungusTypeId && (
-                  <p className="text-xs text-destructive">{errors.fungusTypeId.message}</p>
+                  <p className="text-xs text-destructive">
+                    {translateErrorMessage(errors.fungusTypeId.message)}
+                  </p>
                 )}
               </div>
             ) : (
               <div className="flex flex-col gap-1.5">
-                <Label>Frasco de micelio líquido</Label>
-                <p className="text-xs text-muted-foreground">
-                  El tipo de hongo se toma de la clonación de origen del frasco elegido.
-                </p>
+                <Label>{t("frascoLiquido")}</Label>
+                <p className="text-xs text-muted-foreground">{t("frascoLiquidoHint")}</p>
                 <Controller
                   control={control}
                   name="origenFrascoLiquidoId"
@@ -189,10 +194,10 @@ export default function NuevoLotePage() {
                         <SelectValue
                           placeholder={
                             loadingFrascosLiquidos
-                              ? "Cargando…"
+                              ? t("loading")
                               : frascosLiquidos.length === 0
-                                ? "No hay frascos de micelio líquido disponibles"
-                                : "Elegí un frasco"
+                                ? t("noFrascosLiquidos")
+                                : t("elegirFrasco")
                           }
                         />
                       </SelectTrigger>
@@ -208,14 +213,14 @@ export default function NuevoLotePage() {
                 />
                 {errors.origenFrascoLiquidoId && (
                   <p className="text-xs text-destructive">
-                    {errors.origenFrascoLiquidoId.message}
+                    {translateErrorMessage(errors.origenFrascoLiquidoId.message)}
                   </p>
                 )}
               </div>
             )}
 
             <div className="flex flex-col gap-1.5">
-              <Label>Tipo de grano</Label>
+              <Label>{t("tipoGrano")}</Label>
               <Controller
                 control={control}
                 name="tipoGranoId"
@@ -226,7 +231,7 @@ export default function NuevoLotePage() {
                     onValueChange={field.onChange}
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Elegí un grano" />
+                      <SelectValue placeholder={t("elegirGrano")} />
                     </SelectTrigger>
                     <SelectContent>
                       {grainTypes.map((g) => (
@@ -239,12 +244,14 @@ export default function NuevoLotePage() {
                 )}
               />
               {errors.tipoGranoId && (
-                <p className="text-xs text-destructive">{errors.tipoGranoId.message}</p>
+                <p className="text-xs text-destructive">
+                  {translateErrorMessage(errors.tipoGranoId.message)}
+                </p>
               )}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label>Peso de grano (kg)</Label>
+              <Label>{t("pesoGrano")}</Label>
               <Input
                 type="number"
                 step="any"
@@ -253,12 +260,14 @@ export default function NuevoLotePage() {
                 })}
               />
               {errors.pesoGranoKg && (
-                <p className="text-xs text-destructive">{errors.pesoGranoKg.message}</p>
+                <p className="text-xs text-destructive">
+                  {translateErrorMessage(errors.pesoGranoKg.message)}
+                </p>
               )}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label>Precio por kg</Label>
+              <Label>{t("precioPorKg")}</Label>
               <Input
                 type="number"
                 step="any"
@@ -267,12 +276,14 @@ export default function NuevoLotePage() {
                 })}
               />
               {errors.precioPorKg && (
-                <p className="text-xs text-destructive">{errors.precioPorKg.message}</p>
+                <p className="text-xs text-destructive">
+                  {translateErrorMessage(errors.precioPorKg.message)}
+                </p>
               )}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label>Cantidad de frascos</Label>
+              <Label>{t("cantidadFrascos")}</Label>
               <Input
                 type="number"
                 {...register("cantidadFrascos", {
@@ -280,24 +291,28 @@ export default function NuevoLotePage() {
                 })}
               />
               {errors.cantidadFrascos && (
-                <p className="text-xs text-destructive">{errors.cantidadFrascos.message}</p>
+                <p className="text-xs text-destructive">
+                  {translateErrorMessage(errors.cantidadFrascos.message)}
+                </p>
               )}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label>Fecha de inoculación</Label>
+              <Label>{t("fechaInoculacion")}</Label>
               <Input
                 type="date"
                 defaultValue={new Date().toISOString().slice(0, 10)}
                 {...register("fechaInicio")}
               />
               {errors.fechaInicio && (
-                <p className="text-xs text-destructive">{errors.fechaInicio.message}</p>
+                <p className="text-xs text-destructive">
+                  {translateErrorMessage(errors.fechaInicio.message)}
+                </p>
               )}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label>Días esperados en esta etapa</Label>
+              <Label>{t("diasEsperados")}</Label>
               <Input
                 type="number"
                 {...register("diasEsperados", {
@@ -305,16 +320,18 @@ export default function NuevoLotePage() {
                 })}
               />
               {errors.diasEsperados && (
-                <p className="text-xs text-destructive">{errors.diasEsperados.message}</p>
+                <p className="text-xs text-destructive">
+                  {translateErrorMessage(errors.diasEsperados.message)}
+                </p>
               )}
             </div>
 
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => router.push("/")}>
-                Cancelar
+                {t("cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                Crear lote
+                {t("submit")}
               </Button>
             </div>
           </form>

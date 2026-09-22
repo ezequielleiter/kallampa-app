@@ -15,7 +15,7 @@ export async function GET(
     const { id } = await ctx.params;
 
     const nota = await Nota.findOne({ _id: id, userId }).lean();
-    if (!nota) throw notFound("Nota no encontrada");
+    if (!nota) throw notFound("nota_no_encontrada:Nota no encontrada");
 
     return ok(nota);
   } catch (err) {
@@ -39,7 +39,7 @@ export async function PATCH(
       { $set: parsed },
       { new: true, runValidators: true }
     );
-    if (!nota) throw notFound("Nota no encontrada");
+    if (!nota) throw notFound("nota_no_encontrada:Nota no encontrada");
 
     return ok(nota);
   } catch (err) {
@@ -57,7 +57,7 @@ export async function DELETE(
     const { id } = await ctx.params;
 
     const nota = await Nota.findOneAndDelete({ _id: id, userId });
-    if (!nota) throw notFound("Nota no encontrada");
+    if (!nota) throw notFound("nota_no_encontrada:Nota no encontrada");
 
     return ok({ _id: id });
   } catch (err) {

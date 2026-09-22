@@ -1,11 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ESTADO_DERIVADO_LABELS } from "@/lib/constants";
 import type { StatsLote } from "@/lib/types";
 
 interface LoteSelectorProps {
@@ -15,6 +15,8 @@ interface LoteSelectorProps {
 }
 
 export function LoteSelector({ lotes, selectedIds, onChange }: LoteSelectorProps) {
+  const t = useTranslations("components.loteSelector");
+  const tEstado = useTranslations("estados.lote");
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -47,7 +49,7 @@ export function LoteSelector({ lotes, selectedIds, onChange }: LoteSelectorProps
               <button
                 type="button"
                 onClick={() => toggle(l._id)}
-                aria-label={`Quitar ${l.numeroLote} de la comparación`}
+                aria-label={t("removeFromComparison", { numeroLote: l.numeroLote })}
                 className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20"
               >
                 <X className="size-3" />
@@ -55,22 +57,20 @@ export function LoteSelector({ lotes, selectedIds, onChange }: LoteSelectorProps
             </Badge>
           ))}
           <Button type="button" variant="ghost" size="sm" onClick={() => onChange([])}>
-            Limpiar selección
+            {t("limpiarSeleccion")}
           </Button>
         </div>
       )}
 
       <Input
-        placeholder="Buscar lote por número o tipo de hongo…"
+        placeholder={t("searchPlaceholder")}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
 
       <div className="flex max-h-56 flex-col gap-1 overflow-y-auto rounded-md border p-1">
         {filtered.length === 0 ? (
-          <p className="p-3 text-center text-sm text-muted-foreground">
-            No hay lotes que coincidan con la búsqueda.
-          </p>
+          <p className="p-3 text-center text-sm text-muted-foreground">{t("emptyState")}</p>
         ) : (
           filtered.map((l) => {
             const selected = selectedIds.includes(l._id);
@@ -89,7 +89,7 @@ export function LoteSelector({ lotes, selectedIds, onChange }: LoteSelectorProps
                 <span className="font-medium">{l.numeroLote}</span>
                 <span className="text-muted-foreground">{l.fungusTypeId?.nombre}</span>
                 <span className="ml-auto text-xs text-muted-foreground">
-                  {ESTADO_DERIVADO_LABELS[l.resumen.estadoDerivado]}
+                  {tEstado(l.resumen.estadoDerivado)}
                 </span>
               </button>
             );

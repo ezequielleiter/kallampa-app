@@ -18,7 +18,7 @@ export async function PATCH(
     const parsed = fungusTypeUpdateSchema.parse(body);
 
     const current = await FungusType.findOne({ _id: id, userId });
-    if (!current) throw notFound("Tipo de hongo no encontrado");
+    if (!current) throw notFound("tipo_hongo_no_encontrado:Tipo de hongo no encontrado");
 
     // Chequeo de unicidad de iniciales entre hongos activos: se evalua sobre
     // el estado *resultante* (iniciales/activo pueden venir omitidos en el
@@ -34,7 +34,9 @@ export async function PATCH(
         activo: true,
       }).lean();
       if (existente) {
-        throw conflict(`Ya existe un hongo activo con las iniciales "${inicialesFinal}" (${existente.nombre})`);
+        throw conflict(
+          `hongo_iniciales_en_uso:Ya existe un hongo activo con las iniciales "${inicialesFinal}" (${existente.nombre})`
+        );
       }
     }
 
@@ -54,7 +56,7 @@ export async function PATCH(
       { new: true, runValidators: true }
     );
 
-    if (!updated) throw notFound("Tipo de hongo no encontrado");
+    if (!updated) throw notFound("tipo_hongo_no_encontrado:Tipo de hongo no encontrado");
 
     return ok(updated);
   } catch (err) {

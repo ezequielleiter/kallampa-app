@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Network } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,7 @@ import type { BatchDetail } from "@/lib/types";
 export default function BatchDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
+  const t = useTranslations("pages.loteDetalle");
   const [batch, setBatch] = useState<BatchDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -33,22 +35,22 @@ export default function BatchDetailPage() {
       const data = await apiFetch<BatchDetail>(`/api/batches/${params.id}`);
       setBatch(data);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo cargar el lote");
+      toast.error(err instanceof Error ? err.message : t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, [params.id]);
+  }, [params.id, t]);
 
   useEffect(() => {
     void Promise.resolve().then(() => cargar());
   }, [cargar]);
 
   if (loading) {
-    return <p className="p-4 text-sm text-muted-foreground">Cargando…</p>;
+    return <p className="p-4 text-sm text-muted-foreground">{t("loading")}</p>;
   }
 
   if (!batch) {
-    return <p className="p-4 text-sm text-muted-foreground">Lote no encontrado.</p>;
+    return <p className="p-4 text-sm text-muted-foreground">{t("notFound")}</p>;
   }
 
   const { jars, recipientes } = batch;
@@ -62,10 +64,10 @@ export default function BatchDetailPage() {
     <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Button variant="ghost" size="sm" className="w-fit" onClick={() => router.push("/")}>
-          ← Volver a lotes
+          {t("backToLotes")}
         </Button>
         <Button variant="outline" size="sm" render={<Link href="/trazabilidad" />}>
-          <Network /> Ver árbol de trazabilidad
+          <Network /> {t("viewTraceability")}
         </Button>
       </div>
 
@@ -80,12 +82,12 @@ export default function BatchDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>1. Inoculación en grano</CardTitle>
+          <CardTitle>{t("inoculacionGranoTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Grano</span>
+              <span className="text-xs text-muted-foreground">{t("grano")}</span>
               <span className="font-medium">
                 {typeof batch.inoculacionGrano.tipoGranoId === "object"
                   ? batch.inoculacionGrano.tipoGranoId.nombre
@@ -93,15 +95,15 @@ export default function BatchDetailPage() {
               </span>
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Peso</span>
+              <span className="text-xs text-muted-foreground">{t("peso")}</span>
               <span className="font-medium">{batch.inoculacionGrano.pesoGranoKg} kg</span>
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Precio por kg</span>
+              <span className="text-xs text-muted-foreground">{t("precioPorKg")}</span>
               <span className="font-medium">${batch.inoculacionGrano.precioPorKg}</span>
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Frascos</span>
+              <span className="text-xs text-muted-foreground">{t("frascos")}</span>
               <span className="font-medium">{batch.inoculacionGrano.cantidadFrascos}</span>
             </div>
           </div>
@@ -111,7 +113,7 @@ export default function BatchDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>2. Incubación</CardTitle>
+          <CardTitle>{t("incubacionTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <RecipientesTable
@@ -125,7 +127,7 @@ export default function BatchDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>3. Fructificación</CardTitle>
+          <CardTitle>{t("fructificacionTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <FructificacionSection
@@ -138,7 +140,7 @@ export default function BatchDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>4. Cosecha</CardTitle>
+          <CardTitle>{t("cosechaTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <CosechaSection recipientes={recipientes} onChanged={cargar} />

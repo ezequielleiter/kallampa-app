@@ -1,3 +1,265 @@
 {
-  "components": {}
+  "components": {
+    "batchHeader": {
+      "inoculadoEl": "Inoculado el",
+      "frascos": "{count, plural, one {# frasco} other {# frascos}}",
+      "desdeMicelioLiquido": "desde micelio líquido",
+      "alertas": "{count, plural, one {# alerta} other {# alertas}}",
+      "pesoCosechado": "Peso cosechado",
+      "eficienciaBiologica": "Eficiencia biológica",
+      "costoTotal": "Costo total",
+      "costoPorKgProducido": "Costo por kg producido"
+    },
+    "cosechaSection": {
+      "emptyState": "Todavía no hay recipientes en fructificación ni finalizados.",
+      "addOleada": "Agregar oleada",
+      "markFinalized": "Marcar finalizado",
+      "emptyOleadas": "Todavía no se registraron oleadas.",
+      "numero": "N°",
+      "fecha": "Fecha",
+      "pesoKg": "Peso (kg)",
+      "notas": "Notas",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "total": "Total",
+      "confirmDeleteOleada": "¿Eliminar la oleada del {fecha}?",
+      "oleadaDeleted": "Oleada eliminada",
+      "oleadaDeleteError": "No se pudo eliminar la oleada"
+    },
+    "fructificacionSection": {
+      "emptyState": "Todavía no hay recipientes en incubación para pasar a fructificación.",
+      "numeroSeguimiento": "N° de seguimiento",
+      "estado": "Estado",
+      "inicioFructificacion": "Inicio fructificación",
+      "dias": "Días",
+      "pasarAFructificacion": "Pasar a fructificación",
+      "clonar": "Clonar"
+    },
+    "fructificarSheet": {
+      "title": "Pasar a fructificación",
+      "fechaInicio": "Fecha de inicio",
+      "diasEsperados": "Días esperados",
+      "cancelar": "Cancelar",
+      "confirmar": "Confirmar",
+      "successMessage": "Recipiente pasado a fructificación",
+      "errorMessage": "No se pudo pasar a fructificación"
+    },
+    "jarsGrid": {
+      "successMessage": "Frasco actualizado",
+      "errorMessage": "No se pudo actualizar el frasco",
+      "emptyState": "Este lote no tiene frascos.",
+      "numeroGuia": "N° de guía (spawn)",
+      "estado": "Estado",
+      "clonar": "Clonar"
+    },
+    "nuevoRecipienteSheet": {
+      "loadJarsError": "No se pudieron cargar los frascos",
+      "successMessage": "Recipiente creado",
+      "errorMessage": "No se pudo crear el recipiente",
+      "title": "Nueva incubación",
+      "description": "Repartí grano colonizado de uno o más frascos en un nuevo recipiente con sustrato.",
+      "frascosOrigen": "Frascos de origen",
+      "frascosOrigenHelp": "Podés elegir un frasco aunque ya se haya usado en otro recipiente — el grano de un mismo frasco a veces se reparte en más de uno.",
+      "cargando": "Cargando…",
+      "noHayFrascos": "No hay frascos disponibles (colonizados o usados) para este lote.",
+      "jarYaUsado": "ya usado en otro recipiente",
+      "tipoSustrato": "Tipo de sustrato",
+      "elegirSustrato": "Elegí un sustrato",
+      "pesoSustrato": "Peso de sustrato (kg)",
+      "precioPorKg": "Precio por kg",
+      "fechaInicioIncubacion": "Fecha de inicio de incubación",
+      "diasEsperadosIncubacion": "Días esperados de incubación",
+      "cancelar": "Cancelar",
+      "crear": "Crear recipiente"
+    },
+    "oleadaFormDialog": {
+      "editTitle": "Editar oleada",
+      "newTitle": "Agregar oleada",
+      "fecha": "Fecha",
+      "pesoCosechado": "Peso cosechado (kg)",
+      "notas": "Notas (opcional)",
+      "guardar": "Guardar",
+      "updatedMessage": "Oleada actualizada",
+      "createdMessage": "Oleada agregada",
+      "errorMessage": "No se pudo guardar la oleada"
+    },
+    "recipienteEstadoDialog": {
+      "descripcionFinalizado": "Se cierra el recipiente: ya no va a dar más cosecha.",
+      "descripcionContaminado": "Se marca el recipiente como perdido por contaminación. Esta acción no se puede deshacer.",
+      "descripcionDescartado": "Se marca el recipiente como descartado. Esta acción no se puede deshacer.",
+      "motivo": "Motivo (opcional)",
+      "motivoPlaceholder": "Ej: contaminación por Trichoderma",
+      "cancelar": "Cancelar",
+      "confirmar": "Confirmar",
+      "successMessage": "Recipiente {estado}",
+      "errorMessage": "No se pudo actualizar el recipiente"
+    },
+    "recipientesTable": {
+      "title": "Incubación ({count})",
+      "nuevaIncubacion": "Nueva incubación",
+      "emptyState": "Este lote todavía no tiene recipientes de incubación.",
+      "numeroSeguimiento": "N° de seguimiento",
+      "origen": "Origen",
+      "sustrato": "Sustrato",
+      "pesoKg": "Peso (kg)",
+      "estado": "Estado",
+      "inicioIncubacion": "Inicio incubación",
+      "dias": "Días",
+      "pasarAFructificacion": "Pasar a fructificación",
+      "marcarFinalizado": "Marcar finalizado",
+      "marcarContaminado": "Marcar contaminado",
+      "marcarDescartado": "Marcar descartado"
+    },
+    "tareaFormDialog": {
+      "editTitle": "Editar tarea",
+      "newTitle": "Nueva tarea",
+      "titulo": "Título",
+      "descripcion": "Descripción (opcional)",
+      "fecha": "Fecha",
+      "estado": "Estado",
+      "eliminar": "Eliminar",
+      "cancelar": "Cancelar",
+      "guardar": "Guardar",
+      "updatedMessage": "Tarea actualizada",
+      "createdMessage": "Tarea creada",
+      "saveErrorMessage": "No se pudo guardar la tarea",
+      "deletedMessage": "Tarea eliminada",
+      "deleteErrorMessage": "No se pudo eliminar la tarea",
+      "deleteTitle": "Eliminar “{titulo}”",
+      "deleteDescription": "Esta acción no se puede deshacer: la tarea se borra por completo."
+    },
+    "catalogFormDialog": {
+      "editTitle": "Editar registro",
+      "newTitle": "Nuevo registro",
+      "nombre": "Nombre",
+      "notas": "Notas (opcional)",
+      "guardar": "Guardar",
+      "updatedMessage": "Registro actualizado",
+      "createdMessage": "Registro creado",
+      "errorMessage": "No se pudo guardar"
+    },
+    "catalogTable": {
+      "newItem": "Nuevo {item}",
+      "cargando": "Cargando…",
+      "emptyState": "No hay registros todavía.",
+      "nombre": "Nombre",
+      "notas": "Notas",
+      "estado": "Estado",
+      "activo": "Activo",
+      "inactivo": "Inactivo",
+      "desactivar": "Desactivar",
+      "activar": "Activar",
+      "loadError": "No se pudo cargar el catálogo",
+      "desactivadoMessage": "Desactivado",
+      "activadoMessage": "Activado",
+      "updateError": "No se pudo actualizar"
+    },
+    "fungusTypeFormDialog": {
+      "editTitle": "Editar tipo de hongo",
+      "newTitle": "Nuevo tipo de hongo",
+      "nombre": "Nombre",
+      "nombreCientifico": "Nombre científico (opcional)",
+      "iniciales": "Iniciales (opcional)",
+      "inicialesHelp": "Se antepone a los códigos generados (ej: “OST” → OST-L-2026-003-F01).",
+      "notas": "Notas (opcional)",
+      "diasEsperadosTitle": "Días esperados por defecto en cada etapa",
+      "inoculacionGrano": "Inoculación en grano",
+      "incubacion": "Incubación",
+      "fructificacion": "Fructificación",
+      "colonizacionPlacas": "Colonización de placas (opcional)",
+      "guardar": "Guardar",
+      "updatedMessage": "Tipo de hongo actualizado",
+      "createdMessage": "Tipo de hongo creado",
+      "errorMessage": "No se pudo guardar"
+    },
+    "fungusTypeTable": {
+      "nuevoHongo": "Nuevo hongo",
+      "cargando": "Cargando…",
+      "emptyState": "No hay registros todavía.",
+      "nombre": "Nombre",
+      "diasEsperados": "Días esperados (Grano / Incubación / Fruct. / Placas)",
+      "estado": "Estado",
+      "activo": "Activo",
+      "inactivo": "Inactivo",
+      "desactivar": "Desactivar",
+      "activar": "Activar",
+      "loadError": "No se pudo cargar el catálogo",
+      "desactivadoMessage": "Desactivado",
+      "activadoMessage": "Activado",
+      "updateError": "No se pudo actualizar"
+    },
+    "frascosLiquidosSection": {
+      "title": "Frascos de micelio líquido ({count})",
+      "nuevoFrasco": "Nuevo frasco",
+      "emptyState": "Esta clonación todavía no tiene frascos de micelio líquido.",
+      "numeroGuia": "N° de guía",
+      "placaOrigen": "Placa de origen",
+      "fecha": "Fecha",
+      "estado": "Estado",
+      "marcarVacio": "Marcar vacío",
+      "marcarFinalizado": "Marcar finalizado",
+      "marcarContaminado": "Marcar contaminado",
+      "frascoMarked": "Frasco marcado como {estado}",
+      "errorMessage": "No se pudo actualizar el frasco"
+    },
+    "nuevoFrascoLiquidoSheet": {
+      "loadPlacasError": "No se pudieron cargar las placas",
+      "successMessage": "Frasco de micelio líquido creado",
+      "errorMessage": "No se pudo crear el frasco líquido",
+      "title": "Nuevo frasco de micelio líquido",
+      "description": "Elegí la placa colonizada de origen. Una misma placa se puede usar para crear varios frascos: no se consume.",
+      "placaOrigen": "Placa de origen",
+      "cargando": "Cargando…",
+      "noHayPlacas": "No hay placas colonizadas disponibles.",
+      "fechaCreacion": "Fecha de creación",
+      "cancelar": "Cancelar",
+      "crear": "Crear frasco"
+    },
+    "placasGrid": {
+      "successMessage": "Placa actualizada",
+      "errorMessage": "No se pudo actualizar la placa",
+      "emptyState": "Esta clonación no tiene placas.",
+      "numeroPlaca": "N° de placa",
+      "estado": "Estado"
+    },
+    "agregadoComparisonChart": {
+      "emptyMessage": "Sin datos suficientes (se calcula solo sobre lotes finalizados)."
+    },
+    "estadoDistributionChart": {
+      "countUnit": "{count, plural, one {# recipiente} other {# recipientes}}",
+      "cantidad": "Cantidad",
+      "recipientes": "Recipientes"
+    },
+    "kpiCards": {
+      "lotesActivos": "Lotes activos",
+      "lotesFinalizados": "Lotes finalizados",
+      "lotesDescartados": "Lotes descartados",
+      "lotesDemorados": "Lotes demorados",
+      "eficienciaBiologicaPromedio": "Eficiencia biológica promedio",
+      "costoPorKgPromedio": "Costo por kg promedio",
+      "pesoTotalProducido": "Peso total producido"
+    },
+    "loteComparisonTable": {
+      "lote": "Lote",
+      "hongo": "Hongo",
+      "estado": "Estado",
+      "diasTotales": "Días totales",
+      "diasIncubacionProm": "Días incubación (prom.)",
+      "diasFructificacionProm": "Días fructificación (prom.)",
+      "pesoCosechado": "Peso cosechado",
+      "eficienciaBiologica": "Eficiencia biológica",
+      "costoTotal": "Costo total",
+      "costoPorKg": "Costo/kg"
+    },
+    "lotesDemoradosPanel": {
+      "emptyState": "Ningún lote está demorado. 👍",
+      "diasDemora": "+{count, plural, one {# día} other {# días}}"
+    },
+    "loteSelector": {
+      "removeFromComparison": "Quitar {numeroLote} de la comparación",
+      "limpiarSeleccion": "Limpiar selección",
+      "searchPlaceholder": "Buscar lote por número o tipo de hongo…",
+      "emptyState": "No hay lotes que coincidan con la búsqueda."
+    }
+  }
 }

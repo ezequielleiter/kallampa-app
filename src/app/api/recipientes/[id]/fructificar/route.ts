@@ -19,20 +19,21 @@ export async function POST(
     const parsed = fructificarRecipienteSchema.parse(body);
 
     const recipiente = await Recipiente.findOne({ _id: id, userId });
-    if (!recipiente) throw notFound("Recipiente no encontrado");
+    if (!recipiente) throw notFound("recipiente_no_encontrado:Recipiente no encontrado");
 
     if (recipiente.estado !== "incubando") {
       throw conflict(
-        `Solo se puede pasar a fructificacion un recipiente en estado 'incubando' (estado actual: '${recipiente.estado}')`
+        `recipiente_no_incubando:Solo se puede pasar a fructificacion un recipiente en estado 'incubando' (estado actual: '${recipiente.estado}')`
       );
     }
 
     let diasEsperadosFructificacion = parsed.diasEsperadosFructificacion;
     if (diasEsperadosFructificacion === undefined) {
       const batch = await Batch.findOne({ _id: recipiente.batchId, userId }).lean();
-      if (!batch) throw badRequest("El lote del recipiente ya no existe");
+      if (!batch) throw badRequest("lote_recipiente_no_existe:El lote del recipiente ya no existe");
       const fungusType = await FungusType.findOne({ _id: batch.fungusTypeId, userId }).lean();
-      if (!fungusType) throw badRequest("El tipo de hongo del lote ya no existe");
+      if (!fungusType)
+        throw badRequest("tipo_hongo_lote_no_existe:El tipo de hongo del lote ya no existe");
       diasEsperadosFructificacion = fungusType.diasEsperadosDefault.fructificacion;
     }
 

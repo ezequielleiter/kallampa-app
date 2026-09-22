@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Plus, MoreHorizontal, TriangleAlert } from "lucide-react";
 import {
   Table,
@@ -21,7 +22,6 @@ import {
 import { formatFechaCorta } from "@/lib/format";
 import {
   RECIPIENTE_ESTADO_BADGE_VARIANT,
-  RECIPIENTE_ESTADO_LABELS,
   RECIPIENTE_ESTADOS_TERMINALES,
 } from "@/lib/constants";
 import { alertaRecipiente, getOrigenFrascosLabel } from "@/lib/recipiente-utils";
@@ -45,6 +45,8 @@ export function RecipientesTable({
   recipientes,
   onChanged,
 }: RecipientesTableProps) {
+  const t = useTranslations("components.recipientesTable");
+  const tEstado = useTranslations("estados.recipiente");
   const [nuevoOpen, setNuevoOpen] = useState(false);
   const [fructificarTarget, setFructificarTarget] = useState<Recipiente | null>(null);
   const [estadoTarget, setEstadoTarget] = useState<{
@@ -59,27 +61,25 @@ export function RecipientesTable({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Incubación ({recipientes.length})</h2>
+        <h2 className="text-sm font-semibold">{t("title", { count: recipientes.length })}</h2>
         <Button size="sm" onClick={() => setNuevoOpen(true)}>
-          <Plus /> Nueva incubación
+          <Plus /> {t("nuevaIncubacion")}
         </Button>
       </div>
 
       {recipientes.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Este lote todavía no tiene recipientes de incubación.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("emptyState")}</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N° de seguimiento</TableHead>
-              <TableHead>Origen</TableHead>
-              <TableHead>Sustrato</TableHead>
-              <TableHead>Peso (kg)</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead>Inicio incubación</TableHead>
-              <TableHead>Días</TableHead>
+              <TableHead>{t("numeroSeguimiento")}</TableHead>
+              <TableHead>{t("origen")}</TableHead>
+              <TableHead>{t("sustrato")}</TableHead>
+              <TableHead>{t("pesoKg")}</TableHead>
+              <TableHead>{t("estado")}</TableHead>
+              <TableHead>{t("inicioIncubacion")}</TableHead>
+              <TableHead>{t("dias")}</TableHead>
               <TableHead className="w-8" />
             </TableRow>
           </TableHeader>
@@ -97,7 +97,7 @@ export function RecipientesTable({
                   <TableCell>{r.pesoSustratoKg.toFixed(2)}</TableCell>
                   <TableCell>
                     <Badge variant={RECIPIENTE_ESTADO_BADGE_VARIANT[r.estado]}>
-                      {RECIPIENTE_ESTADO_LABELS[r.estado]}
+                      {tEstado(r.estado)}
                     </Badge>
                   </TableCell>
                   <TableCell>{formatFechaCorta(r.fechaInicioIncubacion)}</TableCell>
@@ -128,7 +128,7 @@ export function RecipientesTable({
                       <DropdownMenuContent>
                         {r.estado === "incubando" && (
                           <DropdownMenuItem onClick={() => setFructificarTarget(r)}>
-                            Pasar a fructificación
+                            {t("pasarAFructificacion")}
                           </DropdownMenuItem>
                         )}
                         {!esTerminal && (
@@ -136,7 +136,7 @@ export function RecipientesTable({
                             <DropdownMenuItem
                               onClick={() => setEstadoTarget({ recipiente: r, estado: "finalizado" })}
                             >
-                              Marcar finalizado
+                              {t("marcarFinalizado")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               variant="destructive"
@@ -144,7 +144,7 @@ export function RecipientesTable({
                                 setEstadoTarget({ recipiente: r, estado: "contaminado" })
                               }
                             >
-                              Marcar contaminado
+                              {t("marcarContaminado")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               variant="destructive"
@@ -152,7 +152,7 @@ export function RecipientesTable({
                                 setEstadoTarget({ recipiente: r, estado: "descartado" })
                               }
                             >
-                              Marcar descartado
+                              {t("marcarDescartado")}
                             </DropdownMenuItem>
                           </>
                         )}

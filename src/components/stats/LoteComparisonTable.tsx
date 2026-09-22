@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableHeader,
@@ -9,7 +10,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ESTADO_DERIVADO_BADGE_VARIANT, ESTADO_DERIVADO_LABELS } from "@/lib/constants";
+import { ESTADO_DERIVADO_BADGE_VARIANT } from "@/lib/constants";
 import type { StatsLote } from "@/lib/types";
 
 interface LoteComparisonTableProps {
@@ -32,20 +33,22 @@ function fmtMoney(n: number | null) {
 // independientes ("una etapa = una columna" ya no tiene sentido), por eso
 // se muestran promedios agregados en vez de columnas por etapa fija.
 export function LoteComparisonTable({ lotes }: LoteComparisonTableProps) {
+  const t = useTranslations("components.loteComparisonTable");
+  const tEstado = useTranslations("estados.lote");
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Lote</TableHead>
-          <TableHead>Hongo</TableHead>
-          <TableHead>Estado</TableHead>
-          <TableHead>Días totales</TableHead>
-          <TableHead>Días incubación (prom.)</TableHead>
-          <TableHead>Días fructificación (prom.)</TableHead>
-          <TableHead>Peso cosechado</TableHead>
-          <TableHead>Eficiencia biológica</TableHead>
-          <TableHead>Costo total</TableHead>
-          <TableHead>Costo/kg</TableHead>
+          <TableHead>{t("lote")}</TableHead>
+          <TableHead>{t("hongo")}</TableHead>
+          <TableHead>{t("estado")}</TableHead>
+          <TableHead>{t("diasTotales")}</TableHead>
+          <TableHead>{t("diasIncubacionProm")}</TableHead>
+          <TableHead>{t("diasFructificacionProm")}</TableHead>
+          <TableHead>{t("pesoCosechado")}</TableHead>
+          <TableHead>{t("eficienciaBiologica")}</TableHead>
+          <TableHead>{t("costoTotal")}</TableHead>
+          <TableHead>{t("costoPorKg")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -57,7 +60,7 @@ export function LoteComparisonTable({ lotes }: LoteComparisonTableProps) {
               <TableCell>{l.fungusTypeId?.nombre}</TableCell>
               <TableCell>
                 <Badge variant={ESTADO_DERIVADO_BADGE_VARIANT[r.estadoDerivado]}>
-                  {ESTADO_DERIVADO_LABELS[r.estadoDerivado]}
+                  {tEstado(r.estadoDerivado)}
                 </Badge>
               </TableCell>
               <TableCell>{fmtDias(r.diasTotales)}</TableCell>

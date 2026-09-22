@@ -22,7 +22,7 @@ export async function PATCH(
       { new: true, runValidators: true }
     );
 
-    if (!updated) throw notFound("Placa no encontrada");
+    if (!updated) throw notFound("placa_no_encontrada:Placa no encontrada");
 
     return ok(updated);
   } catch (err) {

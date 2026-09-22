@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     const existing = await FungusType.findOne({ userId, nombre: parsed.nombre });
     if (existing) {
-      return fail("Ya existe un tipo de hongo con ese nombre", 409);
+      return fail("hongo_nombre_en_uso:Ya existe un tipo de hongo con ese nombre", 409);
     }
 
     if (parsed.iniciales) {
@@ -45,7 +45,9 @@ export async function POST(req: NextRequest) {
         activo: true,
       }).lean();
       if (existente) {
-        throw conflict(`Ya existe un hongo activo con las iniciales "${parsed.iniciales}" (${existente.nombre})`);
+        throw conflict(
+          `hongo_iniciales_en_uso:Ya existe un hongo activo con las iniciales "${parsed.iniciales}" (${existente.nombre})`
+        );
       }
     }
 

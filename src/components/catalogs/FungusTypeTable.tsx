@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Plus, Pencil } from "lucide-react";
 import {
   Table,
@@ -18,6 +19,7 @@ import type { FungusType } from "@/lib/types";
 import { FungusTypeFormDialog } from "./FungusTypeFormDialog";
 
 export function FungusTypeTable() {
+  const t = useTranslations("components.fungusTypeTable");
   const [items, setItems] = useState<FungusType[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogTarget, setDialogTarget] = useState<FungusType | "new" | null>(null);
@@ -28,11 +30,11 @@ export function FungusTypeTable() {
       const data = await apiFetch<FungusType[]>("/api/fungus-types");
       setItems(data);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo cargar el catálogo");
+      toast.error(err instanceof Error ? err.message : t("loadError"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void Promise.resolve().then(() => cargar());
@@ -44,10 +46,10 @@ export function FungusTypeTable() {
         method: "PATCH",
         body: JSON.stringify({ activo: !item.activo }),
       });
-      toast.success(item.activo ? "Desactivado" : "Activado");
+      toast.success(item.activo ? t("desactivadoMessage") : t("activadoMessage"));
       cargar();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo actualizar");
+      toast.error(err instanceof Error ? err.message : t("updateError"));
     }
   }
 
@@ -55,21 +57,21 @@ export function FungusTypeTable() {
     <div className="flex flex-col gap-3">
       <div className="flex justify-end">
         <Button size="sm" onClick={() => setDialogTarget("new")}>
-          <Plus /> Nuevo hongo
+          <Plus /> {t("nuevoHongo")}
         </Button>
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">Cargando…</p>
+        <p className="text-sm text-muted-foreground">{t("cargando")}</p>
       ) : items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No hay registros todavía.</p>
+        <p className="text-sm text-muted-foreground">{t("emptyState")}</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Días esperados (Grano / Incubación / Fruct. / Placas)</TableHead>
-              <TableHead>Estado</TableHead>
+              <TableHead>{t("nombre")}</TableHead>
+              <TableHead>{t("diasEsperados")}</TableHead>
+              <TableHead>{t("estado")}</TableHead>
               <TableHead className="w-32" />
             </TableRow>
           </TableHeader>
@@ -97,7 +99,7 @@ export function FungusTypeTable() {
                 </TableCell>
                 <TableCell>
                   <Badge variant={item.activo ? "default" : "secondary"}>
-                    {item.activo ? "Activo" : "Inactivo"}
+                    {item.activo ? t("activo") : t("inactivo")}
                   </Badge>
                 </TableCell>
                 <TableCell className="flex justify-end gap-1">
@@ -105,7 +107,7 @@ export function FungusTypeTable() {
                     <Pencil />
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => toggleActivo(item)}>
-                    {item.activo ? "Desactivar" : "Activar"}
+                    {item.activo ? t("desactivar") : t("activar")}
                   </Button>
                 </TableCell>
               </TableRow>

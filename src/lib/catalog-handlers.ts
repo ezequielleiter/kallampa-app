@@ -52,7 +52,7 @@ export function makeCatalogListCreateHandlers<T extends CatalogDoc>(
 
       const existing = await model.findOne({ userId, nombre: parsed.nombre });
       if (existing) {
-        return fail("Ya existe un registro con ese nombre", 409);
+        return fail("registro_nombre_en_uso:Ya existe un registro con ese nombre", 409);
       }
 
       const created = await model.create({ ...parsed, userId } as unknown as Partial<T>);
@@ -85,7 +85,7 @@ export function makeCatalogItemHandlers<T extends CatalogDoc>(
         { new: true, runValidators: true }
       );
 
-      if (!updated) throw notFound("Registro no encontrado");
+      if (!updated) throw notFound("registro_no_encontrado:Registro no encontrado");
 
       return ok(updated);
     } catch (err) {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Plus, MoreHorizontal } from "lucide-react";
 import {
   Table,
@@ -23,7 +24,6 @@ import { apiFetch } from "@/lib/api-client";
 import { formatFechaCorta } from "@/lib/format";
 import {
   FRASCO_LIQUIDO_ESTADO_BADGE_VARIANT,
-  FRASCO_LIQUIDO_ESTADO_LABELS,
   type FrascoLiquidoEstado,
 } from "@/lib/constants";
 import type { FrascoLiquido } from "@/lib/types";
@@ -42,6 +42,8 @@ export function FrascosLiquidosSection({
   onChanged,
   permiteAgregar,
 }: FrascosLiquidosSectionProps) {
+  const t = useTranslations("components.frascosLiquidosSection");
+  const tEstado = useTranslations("estados.frascoLiquido");
   const [nuevoOpen, setNuevoOpen] = useState(false);
 
   async function handleMarcarEstado(frasco: FrascoLiquido, estado: FrascoLiquidoEstado) {
@@ -50,10 +52,10 @@ export function FrascosLiquidosSection({
         method: "PATCH",
         body: JSON.stringify({ estado }),
       });
-      toast.success(`Frasco marcado como ${FRASCO_LIQUIDO_ESTADO_LABELS[estado].toLowerCase()}`);
+      toast.success(t("frascoMarked", { estado: tEstado(estado).toLowerCase() }));
       onChanged();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo actualizar el frasco");
+      toast.error(err instanceof Error ? err.message : t("errorMessage"));
     }
   }
 
@@ -67,26 +69,26 @@ export function FrascosLiquidosSection({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">Frascos de micelio líquido ({frascosLiquidos.length})</h2>
+        <h2 className="text-sm font-semibold">
+          {t("title", { count: frascosLiquidos.length })}
+        </h2>
         {permiteAgregar && (
           <Button size="sm" onClick={() => setNuevoOpen(true)}>
-            <Plus /> Nuevo frasco
+            <Plus /> {t("nuevoFrasco")}
           </Button>
         )}
       </div>
 
       {frascosLiquidos.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Esta clonación todavía no tiene frascos de micelio líquido.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("emptyState")}</p>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>N° de guía</TableHead>
-              <TableHead>Placa de origen</TableHead>
-              <TableHead>Fecha</TableHead>
-              <TableHead>Estado</TableHead>
+              <TableHead>{t("numeroGuia")}</TableHead>
+              <TableHead>{t("placaOrigen")}</TableHead>
+              <TableHead>{t("fecha")}</TableHead>
+              <TableHead>{t("estado")}</TableHead>
               <TableHead className="w-8" />
             </TableRow>
           </TableHeader>
@@ -98,7 +100,7 @@ export function FrascosLiquidosSection({
                 <TableCell>{formatFechaCorta(frasco.fechaCreacion)}</TableCell>
                 <TableCell>
                   <Badge variant={FRASCO_LIQUIDO_ESTADO_BADGE_VARIANT[frasco.estado]}>
-                    {FRASCO_LIQUIDO_ESTADO_LABELS[frasco.estado]}
+                    {tEstado(frasco.estado)}
                   </Badge>
                 </TableCell>
                 <TableCell>
@@ -113,16 +115,16 @@ export function FrascosLiquidosSection({
                       />
                       <DropdownMenuContent>
                         <DropdownMenuItem onClick={() => handleMarcarEstado(frasco, "vacio")}>
-                          Marcar vacío
+                          {t("marcarVacio")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleMarcarEstado(frasco, "finalizado")}>
-                          Marcar finalizado
+                          {t("marcarFinalizado")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           variant="destructive"
                           onClick={() => handleMarcarEstado(frasco, "contaminado")}
                         >
-                          Marcar contaminado
+                          {t("marcarContaminado")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

@@ -18,14 +18,17 @@ export async function GET(req: NextRequest) {
     const numeroGuia = searchParams.get("numeroGuia");
 
     if (!numeroGuia) {
-      return fail("El parametro numeroGuia es requerido", 400);
+      return fail("parametro_numero_guia_requerido:El parametro numeroGuia es requerido", 400);
     }
 
     const regex = new RegExp(`^${escapeRegExp(numeroGuia.trim())}$`, "i");
     const jar = await Jar.findOne({ userId, numeroGuia: regex }).lean();
 
     if (!jar) {
-      return fail(`No se encontro ningun frasco con numeroGuia '${numeroGuia}'`, 404);
+      return fail(
+        `frasco_no_encontrado_por_numero_guia:No se encontro ningun frasco con numeroGuia '${numeroGuia}'`,
+        404
+      );
     }
 
     const batch = await Batch.findOne({ _id: jar.batchId, userId })

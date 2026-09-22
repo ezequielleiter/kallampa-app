@@ -20,7 +20,7 @@ export async function GET(
     const { id } = await ctx.params;
 
     const jar = await Jar.findOne({ _id: id, userId }).lean();
-    if (!jar) throw notFound("Frasco no encontrado");
+    if (!jar) throw notFound("frasco_no_encontrado:Frasco no encontrado");
 
     const batch = await Batch.findOne({ _id: jar.batchId, userId })
       .select("numeroLote fungusTypeId")
@@ -50,7 +50,7 @@ export async function PATCH(
       { new: true, runValidators: true }
     );
 
-    if (!updated) throw notFound("Frasco no encontrado");
+    if (!updated) throw notFound("frasco_no_encontrado:Frasco no encontrado");
 
     return ok(updated);
   } catch (err) {

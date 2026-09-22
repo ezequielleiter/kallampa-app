@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     const batch = await Batch.findOne({ _id: parsed.batchId, userId }).lean();
     if (!batch) {
-      return fail("El lote indicado no existe", 400);
+      return fail("lote_no_existe:El lote indicado no existe", 400);
     }
 
     // Los frascos de grano de origen tienen que (a) pertenecer al batch
@@ -51,13 +51,13 @@ export async function POST(req: NextRequest) {
     const frascos = await Jar.find({ userId, _id: { $in: parsed.origenFrascoIds } }).lean();
 
     if (frascos.length !== parsed.origenFrascoIds.length) {
-      return fail("Alguno de los frascos de origen no existe", 400);
+      return fail("frascos_origen_no_existen:Alguno de los frascos de origen no existe", 400);
     }
 
     const frascoDeOtroLote = frascos.find((f) => String(f.batchId) !== String(parsed.batchId));
     if (frascoDeOtroLote) {
       return fail(
-        `El frasco '${frascoDeOtroLote.numeroGuia}' no pertenece al lote indicado`,
+        `frasco_no_pertenece_lote:El frasco '${frascoDeOtroLote.numeroGuia}' no pertenece al lote indicado`,
         400
       );
     }
@@ -67,14 +67,14 @@ export async function POST(req: NextRequest) {
     );
     if (frascoNoDisponible) {
       return fail(
-        `El frasco '${frascoNoDisponible.numeroGuia}' no esta disponible como origen (estado actual: '${frascoNoDisponible.estado}')`,
+        `frasco_no_disponible_origen:El frasco '${frascoNoDisponible.numeroGuia}' no esta disponible como origen (estado actual: '${frascoNoDisponible.estado}')`,
         409
       );
     }
 
     const fungusType = await FungusType.findOne({ _id: batch.fungusTypeId, userId }).lean();
     if (!fungusType) {
-      throw badRequest("El tipo de hongo del lote ya no existe");
+      throw badRequest("tipo_hongo_lote_no_existe:El tipo de hongo del lote ya no existe");
     }
 
     const diasEsperadosIncubacion =

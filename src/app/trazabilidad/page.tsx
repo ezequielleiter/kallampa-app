@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { apiFetch } from "@/lib/api-client";
-import { ESTADO_DERIVADO_BADGE_VARIANT, ESTADO_DERIVADO_LABELS } from "@/lib/constants";
+import { ESTADO_DERIVADO_BADGE_VARIANT } from "@/lib/constants";
 import type {
   TrazabilidadClonacion,
   TrazabilidadLote,
@@ -33,6 +34,8 @@ import type {
  */
 export default function TrazabilidadPage() {
   const router = useRouter();
+  const t = useTranslations("pages.trazabilidad");
+  const tEstado = useTranslations("estados.lote");
   const [data, setData] = useState<TrazabilidadResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -46,9 +49,7 @@ export default function TrazabilidadPage() {
         if (!cancelado) setData(res);
       } catch (err) {
         if (!cancelado) {
-          toast.error(
-            err instanceof Error ? err.message : "No se pudo cargar la trazabilidad"
-          );
+          toast.error(err instanceof Error ? err.message : t("loadError"));
         }
       } finally {
         if (!cancelado) setLoading(false);
@@ -58,7 +59,7 @@ export default function TrazabilidadPage() {
     return () => {
       cancelado = true;
     };
-  }, []);
+  }, [t]);
 
   const lotesFiltrados = useMemo(() => {
     if (!data) return [];
@@ -72,11 +73,11 @@ export default function TrazabilidadPage() {
   }, [data, query]);
 
   if (loading) {
-    return <p className="p-4 text-sm text-muted-foreground">Cargando…</p>;
+    return <p className="p-4 text-sm text-muted-foreground">{t("loading")}</p>;
   }
 
   if (!data) {
-    return <p className="p-4 text-sm text-muted-foreground">No se pudo cargar la trazabilidad.</p>;
+    return <p className="p-4 text-sm text-muted-foreground">{t("loadErrorFull")}</p>;
   }
 
   const { lotes, clonaciones, frascosLiquidos } = data;
@@ -174,20 +175,22 @@ export default function TrazabilidadPage() {
           onClick={() => router.push(`/lotes/${lote._id}`)}
         >
           <CardContent className="flex flex-wrap items-center gap-x-4 gap-y-1 py-1">
-            <span className="text-xs font-medium text-muted-foreground">Lote</span>
+            <span className="text-xs font-medium text-muted-foreground">{t("loteLabel")}</span>
             <span className="font-semibold">{lote.numeroLote}</span>
             <span className="text-sm text-muted-foreground">{lote.fungusTypeId?.nombre}</span>
             <Badge variant={ESTADO_DERIVADO_BADGE_VARIANT[lote.resumen.estadoDerivado]}>
-              {ESTADO_DERIVADO_LABELS[lote.resumen.estadoDerivado]}
+              {tEstado(lote.resumen.estadoDerivado)}
             </Badge>
             <span className="text-xs text-muted-foreground">
-              EB:{" "}
+              {t("ebLabel")}:{" "}
               {lote.resumen.eficienciaBiologica !== null
                 ? `${lote.resumen.eficienciaBiologica.toFixed(1)}%`
                 : "—"}
             </span>
             <span className="text-xs text-muted-foreground">
-              {lote.resumen.diasTotales !== null ? `${lote.resumen.diasTotales} días` : "—"}
+              {lote.resumen.diasTotales !== null
+                ? t("diasCount", { count: lote.resumen.diasTotales })
+                : "—"}
             </span>
           </CardContent>
         </Card>
@@ -220,17 +223,18 @@ export default function TrazabilidadPage() {
           onClick={() => router.push(`/clonacion/${clonacion._id}`)}
         >
           <CardContent className="flex flex-wrap items-center gap-x-4 gap-y-1 py-1">
-            <span className="text-xs font-medium text-muted-foreground">Clonación</span>
+            <span className="text-xs font-medium text-muted-foreground">
+              {t("clonacionLabel")}
+            </span>
             <span className="font-semibold">{clonacion.numeroLote}</span>
             <span className="text-sm text-muted-foreground">
               {clonacion.fungusTypeId?.nombre}
             </span>
             <span className="text-xs text-muted-foreground">
-              {totalPlacas} placa{totalPlacas === 1 ? "" : "s"}
+              {t("placasCount", { count: totalPlacas })}
             </span>
             <span className="text-xs text-muted-foreground">
-              {totalFrascosLiquidos} frasco{totalFrascosLiquidos === 1 ? "" : "s"} líquido
-              {totalFrascosLiquidos === 1 ? "" : "s"}
+              {t("frascosLiquidosCount", { count: totalFrascosLiquidos })}
             </span>
           </CardContent>
         </Card>
@@ -245,7 +249,7 @@ export default function TrazabilidadPage() {
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
-      <h1 className="text-lg font-semibold">Trazabilidad de un lote</h1>
+      <h1 className="text-lg font-semibold">{t("title")}</h1>
 
       {loteSeleccionado && (
         <button
@@ -253,23 +257,21 @@ export default function TrazabilidadPage() {
           onClick={() => setLoteId(null)}
           className="self-start text-xs text-muted-foreground underline hover:text-foreground"
         >
-          ← Elegir otro lote
+          {t("chooseAnotherLote")}
         </button>
       )}
 
       {!loteSeleccionado && (
         <div className="flex flex-col gap-2">
           <Input
-            placeholder="Buscar lote por número o tipo de hongo…"
+            placeholder={t("searchPlaceholder")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
           <div className="flex max-h-72 flex-col gap-1 overflow-y-auto rounded-md border p-1">
             {lotesFiltrados.length === 0 ? (
               <p className="p-3 text-center text-sm text-muted-foreground">
-                {lotes.length === 0
-                  ? "Todavía no hay lotes cargados."
-                  : "No hay lotes que coincidan con la búsqueda."}
+                {lotes.length === 0 ? t("noLotes") : t("noSearchResults")}
               </p>
             ) : (
               lotesFiltrados.map((l) => (
@@ -282,7 +284,7 @@ export default function TrazabilidadPage() {
                   <span className="font-medium">{l.numeroLote}</span>
                   <span className="text-muted-foreground">{l.fungusTypeId?.nombre}</span>
                   <span className="ml-auto text-xs text-muted-foreground">
-                    {ESTADO_DERIVADO_LABELS[l.resumen.estadoDerivado]}
+                    {tEstado(l.resumen.estadoDerivado)}
                   </span>
                 </button>
               ))
@@ -294,12 +296,10 @@ export default function TrazabilidadPage() {
       {loteSeleccionado && (
         <div className="flex flex-col gap-2">
           {ancestrosDe(loteSeleccionado).length === 0 ? (
-            <p className="text-xs text-muted-foreground">
-              Este lote no tiene un origen registrado — empezó eligiendo el tipo de hongo directamente.
-            </p>
+            <p className="text-xs text-muted-foreground">{t("noOrigin")}</p>
           ) : (
             <>
-              <p className="text-xs font-medium text-muted-foreground">De dónde vino</p>
+              <p className="text-xs font-medium text-muted-foreground">{t("whereFrom")}</p>
               <div className="flex flex-col items-start gap-1">
                 {ancestrosDe(loteSeleccionado).map((nodo, i) => (
                   <div key={i} className="flex flex-col items-start gap-1">
@@ -309,13 +309,15 @@ export default function TrazabilidadPage() {
                         onClick={() => router.push(`/lotes/${nodo.lote._id}`)}
                       >
                         <CardContent className="flex flex-wrap items-center gap-x-4 gap-y-1 py-1">
-                          <span className="text-xs font-medium text-muted-foreground">Lote</span>
+                          <span className="text-xs font-medium text-muted-foreground">
+                            {t("loteLabel")}
+                          </span>
                           <span className="font-semibold">{nodo.lote.numeroLote}</span>
                           <span className="text-sm text-muted-foreground">
                             {nodo.lote.fungusTypeId?.nombre}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            EB:{" "}
+                            {t("ebLabel")}:{" "}
                             {nodo.lote.resumen.eficienciaBiologica !== null
                               ? `${nodo.lote.resumen.eficienciaBiologica.toFixed(1)}%`
                               : "—"}
@@ -329,19 +331,19 @@ export default function TrazabilidadPage() {
                       >
                         <CardContent className="flex flex-wrap items-center gap-x-4 gap-y-1 py-1">
                           <span className="text-xs font-medium text-muted-foreground">
-                            Clonación
+                            {t("clonacionLabel")}
                           </span>
                           <span className="font-semibold">{nodo.clonacion.numeroLote}</span>
                           {nodo.clonacion.origenJarId &&
                             typeof nodo.clonacion.origenJarId === "object" && (
                               <span className="text-xs text-muted-foreground">
-                                desde frasco {nodo.clonacion.origenJarId.numeroGuia}
+                                {t("fromJar")} {nodo.clonacion.origenJarId.numeroGuia}
                               </span>
                             )}
                           {nodo.clonacion.origenRecipienteId &&
                             typeof nodo.clonacion.origenRecipienteId === "object" && (
                               <span className="text-xs text-muted-foreground">
-                                desde recipiente{" "}
+                                {t("fromRecipiente")}{" "}
                                 {nodo.clonacion.origenRecipienteId.numeroSeguimiento}
                               </span>
                             )}
@@ -356,7 +358,9 @@ export default function TrazabilidadPage() {
           )}
 
           <p className="text-xs font-medium text-muted-foreground">
-            {ancestrosDe(loteSeleccionado).length > 0 ? "Lote elegido y lo que salió de él" : "Este lote y lo que salió de él"}
+            {ancestrosDe(loteSeleccionado).length > 0
+              ? t("selectedLoteAndDescendants")
+              : t("loteAndDescendants")}
           </p>
           {renderLoteNodo(loteSeleccionado, new Set(), true)}
         </div>

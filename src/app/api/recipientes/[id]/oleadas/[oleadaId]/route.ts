@@ -17,10 +17,10 @@ export async function PATCH(
     const parsed = updateOleadaSchema.parse(body);
 
     const recipiente = await Recipiente.findOne({ _id: id, userId });
-    if (!recipiente) throw notFound("Recipiente no encontrado");
+    if (!recipiente) throw notFound("recipiente_no_encontrado:Recipiente no encontrado");
 
     const oleada = recipiente.oleadas.id(oleadaId);
-    if (!oleada) throw notFound("Oleada no encontrada");
+    if (!oleada) throw notFound("oleada_no_encontrada:Oleada no encontrada");
 
     Object.assign(oleada, parsed);
 
@@ -42,10 +42,10 @@ export async function DELETE(
     const { id, oleadaId } = await ctx.params;
 
     const recipiente = await Recipiente.findOne({ _id: id, userId });
-    if (!recipiente) throw notFound("Recipiente no encontrado");
+    if (!recipiente) throw notFound("recipiente_no_encontrado:Recipiente no encontrado");
 
     const oleada = recipiente.oleadas.id(oleadaId);
-    if (!oleada) throw notFound("Oleada no encontrada");
+    if (!oleada) throw notFound("oleada_no_encontrada:Oleada no encontrada");
 
     recipiente.oleadas.pull({ _id: oleadaId });
 

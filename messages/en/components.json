@@ -1,3 +1,265 @@
 {
-  "components": {}
+  "components": {
+    "batchHeader": {
+      "inoculadoEl": "Inoculated on",
+      "frascos": "{count, plural, one {# jar} other {# jars}}",
+      "desdeMicelioLiquido": "from liquid mycelium",
+      "alertas": "{count, plural, one {# alert} other {# alerts}}",
+      "pesoCosechado": "Harvested weight",
+      "eficienciaBiologica": "Biological efficiency",
+      "costoTotal": "Total cost",
+      "costoPorKgProducido": "Cost per kg produced"
+    },
+    "cosechaSection": {
+      "emptyState": "There are no containers in fruiting or finished yet.",
+      "addOleada": "Add flush",
+      "markFinalized": "Mark finished",
+      "emptyOleadas": "No flushes recorded yet.",
+      "numero": "No.",
+      "fecha": "Date",
+      "pesoKg": "Weight (kg)",
+      "notas": "Notes",
+      "edit": "Edit",
+      "delete": "Delete",
+      "total": "Total",
+      "confirmDeleteOleada": "Delete the flush from {fecha}?",
+      "oleadaDeleted": "Flush deleted",
+      "oleadaDeleteError": "Could not delete the flush"
+    },
+    "fructificacionSection": {
+      "emptyState": "There are no containers in incubation to move to fruiting yet.",
+      "numeroSeguimiento": "Tracking No.",
+      "estado": "Status",
+      "inicioFructificacion": "Fruiting start",
+      "dias": "Days",
+      "pasarAFructificacion": "Move to fruiting",
+      "clonar": "Clone"
+    },
+    "fructificarSheet": {
+      "title": "Move to fruiting",
+      "fechaInicio": "Start date",
+      "diasEsperados": "Expected days",
+      "cancelar": "Cancel",
+      "confirmar": "Confirm",
+      "successMessage": "Container moved to fruiting",
+      "errorMessage": "Could not move to fruiting"
+    },
+    "jarsGrid": {
+      "successMessage": "Jar updated",
+      "errorMessage": "Could not update the jar",
+      "emptyState": "This batch has no jars.",
+      "numeroGuia": "Tracking No. (spawn)",
+      "estado": "Status",
+      "clonar": "Clone"
+    },
+    "nuevoRecipienteSheet": {
+      "loadJarsError": "Could not load the jars",
+      "successMessage": "Container created",
+      "errorMessage": "Could not create the container",
+      "title": "New incubation",
+      "description": "Split colonized grain from one or more jars into a new container with substrate.",
+      "frascosOrigen": "Source jars",
+      "frascosOrigenHelp": "You can pick a jar even if it was already used in another container — grain from the same jar is sometimes split across more than one.",
+      "cargando": "Loading…",
+      "noHayFrascos": "There are no jars available (colonized or used) for this batch.",
+      "jarYaUsado": "already used in another container",
+      "tipoSustrato": "Substrate type",
+      "elegirSustrato": "Choose a substrate",
+      "pesoSustrato": "Substrate weight (kg)",
+      "precioPorKg": "Price per kg",
+      "fechaInicioIncubacion": "Incubation start date",
+      "diasEsperadosIncubacion": "Expected incubation days",
+      "cancelar": "Cancel",
+      "crear": "Create container"
+    },
+    "oleadaFormDialog": {
+      "editTitle": "Edit flush",
+      "newTitle": "Add flush",
+      "fecha": "Date",
+      "pesoCosechado": "Harvested weight (kg)",
+      "notas": "Notes (optional)",
+      "guardar": "Save",
+      "updatedMessage": "Flush updated",
+      "createdMessage": "Flush added",
+      "errorMessage": "Could not save the flush"
+    },
+    "recipienteEstadoDialog": {
+      "descripcionFinalizado": "The container is closed: it will no longer yield more harvest.",
+      "descripcionContaminado": "The container is marked as lost due to contamination. This action cannot be undone.",
+      "descripcionDescartado": "The container is marked as discarded. This action cannot be undone.",
+      "motivo": "Reason (optional)",
+      "motivoPlaceholder": "E.g.: contamination by Trichoderma",
+      "cancelar": "Cancel",
+      "confirmar": "Confirm",
+      "successMessage": "Container {estado}",
+      "errorMessage": "Could not update the container"
+    },
+    "recipientesTable": {
+      "title": "Incubation ({count})",
+      "nuevaIncubacion": "New incubation",
+      "emptyState": "This batch doesn't have any incubation containers yet.",
+      "numeroSeguimiento": "Tracking No.",
+      "origen": "Source",
+      "sustrato": "Substrate",
+      "pesoKg": "Weight (kg)",
+      "estado": "Status",
+      "inicioIncubacion": "Incubation start",
+      "dias": "Days",
+      "pasarAFructificacion": "Move to fruiting",
+      "marcarFinalizado": "Mark finished",
+      "marcarContaminado": "Mark contaminated",
+      "marcarDescartado": "Mark discarded"
+    },
+    "tareaFormDialog": {
+      "editTitle": "Edit task",
+      "newTitle": "New task",
+      "titulo": "Title",
+      "descripcion": "Description (optional)",
+      "fecha": "Date",
+      "estado": "Status",
+      "eliminar": "Delete",
+      "cancelar": "Cancel",
+      "guardar": "Save",
+      "updatedMessage": "Task updated",
+      "createdMessage": "Task created",
+      "saveErrorMessage": "Could not save the task",
+      "deletedMessage": "Task deleted",
+      "deleteErrorMessage": "Could not delete the task",
+      "deleteTitle": "Delete “{titulo}”",
+      "deleteDescription": "This action cannot be undone: the task will be permanently deleted."
+    },
+    "catalogFormDialog": {
+      "editTitle": "Edit record",
+      "newTitle": "New record",
+      "nombre": "Name",
+      "notas": "Notes (optional)",
+      "guardar": "Save",
+      "updatedMessage": "Record updated",
+      "createdMessage": "Record created",
+      "errorMessage": "Could not save"
+    },
+    "catalogTable": {
+      "newItem": "New {item}",
+      "cargando": "Loading…",
+      "emptyState": "No records yet.",
+      "nombre": "Name",
+      "notas": "Notes",
+      "estado": "Status",
+      "activo": "Active",
+      "inactivo": "Inactive",
+      "desactivar": "Deactivate",
+      "activar": "Activate",
+      "loadError": "Could not load the catalog",
+      "desactivadoMessage": "Deactivated",
+      "activadoMessage": "Activated",
+      "updateError": "Could not update"
+    },
+    "fungusTypeFormDialog": {
+      "editTitle": "Edit fungus type",
+      "newTitle": "New fungus type",
+      "nombre": "Name",
+      "nombreCientifico": "Scientific name (optional)",
+      "iniciales": "Initials (optional)",
+      "inicialesHelp": "Prepended to generated codes (e.g.: “OST” → OST-L-2026-003-F01).",
+      "notas": "Notes (optional)",
+      "diasEsperadosTitle": "Default expected days for each stage",
+      "inoculacionGrano": "Grain inoculation",
+      "incubacion": "Incubation",
+      "fructificacion": "Fruiting",
+      "colonizacionPlacas": "Plate colonization (optional)",
+      "guardar": "Save",
+      "updatedMessage": "Fungus type updated",
+      "createdMessage": "Fungus type created",
+      "errorMessage": "Could not save"
+    },
+    "fungusTypeTable": {
+      "nuevoHongo": "New fungus",
+      "cargando": "Loading…",
+      "emptyState": "No records yet.",
+      "nombre": "Name",
+      "diasEsperados": "Expected days (Grain / Incubation / Fruiting / Plates)",
+      "estado": "Status",
+      "activo": "Active",
+      "inactivo": "Inactive",
+      "desactivar": "Deactivate",
+      "activar": "Activate",
+      "loadError": "Could not load the catalog",
+      "desactivadoMessage": "Deactivated",
+      "activadoMessage": "Activated",
+      "updateError": "Could not update"
+    },
+    "frascosLiquidosSection": {
+      "title": "Liquid mycelium jars ({count})",
+      "nuevoFrasco": "New jar",
+      "emptyState": "This cloning doesn't have any liquid mycelium jars yet.",
+      "numeroGuia": "Tracking No.",
+      "placaOrigen": "Source plate",
+      "fecha": "Date",
+      "estado": "Status",
+      "marcarVacio": "Mark empty",
+      "marcarFinalizado": "Mark finished",
+      "marcarContaminado": "Mark contaminated",
+      "frascoMarked": "Jar marked as {estado}",
+      "errorMessage": "Could not update the jar"
+    },
+    "nuevoFrascoLiquidoSheet": {
+      "loadPlacasError": "Could not load the plates",
+      "successMessage": "Liquid mycelium jar created",
+      "errorMessage": "Could not create the liquid jar",
+      "title": "New liquid mycelium jar",
+      "description": "Choose the colonized source plate. The same plate can be used to create several jars: it isn't consumed.",
+      "placaOrigen": "Source plate",
+      "cargando": "Loading…",
+      "noHayPlacas": "There are no colonized plates available.",
+      "fechaCreacion": "Creation date",
+      "cancelar": "Cancel",
+      "crear": "Create jar"
+    },
+    "placasGrid": {
+      "successMessage": "Plate updated",
+      "errorMessage": "Could not update the plate",
+      "emptyState": "This cloning has no plates.",
+      "numeroPlaca": "Plate No.",
+      "estado": "Status"
+    },
+    "agregadoComparisonChart": {
+      "emptyMessage": "Not enough data (only calculated over finished batches)."
+    },
+    "estadoDistributionChart": {
+      "countUnit": "{count, plural, one {# container} other {# containers}}",
+      "cantidad": "Count",
+      "recipientes": "Containers"
+    },
+    "kpiCards": {
+      "lotesActivos": "Active batches",
+      "lotesFinalizados": "Finished batches",
+      "lotesDescartados": "Discarded batches",
+      "lotesDemorados": "Delayed batches",
+      "eficienciaBiologicaPromedio": "Average biological efficiency",
+      "costoPorKgPromedio": "Average cost per kg",
+      "pesoTotalProducido": "Total weight produced"
+    },
+    "loteComparisonTable": {
+      "lote": "Batch",
+      "hongo": "Fungus",
+      "estado": "Status",
+      "diasTotales": "Total days",
+      "diasIncubacionProm": "Incubation days (avg.)",
+      "diasFructificacionProm": "Fruiting days (avg.)",
+      "pesoCosechado": "Harvested weight",
+      "eficienciaBiologica": "Biological efficiency",
+      "costoTotal": "Total cost",
+      "costoPorKg": "Cost/kg"
+    },
+    "lotesDemoradosPanel": {
+      "emptyState": "No batch is delayed. 👍",
+      "diasDemora": "+{count, plural, one {# day} other {# days}}"
+    },
+    "loteSelector": {
+      "removeFromComparison": "Remove {numeroLote} from comparison",
+      "limpiarSeleccion": "Clear selection",
+      "searchPlaceholder": "Search batch by number or fungus type…",
+      "emptyState": "No batches match the search."
+    }
+  }
 }

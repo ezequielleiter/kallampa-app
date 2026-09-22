@@ -6,6 +6,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +21,6 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiFetch } from "@/lib/api-client";
-import { ORIGEN_PROCESO_LABELS } from "@/lib/constants";
 import type {
   BatchListItem,
   Clonacion,
@@ -68,8 +68,9 @@ function jarGranoLabel(jar: Jar, batchesById: Record<string, BatchListItem>): st
 }
 
 export default function NuevaClonacionPage() {
+  const t = useTranslations("pages.clonacionNueva");
   return (
-    <Suspense fallback={<p className="p-4 text-sm text-muted-foreground">Cargando…</p>}>
+    <Suspense fallback={<p className="p-4 text-sm text-muted-foreground">{t("loading")}</p>}>
       <NuevaClonacionForm />
     </Suspense>
   );
@@ -77,6 +78,8 @@ export default function NuevaClonacionPage() {
 
 function NuevaClonacionForm() {
   const router = useRouter();
+  const t = useTranslations("pages.clonacionNueva");
+  const tOrigen = useTranslations("estados.origenProceso");
   const searchParams = useSearchParams();
   const origenJarId = searchParams.get("origenJarId");
   const origenRecipienteId = searchParams.get("origenRecipienteId");
@@ -138,11 +141,7 @@ function NuevaClonacionForm() {
         }
       } catch (err) {
         if (cancelado) return;
-        toast.error(
-          err instanceof Error
-            ? err.message
-            : "No se pudo cargar el origen indicado, elegí el hongo manualmente"
-        );
+        toast.error(err instanceof Error ? err.message : t("loadOrigenError"));
         setOrigen({ tipo: "ninguno" });
       } finally {
         if (!cancelado) setLoadingOrigen(false);
@@ -176,9 +175,7 @@ function NuevaClonacionForm() {
         })
         .catch((err) => {
           if (cancelado) return;
-          toast.error(
-            err instanceof Error ? err.message : "No se pudieron cargar los frascos de grano"
-          );
+          toast.error(err instanceof Error ? err.message : t("loadJarsError"));
         })
         .finally(() => {
           if (!cancelado) setLoadingJarsGrano(false);
@@ -187,7 +184,7 @@ function NuevaClonacionForm() {
     return () => {
       cancelado = true;
     };
-  }, [origenProceso]);
+  }, [origenProceso, t]);
 
   function handleOrigenProcesoChange(next: OrigenProceso) {
     setOrigenProceso(next);
@@ -217,11 +214,11 @@ function NuevaClonacionForm() {
   async function onSubmit(data: NuevaClonacionInput) {
     if (origenProceso === "placa") {
       if (origen.tipo === "ninguno" && !data.fungusTypeId) {
-        toast.error("Elegí un tipo de hongo");
+        toast.error(t("chooseHongo"));
         return;
       }
       if (!data.cantidadPlacas) {
-        toast.error("Ingresá la cantidad de placas");
+        toast.error(t("enterCantidadPlacas"));
         return;
       }
 
@@ -245,11 +242,11 @@ function NuevaClonacionForm() {
 
     if (origenProceso === "comprado") {
       if (!data.fungusTypeId) {
-        toast.error("Elegí un tipo de hongo");
+        toast.error(t("chooseHongo"));
         return;
       }
       if (!data.cantidadFrascos) {
-        toast.error("Ingresá la cantidad de frascos");
+        toast.error(t("enterCantidadFrascos"));
         return;
       }
 
@@ -264,11 +261,11 @@ function NuevaClonacionForm() {
 
     // frascoGrano
     if (!jarSeleccionado) {
-      toast.error("Elegí un frasco de grano de origen");
+      toast.error(t("chooseJarOrigen"));
       return;
     }
     if (!data.cantidadFrascos) {
-      toast.error("Ingresá la cantidad de frascos");
+      toast.error(t("enterCantidadFrascos"));
       return;
     }
 
@@ -286,26 +283,26 @@ function NuevaClonacionForm() {
         method: "POST",
         body: JSON.stringify(body),
       });
-      toast.success(`Clonación ${clonacion.numeroLote} creada`);
+      toast.success(t("createdSuccess", { numeroLote: clonacion.numeroLote }));
       router.push(`/clonacion/${clonacion._id}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo crear la clonación");
+      toast.error(err instanceof Error ? err.message : t("createError"));
     }
   }
 
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-4 p-4">
-      <h1 className="text-lg font-semibold">Nueva clonación</h1>
+      <h1 className="text-lg font-semibold">{t("title")}</h1>
       <Card>
         <CardHeader>
-          <CardTitle>Datos de colonización de placas</CardTitle>
+          <CardTitle>{t("cardTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-1.5">
-              <Label>Origen del proceso</Label>
+              <Label>{t("origenProceso")}</Label>
               <div className="flex gap-2">
-                {(Object.keys(ORIGEN_PROCESO_LABELS) as OrigenProceso[]).map((op) => (
+                {(["placa", "comprado", "frascoGrano"] as OrigenProceso[]).map((op) => (
                   <Button
                     key={op}
                     type="button"
@@ -313,7 +310,7 @@ function NuevaClonacionForm() {
                     variant={origenProceso === op ? "default" : "outline"}
                     onClick={() => handleOrigenProcesoChange(op)}
                   >
-                    {ORIGEN_PROCESO_LABELS[op]}
+                    {tOrigen(op)}
                   </Button>
                 ))}
               </div>
@@ -321,15 +318,17 @@ function NuevaClonacionForm() {
 
             {origenProceso === "placa" && (
               <div className="flex flex-col gap-1.5">
-                <Label>Tipo de hongo</Label>
+                <Label>{t("tipoHongo")}</Label>
                 {loadingOrigen ? (
-                  <p className="text-sm text-muted-foreground">Cargando origen…</p>
+                  <p className="text-sm text-muted-foreground">{t("loadingOrigen")}</p>
                 ) : origen.tipo === "jar" ? (
                   <>
                     <p className="text-sm font-medium">{origen.jar.batch.fungusTypeId?.nombre}</p>
                     <p className="text-xs text-muted-foreground">
-                      Se hereda del lote {origen.jar.batch.numeroLote} (
-                      {origen.jar.numeroGuia})
+                      {t("heredaDeLote", {
+                        numeroLote: origen.jar.batch.numeroLote,
+                        codigo: origen.jar.numeroGuia,
+                      })}
                     </p>
                   </>
                 ) : origen.tipo === "recipiente" ? (
@@ -338,8 +337,10 @@ function NuevaClonacionForm() {
                       {origen.recipiente.batch.fungusTypeId?.nombre}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Se hereda del lote {origen.recipiente.batch.numeroLote} (
-                      {origen.recipiente.numeroSeguimiento})
+                      {t("heredaDeLote", {
+                        numeroLote: origen.recipiente.batch.numeroLote,
+                        codigo: origen.recipiente.numeroSeguimiento,
+                      })}
                     </p>
                   </>
                 ) : (
@@ -353,7 +354,7 @@ function NuevaClonacionForm() {
                         onValueChange={(v) => handleFungusChange(v, field.onChange)}
                       >
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Elegí un hongo" />
+                          <SelectValue placeholder={t("elegirHongo")} />
                         </SelectTrigger>
                         <SelectContent>
                           {fungusTypes.map((f) => (
@@ -374,7 +375,7 @@ function NuevaClonacionForm() {
 
             {origenProceso === "comprado" && (
               <div className="flex flex-col gap-1.5">
-                <Label>Tipo de hongo</Label>
+                <Label>{t("tipoHongo")}</Label>
                 <Controller
                   control={control}
                   name="fungusTypeId"
@@ -385,7 +386,7 @@ function NuevaClonacionForm() {
                       onValueChange={(v) => handleFungusChange(v, field.onChange)}
                     >
                       <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Elegí un hongo" />
+                        <SelectValue placeholder={t("elegirHongo")} />
                       </SelectTrigger>
                       <SelectContent>
                         {fungusTypes.map((f) => (
@@ -405,13 +406,15 @@ function NuevaClonacionForm() {
 
             {origenProceso === "frascoGrano" && (
               <div className="flex flex-col gap-1.5">
-                <Label>Frasco de grano de origen</Label>
+                <Label>{t("frascoGranoOrigen")}</Label>
                 <div className="flex max-h-56 flex-col gap-1 overflow-y-auto rounded-md border p-1">
                   {loadingJarsGrano ? (
-                    <p className="p-3 text-center text-sm text-muted-foreground">Cargando…</p>
+                    <p className="p-3 text-center text-sm text-muted-foreground">
+                      {t("loading")}
+                    </p>
                   ) : jarsGrano.length === 0 ? (
                     <p className="p-3 text-center text-sm text-muted-foreground">
-                      No hay frascos de grano colonizados/usados disponibles.
+                      {t("noJarsGrano")}
                     </p>
                   ) : (
                     jarsGrano.map((jar) => {
@@ -441,7 +444,7 @@ function NuevaClonacionForm() {
 
             {origenProceso === "placa" && (
               <div className="flex flex-col gap-1.5">
-                <Label>Cantidad de placas</Label>
+                <Label>{t("cantidadPlacas")}</Label>
                 <Input
                   type="number"
                   {...register("cantidadPlacas", {
@@ -456,7 +459,7 @@ function NuevaClonacionForm() {
 
             {origenProceso !== "placa" && (
               <div className="flex flex-col gap-1.5">
-                <Label>Cantidad de frascos</Label>
+                <Label>{t("cantidadFrascos")}</Label>
                 <Input
                   type="number"
                   {...register("cantidadFrascos", {
@@ -470,7 +473,7 @@ function NuevaClonacionForm() {
             )}
 
             <div className="flex flex-col gap-1.5">
-              <Label>Fecha de inicio</Label>
+              <Label>{t("fechaInicio")}</Label>
               <Input
                 type="date"
                 defaultValue={todayInputValue()}
@@ -483,16 +486,14 @@ function NuevaClonacionForm() {
 
             {origenProceso === "placa" && (
               <div className="flex flex-col gap-1.5">
-                <Label>Días esperados de colonización</Label>
+                <Label>{t("diasEsperados")}</Label>
                 <Input
                   type="number"
                   {...register("diasEsperados", {
                     setValueAs: (v) => (v === "" ? undefined : Number(v)),
                   })}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Si el hongo elegido no tiene un valor por defecto configurado, completalo acá.
-                </p>
+                <p className="text-xs text-muted-foreground">{t("diasEsperadosHint")}</p>
                 {errors.diasEsperados && (
                   <p className="text-xs text-destructive">{errors.diasEsperados.message}</p>
                 )}
@@ -501,9 +502,9 @@ function NuevaClonacionForm() {
 
             {origenProceso === "placa" && (
               <div className="flex flex-col gap-1.5">
-                <Label>Receta de agar (opcional)</Label>
+                <Label>{t("recetaAgar")}</Label>
                 <Textarea
-                  placeholder="Proporciones, marca, aditivos, etc."
+                  placeholder={t("recetaAgarPlaceholder")}
                   rows={3}
                   {...register("recetaAgar")}
                 />
@@ -515,10 +516,10 @@ function NuevaClonacionForm() {
 
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => router.push("/clonacion")}>
-                Cancelar
+                {t("cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                Crear clonación
+                {t("submit")}
               </Button>
             </div>
           </form>

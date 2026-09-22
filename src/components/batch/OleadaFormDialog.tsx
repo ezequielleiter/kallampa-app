@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +43,7 @@ export function OleadaFormDialog({
   oleada,
   onSuccess,
 }: OleadaFormDialogProps) {
+  const t = useTranslations("components.oleadaFormDialog");
   const isEdit = !!oleada;
   const fechaDefault = oleada?.fecha
     ? oleada.fecha.slice(0, 10)
@@ -66,18 +68,18 @@ export function OleadaFormDialog({
           `/api/recipientes/${recipienteId}/oleadas/${oleada._id}`,
           { method: "PATCH", body: JSON.stringify(data) }
         );
-        toast.success("Oleada actualizada");
+        toast.success(t("updatedMessage"));
       } else {
         await apiFetch<Recipiente>(`/api/recipientes/${recipienteId}/oleadas`, {
           method: "POST",
           body: JSON.stringify(data),
         });
-        toast.success("Oleada agregada");
+        toast.success(t("createdMessage"));
       }
       onOpenChange(false);
       onSuccess();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo guardar la oleada");
+      toast.error(err instanceof Error ? err.message : t("errorMessage"));
     }
   }
 
@@ -85,16 +87,16 @@ export function OleadaFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Editar oleada" : "Agregar oleada"}</DialogTitle>
+          <DialogTitle>{isEdit ? t("editTitle") : t("newTitle")}</DialogTitle>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
           <div className="flex flex-col gap-1.5">
-            <Label>Fecha</Label>
+            <Label>{t("fecha")}</Label>
             <Input type="date" defaultValue={fechaDefault} {...register("fecha")} />
             {errors.fecha && <p className="text-xs text-destructive">{errors.fecha.message}</p>}
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Peso cosechado (kg)</Label>
+            <Label>{t("pesoCosechado")}</Label>
             <Input
               type="number"
               step="any"
@@ -103,12 +105,12 @@ export function OleadaFormDialog({
             {errors.pesoKg && <p className="text-xs text-destructive">{errors.pesoKg.message}</p>}
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Notas (opcional)</Label>
+            <Label>{t("notas")}</Label>
             <Textarea {...register("notas")} />
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting}>
-              Guardar
+              {t("guardar")}
             </Button>
           </DialogFooter>
         </form>

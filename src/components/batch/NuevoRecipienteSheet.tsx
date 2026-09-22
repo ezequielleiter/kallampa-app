@@ -5,6 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Check } from "lucide-react";
 import {
   Sheet,
@@ -63,6 +64,8 @@ export function NuevoRecipienteSheet({
   fungusType,
   onSuccess,
 }: NuevoRecipienteSheetProps) {
+  const t = useTranslations("components.nuevoRecipienteSheet");
+  const tEstadoJar = useTranslations("estados.jar");
   const [jarsDisponibles, setJarsDisponibles] = useState<Jar[]>([]);
   const [loadingJars, setLoadingJars] = useState(false);
   const [substrateTypes, setSubstrateTypes] = useState<SubstrateType[]>([]);
@@ -94,12 +97,12 @@ export function NuevoRecipienteSheet({
       apiFetch<Jar[]>(`/api/jars?batchId=${batchId}&estado=colonizado,usado`)
         .then(setJarsDisponibles)
         .catch((err) =>
-          toast.error(err instanceof Error ? err.message : "No se pudieron cargar los frascos")
+          toast.error(err instanceof Error ? err.message : t("loadJarsError"))
         )
         .finally(() => setLoadingJars(false));
       apiFetch<SubstrateType[]>("/api/substrate-types?activo=true").then(setSubstrateTypes);
     });
-  }, [open, batchId, fungusType, reset]);
+  }, [open, batchId, fungusType, reset, t]);
 
   async function onSubmit(data: NuevoRecipienteInput) {
     try {
@@ -107,11 +110,11 @@ export function NuevoRecipienteSheet({
         method: "POST",
         body: JSON.stringify(data),
       });
-      toast.success("Recipiente creado");
+      toast.success(t("successMessage"));
       onOpenChange(false);
       onSuccess();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo crear el recipiente");
+      toast.error(err instanceof Error ? err.message : t("errorMessage"));
     }
   }
 
@@ -119,31 +122,28 @@ export function NuevoRecipienteSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>Nueva incubación</SheetTitle>
-          <SheetDescription>
-            Repartí grano colonizado de uno o más frascos en un nuevo recipiente con sustrato.
-          </SheetDescription>
+          <SheetTitle>{t("title")}</SheetTitle>
+          <SheetDescription>{t("description")}</SheetDescription>
         </SheetHeader>
         <form
           className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-2"
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="flex flex-col gap-1.5">
-            <Label>Frascos de origen</Label>
-            <p className="text-xs text-muted-foreground">
-              Podés elegir un frasco aunque ya se haya usado en otro recipiente — el grano de un
-              mismo frasco a veces se reparte en más de uno.
-            </p>
+            <Label>{t("frascosOrigen")}</Label>
+            <p className="text-xs text-muted-foreground">{t("frascosOrigenHelp")}</p>
             <Controller
               control={control}
               name="origenFrascoIds"
               render={({ field }) => (
                 <div className="flex max-h-48 flex-col gap-1 overflow-y-auto rounded-md border p-1">
                   {loadingJars ? (
-                    <p className="p-3 text-center text-sm text-muted-foreground">Cargando…</p>
+                    <p className="p-3 text-center text-sm text-muted-foreground">
+                      {t("cargando")}
+                    </p>
                   ) : jarsDisponibles.length === 0 ? (
                     <p className="p-3 text-center text-sm text-muted-foreground">
-                      No hay frascos disponibles (colonizados o usados) para este lote.
+                      {t("noHayFrascos")}
                     </p>
                   ) : (
                     jarsDisponibles.map((jar) => {
@@ -168,7 +168,7 @@ export function NuevoRecipienteSheet({
                           </span>
                           <span>{jar.numeroGuia}</span>
                           <span className="ml-auto text-xs text-muted-foreground">
-                            {jar.estado === "usado" ? "ya usado en otro recipiente" : "colonizado"}
+                            {jar.estado === "usado" ? t("jarYaUsado") : tEstadoJar("colonizado")}
                           </span>
                         </button>
                       );
@@ -183,7 +183,7 @@ export function NuevoRecipienteSheet({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Tipo de sustrato</Label>
+            <Label>{t("tipoSustrato")}</Label>
             <Controller
               control={control}
               name="tipoSustratoId"
@@ -194,7 +194,7 @@ export function NuevoRecipienteSheet({
                   onValueChange={field.onChange}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Elegí un sustrato" />
+                    <SelectValue placeholder={t("elegirSustrato")} />
                   </SelectTrigger>
                   <SelectContent>
                     {substrateTypes.map((s) => (
@@ -212,7 +212,7 @@ export function NuevoRecipienteSheet({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Peso de sustrato (kg)</Label>
+            <Label>{t("pesoSustrato")}</Label>
             <Input
               type="number"
               step="any"
@@ -226,7 +226,7 @@ export function NuevoRecipienteSheet({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Precio por kg</Label>
+            <Label>{t("precioPorKg")}</Label>
             <Input
               type="number"
               step="any"
@@ -240,7 +240,7 @@ export function NuevoRecipienteSheet({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Fecha de inicio de incubación</Label>
+            <Label>{t("fechaInicioIncubacion")}</Label>
             <Input
               type="date"
               defaultValue={todayInputValue()}
@@ -252,7 +252,7 @@ export function NuevoRecipienteSheet({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Días esperados de incubación</Label>
+            <Label>{t("diasEsperadosIncubacion")}</Label>
             <Input
               type="number"
               {...register("diasEsperadosIncubacion", {
@@ -268,10 +268,10 @@ export function NuevoRecipienteSheet({
 
           <SheetFooter className="px-0">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
+              {t("cancelar")}
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              Crear recipiente
+              {t("crear")}
             </Button>
           </SheetFooter>
         </form>
