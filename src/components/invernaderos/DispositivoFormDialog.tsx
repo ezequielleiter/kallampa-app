@@ -95,6 +95,7 @@ export function DispositivoFormDialog({
       tempMax: inicial(dispositivo?.tempMax) as unknown as number,
       humMin: inicial(dispositivo?.humMin) as unknown as number,
       humMax: inicial(dispositivo?.humMax) as unknown as number,
+      calefactorKw: inicial(dispositivo?.calefactorKw) as unknown as number,
     },
   });
 
@@ -280,6 +281,23 @@ export function DispositivoFormDialog({
               </div>
             </div>
           ))}
+
+          <Field
+            label={t("calefactorKw")}
+            htmlFor="disp-calefactorKw"
+            optional
+            hint={t("calefactorKwHint")}
+            error={errorDe(errors.calefactorKw?.message)}
+          >
+            <Input
+              id="disp-calefactorKw"
+              inputMode="decimal"
+              placeholder="0,00"
+              suffix="kW"
+              aria-invalid={!!errors.calefactorKw}
+              {...register("calefactorKw", { setValueAs: parseOpcional })}
+            />
+          </Field>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

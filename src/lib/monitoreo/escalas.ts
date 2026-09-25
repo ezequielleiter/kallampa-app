@@ -30,6 +30,7 @@ const PASO_X_SEG: Record<Rango, number> = {
   "2h": 15 * 60,
   "6h": 3600,
   "24h": 4 * 3600,
+  "48h": 6 * 3600,
   "7d": 24 * 3600,
 };
 
@@ -58,7 +59,8 @@ export function xTicks(
 export function formatTick(t: number, range: Rango): string {
   const d = new Date(t);
   const pad = (n: number) => String(n).padStart(2, "0");
-  return range === "7d"
-    ? `${pad(d.getDate())}/${pad(d.getMonth() + 1)}`
-    : `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  if (range === "7d") return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}`;
+  const hora = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  // En 48h el eje cruza dos dias: a la medianoche se muestra la fecha.
+  return range === "48h" && hora === "00:00" ? `${pad(d.getDate())}/${pad(d.getMonth() + 1)}` : hora;
 }

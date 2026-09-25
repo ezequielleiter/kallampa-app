@@ -68,6 +68,8 @@ export interface Dispositivo {
   tempMax?: number;
   humMin?: number;
   humMax?: number;
+  /** Potencia del calefactor en kW (para estimar el consumo). */
+  calefactorKw?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -81,6 +83,8 @@ export interface Invernadero {
   largoM: number;
   profundidadM: number;
   notas?: string;
+  /** Precio del kWh del proveedor de electricidad. */
+  precioKwh?: number;
   activo: boolean;
   dispositivos: Dispositivo[];
   createdAt?: string;

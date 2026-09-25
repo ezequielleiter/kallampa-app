@@ -14,6 +14,8 @@ export interface Dispositivo {
   tempMax?: number;
   humMin?: number;
   humMax?: number;
+  // Potencia del calefactor que controla, en kW (estimado de consumo).
+  calefactorKw?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,6 +30,8 @@ export interface InvernaderoDoc extends Document {
   largoM: number;
   profundidadM: number;
   notas?: string;
+  // Precio del kWh del proveedor de electricidad.
+  precioKwh?: number;
   activo: boolean;
   dispositivos: Types.DocumentArray<Dispositivo>;
   createdAt: Date;
@@ -49,6 +53,7 @@ const dispositivoSchema = new Schema<Dispositivo>(
     tempMax: { type: Number },
     humMin: { type: Number },
     humMax: { type: Number },
+    calefactorKw: { type: Number },
   },
   { timestamps: true }
 );
@@ -61,6 +66,7 @@ const invernaderoSchema = new Schema<InvernaderoDoc>(
     largoM: medida,
     profundidadM: medida,
     notas: { type: String },
+    precioKwh: { type: Number },
     activo: { type: Boolean, default: true },
     dispositivos: { type: [dispositivoSchema], default: [] },
   },

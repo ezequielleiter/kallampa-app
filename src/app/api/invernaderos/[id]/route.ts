@@ -52,9 +52,16 @@ export async function PATCH(
       }
     }
 
+    // `null` borra el campo opcional (precioKwh).
+    const $set: Record<string, unknown> = {};
+    const $unset: Record<string, 1> = {};
+    for (const [k, v] of Object.entries(parsed)) {
+      if (v === null) $unset[k] = 1;
+      else if (v !== undefined) $set[k] = v;
+    }
     const updated = await Invernadero.findOneAndUpdate(
       { _id: id, userId },
-      { $set: parsed },
+      { $set, ...(Object.keys($unset).length ? { $unset } : {}) },
       { returnDocument: "after", runValidators: true }
     );
     if (!updated) throw notFound(NO_ENCONTRADO);

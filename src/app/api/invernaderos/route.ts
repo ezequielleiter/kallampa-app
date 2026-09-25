@@ -38,7 +38,9 @@ export async function POST(req: NextRequest) {
     const existing = await Invernadero.findOne({ userId, nombre: parsed.nombre });
     if (existing) throw conflict(NOMBRE_EN_USO);
 
-    const created = await Invernadero.create({ ...parsed, userId });
+    // Los opcionales en null simplemente no se guardan.
+    const datos = Object.fromEntries(Object.entries(parsed).filter(([, v]) => v != null));
+    const created = await Invernadero.create({ ...datos, userId });
     return ok(created, 201);
   } catch (err) {
     return handleApiError(err);

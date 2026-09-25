@@ -150,6 +150,15 @@ export default function InvernaderoDetallePage() {
             },
             { label: tLista("colSuperficie"), value: `${m(superficieM2(invernadero))} m²` },
             { label: tLista("colVolumen"), value: `${m(volumenM3(invernadero))} m³` },
+            {
+              label: t("precioKwh"),
+              value:
+                invernadero.precioKwh != null ? (
+                  fmt.money(invernadero.precioKwh, invernadero.precioKwh < 100 ? 2 : 0)
+                ) : (
+                  <span className="text-base text-text-subtle">{t("sinPrecio")}</span>
+                ),
+            },
             { label: t("dispositivos"), value: String(dispositivos.length) },
           ]}
         />
@@ -168,12 +177,13 @@ export default function InvernaderoDetallePage() {
         {dispositivos.length === 0 ? (
           <EmptyState>{t("emptyDispositivos")}</EmptyState>
         ) : (
-          <Table minWidth={560}>
+          <Table minWidth={640}>
             <TableHeader>
               <TableRow>
                 <TableHead>{t("colNombre")}</TableHead>
                 <TableHead>{t("colDominio")}</TableHead>
                 <TableHead>{t("colInflux")}</TableHead>
+                <TableHead className="text-right">{t("colCalefactor")}</TableHead>
                 <TableHead className="w-[68px]">
                   <span className="sr-only">{tCommon("actions")}</span>
                 </TableHead>
@@ -197,6 +207,9 @@ export default function InvernaderoDetallePage() {
                   </TableCell>
                   <TableCell className="tabular-nums">
                     {d.influxId ?? <span className="text-text-subtle">{t("sinVincular")}</span>}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {d.calefactorKw != null ? `${fmt.number(d.calefactorKw, d.calefactorKw % 1 ? 2 : 0)} kW` : "—"}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="inline-flex gap-0.5">

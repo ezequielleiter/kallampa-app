@@ -66,6 +66,7 @@ export function InvernaderoFormDialog({
       altoM: medidaInicial(invernadero?.altoM) as unknown as number,
       largoM: medidaInicial(invernadero?.largoM) as unknown as number,
       profundidadM: medidaInicial(invernadero?.profundidadM) as unknown as number,
+      precioKwh: medidaInicial(invernadero?.precioKwh) as unknown as number,
     },
   });
 
@@ -149,6 +150,26 @@ export function InvernaderoFormDialog({
                 : t("calculoHint")}
             </p>
           </div>
+
+          <Field
+            label={t("precioKwh")}
+            htmlFor="inv-precioKwh"
+            optional
+            hint={t("precioKwhHint")}
+            error={errors.precioKwh && t("errorMedida")}
+          >
+            <Input
+              id="inv-precioKwh"
+              inputMode="decimal"
+              placeholder="0,00"
+              prefix="$"
+              suffix="/kWh"
+              className="pr-12"
+              aria-invalid={!!errors.precioKwh}
+              // Vacio → null: en la edicion borra el precio cargado.
+              {...register("precioKwh", { setValueAs: (v) => parseMedida(v) ?? null })}
+            />
+          </Field>
 
           <Field label={t("notas")} htmlFor="inv-notas" optional>
             <Textarea id="inv-notas" placeholder={t("notasPlaceholder")} {...register("notas")} />

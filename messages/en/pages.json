@@ -330,7 +330,10 @@
       "quitadoMessage": "{nombre} removed",
       "quitarError": "Couldn't remove the device",
       "colInflux": "InfluxDB",
-      "sinVincular": "not linked"
+      "sinVincular": "not linked",
+      "precioKwh": "kWh price",
+      "sinPrecio": "not set",
+      "colCalefactor": "Heater"
     },
     "landing": {
       "nav": {

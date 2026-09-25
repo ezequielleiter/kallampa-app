@@ -14,8 +14,9 @@ import {
 import { EmptyState } from "@/components/kallampa/PageHeader";
 import { useFormat } from "@/components/kallampa/useFormat";
 import { computeCycles, type Ciclo } from "@/lib/monitoreo/ciclos";
+import { consumoKwh } from "@/lib/monitoreo/consumo";
 import type { Rango, SerieRow, TipoSerie } from "@/lib/monitoreo/tipos";
-import { formatDuracion, formatHora } from "./formato";
+import { formatDuracion, formatEnergia, formatHora } from "./formato";
 
 /**
  * Ciclos del actuador (rachas de ventanas prendidas), del mas nuevo al mas
@@ -28,6 +29,7 @@ export function CiclosTable({
   hasta,
   unit,
   tipo,
+  calefactorKw,
 }: {
   rows: SerieRow[];
   windowSec: number;
@@ -35,6 +37,8 @@ export function CiclosTable({
   hasta: number;
   unit: string;
   tipo: TipoSerie;
+  /** Potencia del calefactor (kW): si viene, agrega la columna de consumo. */
+  calefactorKw?: number;
 }) {
   const t = useTranslations("components.monitoreo");
   const fmt = useFormat();
@@ -52,6 +56,8 @@ export function CiclosTable({
       : c.mantuvo.tipo === "prendida_ahora"
         ? t("prendidaAhora", { tipo })
         : t("enCurso", { duracion: dur(c.mantuvo.seg) });
+  const consumo = (seg: number | null) =>
+    seg == null || calefactorKw == null ? "—" : formatEnergia(consumoKwh(seg, calefactorKw), fmt.number);
   const sube = (c: Ciclo) =>
     c.subeDesde == null || c.subeHasta == null
       ? "—"
@@ -63,11 +69,12 @@ export function CiclosTable({
       {ciclos.length === 0 ? (
         <EmptyState className="py-4">{t("sinCiclos")}</EmptyState>
       ) : (
-        <Table minWidth={620}>
+        <Table minWidth={calefactorKw != null ? 700 : 620}>
           <TableHeader>
             <TableRow>
               <TableHead>{t("colInicio")}</TableHead>
               <TableHead className="text-right">{t("colPrendida")}</TableHead>
+              {calefactorKw != null && <TableHead className="text-right">{t("colConsumo")}</TableHead>}
               <TableHead>{t("colSube")}</TableHead>
               <TableHead className="text-right">{t("colRitmo", { unit })}</TableHead>
               <TableHead className="text-right">{t("colMantuvo")}</TableHead>
@@ -79,6 +86,9 @@ export function CiclosTable({
               <TableRow key={c.inicio}>
                 <TableCell>{formatHora(c.inicio, range)}</TableCell>
                 <TableCell className="text-right">{dur(c.prendidaSeg)}</TableCell>
+                {calefactorKw != null && (
+                  <TableCell className="text-right">{consumo(c.prendidaSeg)}</TableCell>
+                )}
                 <TableCell>{sube(c)}</TableCell>
                 <TableCell className="text-right">{ritmo(c.ritmoPorMin)}</TableCell>
                 <TableCell className="text-right">{mantuvo(c)}</TableCell>
@@ -92,6 +102,9 @@ export function CiclosTable({
               <TableCell className="text-right">
                 {promedios.prendidaSeg == null ? "—" : dur(promedios.prendidaSeg)}
               </TableCell>
+              {calefactorKw != null && (
+                <TableCell className="text-right">{consumo(promedios.prendidaSeg)}</TableCell>
+              )}
               <TableCell />
               <TableCell className="text-right">{ritmo(promedios.ritmoPorMin)}</TableCell>
               <TableCell className="text-right">

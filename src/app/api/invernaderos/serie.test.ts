@@ -102,6 +102,15 @@ describe("serie de monitoreo", () => {
     expect(JSON.parse(fetchMock.mock.calls[1][1].body).query).toContain('"humidificador_seg"');
   });
 
+  it("acepta el rango de 48h (ventana de 10 min)", async () => {
+    fetchMock.mockResolvedValueOnce(csvResponse("")).mockResolvedValueOnce(csvResponse(""));
+    const { status, json } = await pedirSerie({ range: "48h", tipo: "calefaccion" });
+    expect(status).toBe(200);
+    expect(json.data.windowSec).toBe(600);
+    expect(json.data.hasta - json.data.desde).toBe(48 * 3600 * 1000);
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body).query).toContain("range(start: -48h)");
+  });
+
   it("valida rango y tipo", async () => {
     expect((await pedirSerie({ range: "3d" })).status).toBe(400);
     expect((await pedirSerie({ range: "1h", tipo: "co2" })).status).toBe(400);

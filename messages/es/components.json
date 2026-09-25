@@ -338,6 +338,8 @@
       "calculoHint": "Ingresá las tres medidas en metros para ver superficie y volumen.",
       "notas": "Notas",
       "notasPlaceholder": "Ej.: techo de policarbonato, 2 ventiladores",
+      "precioKwh": "Precio del kWh",
+      "precioKwhHint": "Lo que cobra tu proveedor de electricidad; se usa para estimar el costo de la calefacción.",
       "crear": "Crear invernadero",
       "guardar": "Guardar cambios",
       "createdMessage": "{nombre} creado",
@@ -372,7 +374,9 @@
       "humMin": "Humedad mínima",
       "humMax": "Humedad máxima",
       "minPlaceholder": "Mínima",
-      "maxPlaceholder": "Máxima"
+      "maxPlaceholder": "Máxima",
+      "calefactorKw": "Potencia del calefactor",
+      "calefactorKwHint": "En kW (ej.: 2 kW = 2000 W). Con esto se estima el consumo de la calefacción."
     },
     "monitoreo": {
       "title": "Monitoreo",
@@ -382,6 +386,7 @@
       "rango_2h": "2 h",
       "rango_6h": "6 h",
       "rango_24h": "24 h",
+      "rango_48h": "48 h",
       "rango_7d": "7 d",
       "tabCalefaccion": "Calefacción",
       "tabHumedad": "Humidificación",
@@ -413,7 +418,16 @@
       "prendidaAhora": "{tipo, select, calefaccion {prendida ahora} other {prendido ahora}}",
       "enCurso": "en curso ({duracion})",
       "promedios": "Promedios",
-      "ciclosNota": "Valores aproximados a ventanas de {w} min. «Sube» incluye lo que siguió subiendo después de apagarse; «Se mantuvo» es el tiempo hasta volver a prender."
+      "ciclosNota": "Valores aproximados a ventanas de {w} min. «Sube» incluye lo que siguió subiendo después de apagarse; «Se mantuvo» es el tiempo hasta volver a prender.",
+      "consumoTitle": "Consumo estimado de la calefacción",
+      "consumoPrendida": "Tiempo prendida",
+      "consumoEnergia": "Consumo",
+      "consumoCosto": "Costo",
+      "consumoCostoNota": "a {precio}/kWh",
+      "consumoSinPrecio": "Cargá el precio del kWh en el invernadero",
+      "consumoPotenciaNota": "calefactor de {kw} kW",
+      "consumoSinPotencia": "Cargá la potencia del calefactor en el dispositivo para estimar el consumo en kWh y su costo.",
+      "colConsumo": "Consumo"
     }
   }
 }

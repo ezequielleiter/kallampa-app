@@ -13,6 +13,7 @@ import type { Dispositivo, Invernadero } from "@/lib/types";
 import { RANGOS, type Rango, type SerieResponse, type TipoSerie } from "@/lib/monitoreo/tipos";
 import { BarChart, COLOR_APAGADO, COLOR_PRENDIDO, type RefLine } from "./BarChart";
 import { CiclosTable } from "./CiclosTable";
+import { ConsumoResumen } from "./ConsumoResumen";
 
 const STORAGE_RANGO = "kallampa.monitoreo.rango";
 
@@ -177,6 +178,13 @@ export function MonitoreoPanel({
               actuadorLabel={actuadorLabel}
               tipo={tipo}
             />
+            {esCalefaccion && (
+              <ConsumoResumen
+                rows={estado.serie.rows}
+                calefactorKw={dispositivo.calefactorKw}
+                precioKwh={invernadero.precioKwh}
+              />
+            )}
             <CiclosTable
               rows={estado.serie.rows}
               windowSec={estado.serie.windowSec}
@@ -184,6 +192,7 @@ export function MonitoreoPanel({
               hasta={estado.serie.hasta}
               unit={unit}
               tipo={tipo}
+              calefactorKw={esCalefaccion ? dispositivo.calefactorKw : undefined}
             />
           </>
         )}

@@ -90,6 +90,40 @@ describe("invernaderos", () => {
     expect(json.data.activo).toBe(false);
   });
 
+  it("guarda, edita y borra el precio del kWh", async () => {
+    const creado = await callRoute(POST, {
+      method: "POST",
+      headers,
+      body: { nombre: "Carpa kWh", altoM: 2, largoM: 2, profundidadM: 2, precioKwh: 120.5 },
+    });
+    expect(creado.status).toBe(201);
+    expect(creado.json.data.precioKwh).toBe(120.5);
+    const id = creado.json.data._id;
+
+    for (const precioKwh of [0, -3]) {
+      const { status } = await callRoute(PATCH, { method: "PATCH", headers, params: { id }, body: { precioKwh } });
+      expect(status).toBe(400);
+    }
+
+    const editado = await callRoute(PATCH, { method: "PATCH", headers, params: { id }, body: { precioKwh: 150 } });
+    expect(editado.json.data.precioKwh).toBe(150);
+
+    const borrado = await callRoute(PATCH, { method: "PATCH", headers, params: { id }, body: { precioKwh: null } });
+    expect(borrado.status).toBe(200);
+    expect(borrado.json.data.precioKwh).toBeUndefined();
+    expect(borrado.json.data.nombre).toBe("Carpa kWh");
+  });
+
+  it("crear con precio del kWh en null no lo guarda", async () => {
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      headers,
+      body: { nombre: "Carpa sin precio", altoM: 2, largoM: 2, profundidadM: 2, precioKwh: null },
+    });
+    expect(status).toBe(201);
+    expect(json.data.precioKwh).toBeUndefined();
+  });
+
   it("PATCH rechaza renombrar a un nombre en uso con 409", async () => {
     await makeInvernadero({ userId: user._id, headers, nombre: "Carpa 1" });
     const otro = await makeInvernadero({ userId: user._id, headers, nombre: "Carpa 2" });

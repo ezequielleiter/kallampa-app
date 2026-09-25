@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { parseFluxCsv } from "@/lib/influx";
 import { computeCycles } from "./ciclos";
+import { consumoKwh, resumenConsumo } from "./consumo";
 import { yDomain } from "./escalas";
 import { fluxSerie, intervaloMuestreoSeg } from "./flux";
 import type { SerieRow } from "./tipos";
@@ -141,5 +142,23 @@ describe("flux", () => {
     const ts = [0, 5, 10, 15, 20, 26].map((m) => T0 + m * MIN);
     expect(intervaloMuestreoSeg(ts)).toBe(300);
     expect(intervaloMuestreoSeg([T0])).toBeNull();
+  });
+});
+
+describe("consumo del calefactor", () => {
+  it("convierte segundos prendido × kW en kWh", () => {
+    expect(consumoKwh(2 * 3600, 1.5)).toBe(3);
+    expect(consumoKwh(0, 2)).toBe(0);
+  });
+
+  it("resume el rango: tiempo prendido, kWh y costo", () => {
+    const rows = serie([[20, 3600], [21, 0], [22, 3600]]);
+    expect(resumenConsumo(rows, 1.5, 100)).toEqual({ prendidaSeg: 7200, kwh: 3, costo: 300 });
+  });
+
+  it("sin potencia no hay kWh ni costo; sin precio no hay costo", () => {
+    const rows = serie([[20, 1800]]);
+    expect(resumenConsumo(rows)).toEqual({ prendidaSeg: 1800, kwh: null, costo: null });
+    expect(resumenConsumo(rows, 2)).toEqual({ prendidaSeg: 1800, kwh: 1, costo: null });
   });
 });

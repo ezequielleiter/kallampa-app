@@ -338,6 +338,8 @@
       "calculoHint": "Enter the three dimensions in meters to see floor area and volume.",
       "notas": "Notes",
       "notasPlaceholder": "e.g. polycarbonate roof, 2 fans",
+      "precioKwh": "Price per kWh",
+      "precioKwhHint": "What your electricity provider charges; used to estimate the heating cost.",
       "crear": "Create greenhouse",
       "guardar": "Save changes",
       "createdMessage": "{nombre} created",
@@ -372,7 +374,9 @@
       "humMin": "Minimum humidity",
       "humMax": "Maximum humidity",
       "minPlaceholder": "Min",
-      "maxPlaceholder": "Max"
+      "maxPlaceholder": "Max",
+      "calefactorKw": "Heater power",
+      "calefactorKwHint": "In kW (e.g. 2 kW = 2000 W). Used to estimate the heating consumption."
     },
     "monitoreo": {
       "title": "Monitoring",
@@ -382,6 +386,7 @@
       "rango_2h": "2 h",
       "rango_6h": "6 h",
       "rango_24h": "24 h",
+      "rango_48h": "48 h",
       "rango_7d": "7 d",
       "tabCalefaccion": "Heating",
       "tabHumedad": "Humidifier",
@@ -413,7 +418,16 @@
       "prendidaAhora": "on now",
       "enCurso": "ongoing ({duracion})",
       "promedios": "Averages",
-      "ciclosNota": "Values approximated to {w}-min windows. «Rise» includes what kept rising after turning off; «Held for» is the time until it turned on again."
+      "ciclosNota": "Values approximated to {w}-min windows. «Rise» includes what kept rising after turning off; «Held for» is the time until it turned on again.",
+      "consumoTitle": "Estimated heating consumption",
+      "consumoPrendida": "Time on",
+      "consumoEnergia": "Consumption",
+      "consumoCosto": "Cost",
+      "consumoCostoNota": "at {precio}/kWh",
+      "consumoSinPrecio": "Set the price per kWh on the greenhouse",
+      "consumoPotenciaNota": "{kw} kW heater",
+      "consumoSinPotencia": "Set the heater power on the device to estimate consumption in kWh and its cost.",
+      "colConsumo": "Consumption"
     }
   }
 }

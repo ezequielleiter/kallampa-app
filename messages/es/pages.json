@@ -330,7 +330,10 @@
       "quitadoMessage": "{nombre} quitado",
       "quitarError": "No se pudo quitar el dispositivo",
       "colInflux": "InfluxDB",
-      "sinVincular": "sin vincular"
+      "sinVincular": "sin vincular",
+      "precioKwh": "Precio kWh",
+      "sinPrecio": "sin cargar",
+      "colCalefactor": "Calefactor"
     },
     "landing": {
       "nav": {

@@ -1,7 +1,7 @@
 // Tipos y constantes del monitoreo (compartidos cliente/servidor: sin
 // dependencias de Node ni de mongoose).
 
-export const RANGOS = ["1h", "2h", "6h", "24h", "7d"] as const;
+export const RANGOS = ["1h", "2h", "6h", "24h", "48h", "7d"] as const;
 export type Rango = (typeof RANGOS)[number];
 
 export const TIPOS_SERIE = ["calefaccion", "humedad"] as const;
@@ -13,6 +13,7 @@ export const RANGO_SEG: Record<Rango, number> = {
   "2h": 7200,
   "6h": 6 * 3600,
   "24h": 24 * 3600,
+  "48h": 48 * 3600,
   "7d": 7 * 24 * 3600,
 };
 
@@ -22,6 +23,7 @@ export const VENTANA_SEG: Record<Rango, number> = {
   "2h": 60,
   "6h": 60,
   "24h": 5 * 60,
+  "48h": 10 * 60,
   "7d": 30 * 60,
 };
 

@@ -84,6 +84,22 @@ describe("dispositivos de monitoreo de un invernadero", () => {
     expect(quitado.json.data.dispositivos).toHaveLength(0);
   });
 
+  it("guarda, edita y borra la potencia del calefactor", async () => {
+    const { status, json } = await agregar({ nombre: "Sensor 1", dominio: "a.local", calefactorKw: 2 });
+    expect(status).toBe(201);
+    expect(json.data.dispositivos[0].calefactorKw).toBe(2);
+    const dispositivoId = json.data.dispositivos[0]._id;
+
+    const patch = (body: Record<string, unknown>) =>
+      callRoute(PATCH, { method: "PATCH", headers, params: { id: invernaderoId, dispositivoId }, body });
+
+    expect((await patch({ calefactorKw: 0 })).status).toBe(400);
+    expect((await patch({ calefactorKw: 1.5 })).json.data.dispositivos[0].calefactorKw).toBe(1.5);
+    const borrado = await patch({ calefactorKw: null });
+    expect(borrado.status).toBe(200);
+    expect(borrado.json.data.dispositivos[0].calefactorKw).toBeUndefined();
+  });
+
   it("PATCH rechaza renombrar a un nombre en uso con 409", async () => {
     await agregar({ nombre: "Sensor 1", dominio: "a.local" });
     const { json } = await agregar({ nombre: "Sensor 2", dominio: "b.local" });
