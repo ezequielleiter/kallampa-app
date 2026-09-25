@@ -16,6 +16,9 @@ import {
   type TipoSerie,
 } from "@/lib/monitoreo/tipos";
 
+// Hasta 2 consultas a InfluxDB con timeout de 15 s cada una (ver src/lib/influx.ts).
+export const maxDuration = 30;
+
 type Ctx = { params: Promise<{ id: string; dispositivoId: string }> };
 
 function num(v: string | null | undefined): number | null {

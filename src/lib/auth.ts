@@ -8,7 +8,7 @@ const SESSION_TTL = "24h";
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
-    throw new Error("Falta la variable de entorno JWT_SECRET (definila en .env.local)");
+    throw new Error("Falta la variable de entorno JWT_SECRET (definila en .env.local o en las variables de entorno del deploy)");
   }
   return secret;
 }

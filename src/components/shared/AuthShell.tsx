@@ -19,7 +19,7 @@ export function AuthShell({
 }: {
   title: string;
   subtitle: string;
-  footer: React.ReactNode;
+  footer?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const tCommon = useTranslations("common");
@@ -36,7 +36,7 @@ export function AuthShell({
           </h1>
           <p className="mt-1 mb-5 text-[13px] text-text-subtle">{subtitle}</p>
           {children}
-          <p className="mt-5 text-center text-[13px] text-text-subtle">{footer}</p>
+          {footer && <p className="mt-5 text-center text-[13px] text-text-subtle">{footer}</p>}
         </div>
         <div className="flex justify-center">
           <SegmentedControl<Locale>

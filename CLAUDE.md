@@ -13,3 +13,7 @@ Este proyecto tiene **tres bases MongoDB separadas**, cada una con un único uso
 ## Monitoreo (InfluxDB)
 
 Los gráficos de calefacción/humidificación de los invernaderos leen InfluxDB 2.x **solo del lado del servidor** (`src/lib/influx.ts`, usado únicamente por las API routes). Necesita en `.env.local` las variables `INFLUX_URL`, `INFLUX_ORG`, `INFLUX_BUCKET` e `INFLUX_TOKEN` (ver `.env.example`). El token nunca se manda al cliente ni se loguea; los tests mockean `fetch`, no pegan a Influx real. Sin esas variables la API responde 503 `influx_no_configurado` y la UI lo muestra.
+
+## Deploy
+
+Producción: Vercel + MongoDB Atlas, sin previews (push a `master` = producción). Pasos y variables en [`DEPLOY.md`](DEPLOY.md). El registro de cuentas se controla con `REGISTRO_HABILITADO` (`src/lib/registro.ts`): sin definir queda cerrado en producción.

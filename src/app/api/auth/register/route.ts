@@ -1,12 +1,21 @@
 import type { NextRequest } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import User from "@/models/User";
-import { ok, conflict, handleApiError } from "@/lib/api-utils";
+import { ok, conflict, forbidden, handleApiError } from "@/lib/api-utils";
 import { registerSchema } from "@/lib/validations/auth.schema";
 import { hashPassword, generateApiKey, signSessionToken } from "@/lib/auth";
+import { registroHabilitado } from "@/lib/registro";
+
+// Publico: la pantalla de registro/login pregunta si se pueden crear cuentas.
+export async function GET() {
+  return ok({ habilitado: registroHabilitado() });
+}
 
 export async function POST(req: NextRequest) {
   try {
+    if (!registroHabilitado()) {
+      throw forbidden("registro_cerrado:El registro de cuentas nuevas está cerrado");
+    }
     await dbConnect();
     const body = await req.json();
     const parsed = registerSchema.parse(body);

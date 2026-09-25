@@ -5,6 +5,9 @@ import { getInfluxConfig, runFlux } from "@/lib/influx";
 import { fluxEquipos } from "@/lib/monitoreo/flux";
 import { INFLUX_ID_RE, type EquipoInflux } from "@/lib/monitoreo/tipos";
 
+// Una consulta a InfluxDB con timeout de 15 s (ver src/lib/influx.ts).
+export const maxDuration = 30;
+
 // Equipos que escribieron en el bucket (ultimos 30 dias): su tag `id` fijo y
 // el ultimo nombre `device` (cambia si se renombra el equipo). Se usa para
 // el selector del formulario de dispositivo.

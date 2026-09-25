@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/kallampa/Field";
 import { AuthShell } from "@/components/shared/AuthShell";
+import { useRegistroHabilitado } from "@/components/shared/useRegistroHabilitado";
 import { apiFetch } from "@/lib/api-client";
 import { saveSession, type Session } from "@/lib/session";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth.schema";
@@ -19,6 +20,7 @@ import { translateErrorMessage } from "@/lib/error-messages";
 export default function LoginPage() {
   const router = useRouter();
   const t = useTranslations("auth.login");
+  const registroHabilitado = useRegistroHabilitado();
   const {
     register,
     handleSubmit,
@@ -46,12 +48,14 @@ export default function LoginPage() {
       title={t("title")}
       subtitle={t("subtitle")}
       footer={
-        <>
-          {t("noAccount")}{" "}
-          <Link href="/registro" className="text-accent-300 hover:text-accent-100">
-            {t("registerLink")}
-          </Link>
-        </>
+        registroHabilitado ? (
+          <>
+            {t("noAccount")}{" "}
+            <Link href="/registro" className="text-accent-300 hover:text-accent-100">
+              {t("registerLink")}
+            </Link>
+          </>
+        ) : undefined
       }
     >
       <form className="flex flex-col gap-3.5" onSubmit={handleSubmit(onSubmit)} noValidate>

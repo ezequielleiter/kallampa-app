@@ -43,7 +43,9 @@
       "submit": "Registrarme",
       "genericError": "Error al registrarse",
       "hasAccount": "¿Ya tenés cuenta?",
-      "loginLink": "Iniciá sesión"
+      "loginLink": "Iniciá sesión",
+      "cerradoTitle": "Registro cerrado",
+      "cerradoSubtitle": "El registro de cuentas nuevas está cerrado. Si ya tenés una cuenta, iniciá sesión."
     }
   },
   "header": {

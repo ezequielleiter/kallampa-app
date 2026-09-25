@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field } from "@/components/kallampa/Field";
 import { AuthShell } from "@/components/shared/AuthShell";
+import { useRegistroHabilitado } from "@/components/shared/useRegistroHabilitado";
 import { apiFetch } from "@/lib/api-client";
 import { saveSession, type Session } from "@/lib/session";
 import { registerSchema } from "@/lib/validations/auth.schema";
@@ -32,6 +33,7 @@ type RegisterFormInput = z.infer<typeof registerFormSchema>;
 export default function RegistroPage() {
   const router = useRouter();
   const t = useTranslations("auth.register");
+  const registroHabilitado = useRegistroHabilitado();
   const {
     register,
     handleSubmit,
@@ -56,6 +58,22 @@ export default function RegistroPage() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("genericError"));
     }
+  }
+
+  if (registroHabilitado === false) {
+    return (
+      <AuthShell
+        title={t("cerradoTitle")}
+        subtitle={t("cerradoSubtitle")}
+        footer={
+          <Link href="/login" className="text-accent-300 hover:text-accent-100">
+            {t("loginLink")}
+          </Link>
+        }
+      >
+        {null}
+      </AuthShell>
+    );
   }
 
   return (
