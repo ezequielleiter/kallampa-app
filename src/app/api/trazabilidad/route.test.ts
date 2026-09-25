@@ -6,6 +6,7 @@ import {
   colonizarJars,
   makeClonacion,
   colonizarPlacas,
+  colonizarFrascosLiquidos,
   makeFrascoLiquido,
   makeUser,
   authHeaders,
@@ -36,6 +37,8 @@ describe("GET /api/trazabilidad", () => {
     const [placaId] = await colonizarPlacas(clonacionC.placas, { userId: user._id, headers });
     const frasco = await makeFrascoLiquido({ userId: user._id, headers, origenPlacaId: placaId });
 
+    await colonizarFrascosLiquidos([frasco], { userId: user._id, headers });
+
     // Lote B, a partir del frasco liquido de C
     const batchB = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1, origenFrascoLiquidoId: frasco._id });
 
@@ -62,7 +65,7 @@ describe("GET /api/trazabilidad", () => {
     expect(cln.origenTipo).toBe("jar");
     expect(String(cln.origenBatchId)).toBe(batchA._id);
     expect(cln.origenJarId).toHaveProperty("numeroGuia");
-    expect(cln.resumen).toHaveProperty("frascosLiquidosValidos");
+    expect(cln.resumen).toHaveProperty("frascosLiquidosColonizados");
 
     // Lote B: origenFrascoLiquidoId apunta al frasco de C.
     expect(String(loteB.origenFrascoLiquidoId)).toBe(frasco._id);

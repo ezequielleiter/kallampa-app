@@ -1,0 +1,107 @@
+/*
+ * Kallampa — tokens del sistema de diseño (fuente: kallampa-ds/tokens/).
+ *
+ * Dos capas:
+ *  1. Primitivos (`--color-*`, rampas 100–900, sombras): los únicos valores
+ *     "crudos". Un tema nuevo (claro, otra marca) se agrega redefiniendo SOLO
+ *     este bloque bajo otro `[data-theme="…"]`; todo lo demás se deriva.
+ *  2. Semánticos (`--surface-*`, `--text-*`, `--status-*`, layout, movimiento):
+ *     lo que consumen los componentes. No deberían tener colores literales.
+ *
+ * Hoy existe un único tema: `kallampa-dark` (también el default en :root).
+ */
+
+:root,
+[data-theme="kallampa-dark"] {
+  color-scheme: dark;
+
+  /* ---- Primitivos ---- */
+  --color-bg: #161826;
+  --color-surface: #232532;
+  --color-text: #e9e9ed;
+  --color-accent: #9184d9;
+  --color-accent-2: #a7a1db;
+  --color-divider: color-mix(in srgb, var(--color-text) 16%, transparent);
+
+  --color-neutral-100: #f3f5fe;
+  --color-neutral-200: #e4e7f5;
+  --color-neutral-300: #cfd3e5;
+  --color-neutral-400: #b2b6ca;
+  --color-neutral-500: #9397ab;
+  --color-neutral-600: #75798c;
+  --color-neutral-700: #595d6c;
+  --color-neutral-800: #3f424d;
+  --color-neutral-900: #292b31;
+
+  --color-accent-100: #f5f4ff;
+  --color-accent-200: #e7e5fe;
+  --color-accent-300: #d2cefd;
+  --color-accent-400: #b5abfc;
+  --color-accent-500: #968ae0;
+  --color-accent-600: #796cbf;
+  --color-accent-700: #5d5294;
+  --color-accent-800: #423a6a;
+  --color-accent-900: #2b2741;
+
+  /* Peligro / contaminación: único color fuera de la paleta mono, bajo croma. */
+  --color-danger: oklch(0.64 0.13 28);
+  --color-danger-text: oklch(0.78 0.1 28);
+  --color-danger-bg: color-mix(in oklch, var(--color-danger) 18%, transparent);
+
+  /* Elevación: en oscuro, borde fino + oscuridad ambiente. */
+  --shadow-sm: 0 0 0 1px var(--color-neutral-800);
+  --shadow-md: 0 0 0 1px var(--color-neutral-700), 0 6px 18px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 0 0 1px var(--color-neutral-500), 0 16px 40px rgba(0, 0, 0, 0.65);
+  --overlay-base: black;
+}
+
+:root {
+  /* ---- Semánticos: superficies ---- */
+  --surface-page: var(--color-bg);
+  --surface-card: var(--color-surface);
+  --surface-inset: var(--color-neutral-900);
+  --surface-selected: var(--color-accent-900);
+  --surface-overlay: color-mix(in srgb, var(--overlay-base) 55%, transparent);
+
+  /* ---- Semánticos: texto ---- */
+  --text-strong: var(--color-text);
+  --text-body: color-mix(in srgb, var(--color-text) 78%, transparent);
+  --text-muted: color-mix(in srgb, var(--color-text) 64%, transparent);
+  --text-subtle: color-mix(in srgb, var(--color-text) 55%, transparent);
+  --text-accent: var(--color-accent-300);
+
+  /* ---- Estados de dominio ---- */
+  --status-active: var(--color-accent);
+  --status-progress: var(--color-accent);
+  --status-done: var(--color-neutral-500);
+  --status-danger: var(--color-danger);
+
+  /* ---- Layout ---- */
+  --sidebar-width: 208px;
+  --topbar-height: 56px;
+  --drawer-width: 420px;
+  --dialog-width: 400px;
+  --content-max: 1360px;
+
+  /* ---- Movimiento ---- */
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dur-fast: 0.15s;
+  --dur-base: 0.22s;
+  --dur-slow: 0.28s;
+
+  /* Divisoria que se desvanece en los extremos (48px), firma del sistema. */
+  --rule-fade: linear-gradient(
+    to right,
+    transparent,
+    var(--color-divider) 48px,
+    var(--color-divider) calc(100% - 48px),
+    transparent
+  );
+  --rule-fade-soft: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--color-text) 8%, transparent) 48px,
+    color-mix(in srgb, var(--color-text) 8%, transparent) calc(100% - 48px),
+    transparent
+  );
+}

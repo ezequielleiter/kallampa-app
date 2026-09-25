@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { Check } from "lucide-react";
 import {
   Sheet,
+  SheetBody,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -17,7 +17,9 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { ChoiceList } from "@/components/kallampa/ChoiceList";
+import { Field } from "@/components/kallampa/Field";
+import { StatusTag } from "@/components/kallampa/StatusTag";
 import { apiFetch } from "@/lib/api-client";
 import type { FrascoLiquido, Placa } from "@/lib/types";
 
@@ -34,7 +36,9 @@ type NuevoFrascoLiquidoInput = z.infer<typeof nuevoFrascoLiquidoSchema>;
 interface NuevoFrascoLiquidoSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  clonacionId: string;
+  /** Todas las placas de la clonacion: solo las colonizadas se pueden
+   * elegir; el resto se muestra deshabilitado (no oculto). */
+  placas: Placa[];
   onSuccess: () => void;
 }
 
@@ -45,12 +49,11 @@ function todayInputValue() {
 export function NuevoFrascoLiquidoSheet({
   open,
   onOpenChange,
-  clonacionId,
+  placas,
   onSuccess,
 }: NuevoFrascoLiquidoSheetProps) {
   const t = useTranslations("components.nuevoFrascoLiquidoSheet");
-  const [placasDisponibles, setPlacasDisponibles] = useState<Placa[]>([]);
-  const [loadingPlacas, setLoadingPlacas] = useState(false);
+  const tCommon = useTranslations("common");
 
   const {
     register,
@@ -65,26 +68,24 @@ export function NuevoFrascoLiquidoSheet({
   useEffect(() => {
     if (!open) return;
     void Promise.resolve().then(() => {
-      reset({ origenPlacaId: undefined });
-      setLoadingPlacas(true);
-      // Placas ya usadas para otros frascos líquidos también se muestran:
-      // una placa colonizada no se consume y se puede reusar libremente.
-      apiFetch<Placa[]>(`/api/placas?clonacionId=${clonacionId}&estado=colonizado`)
-        .then(setPlacasDisponibles)
-        .catch((err) =>
-          toast.error(err instanceof Error ? err.message : t("loadPlacasError"))
-        )
-        .finally(() => setLoadingPlacas(false));
+      // Una placa colonizada no se consume: se puede reusar libremente, asi
+      // que si hay una sola la dejamos elegida.
+      const colonizadas = placas.filter((p) => p.estado === "colonizado");
+      reset({ origenPlacaId: colonizadas.length === 1 ? colonizadas[0]._id : undefined });
     });
-  }, [open, clonacionId, reset, t]);
+  }, [open, placas, reset]);
 
   async function onSubmit(data: NuevoFrascoLiquidoInput) {
     try {
-      await apiFetch<FrascoLiquido>("/api/frascos-liquidos", {
+      const creado = await apiFetch<FrascoLiquido>("/api/frascos-liquidos", {
         method: "POST",
         body: JSON.stringify(data),
       });
-      toast.success(t("successMessage"));
+      toast.success(
+        creado?.numeroGuia
+          ? t("createdCodigo", { numero: creado.numeroGuia })
+          : t("successMessage")
+      );
       onOpenChange(false);
       onSuccess();
     } catch (err) {
@@ -95,76 +96,50 @@ export function NuevoFrascoLiquidoSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
-        <SheetHeader>
-          <SheetTitle>{t("title")}</SheetTitle>
-          <SheetDescription>{t("description")}</SheetDescription>
-        </SheetHeader>
-        <form
-          className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 py-2"
-          onSubmit={handleSubmit(onSubmit)}
-        >
-          <div className="flex flex-col gap-1.5">
-            <Label>{t("placaOrigen")}</Label>
-            <Controller
-              control={control}
-              name="origenPlacaId"
-              render={({ field }) => (
-                <div className="flex max-h-56 flex-col gap-1 overflow-y-auto rounded-md border p-1">
-                  {loadingPlacas ? (
-                    <p className="p-3 text-center text-sm text-muted-foreground">
-                      {t("cargando")}
-                    </p>
-                  ) : placasDisponibles.length === 0 ? (
-                    <p className="p-3 text-center text-sm text-muted-foreground">
-                      {t("noHayPlacas")}
-                    </p>
-                  ) : (
-                    placasDisponibles.map((placa) => {
-                      const selected = field.value === placa._id;
-                      return (
-                        <button
-                          key={placa._id}
-                          type="button"
-                          role="radio"
-                          aria-checked={selected}
-                          onClick={() => field.onChange(placa._id)}
-                          className={`flex items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors ${
-                            selected ? "bg-accent" : "hover:bg-muted"
-                          }`}
-                        >
-                          <span className="flex size-4 shrink-0 items-center justify-center">
-                            {selected && <Check className="size-4 text-primary" />}
-                          </span>
-                          <span>{placa.numeroPlaca}</span>
-                        </button>
-                      );
-                    })
-                  )}
-                </div>
-              )}
-            />
-            {errors.origenPlacaId && (
-              <p className="text-xs text-destructive">{errors.origenPlacaId.message}</p>
-            )}
-          </div>
+        <form className="flex h-full flex-col" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <SheetHeader>
+            <SheetTitle>{t("title")}</SheetTitle>
+            <SheetDescription>{t("description")}</SheetDescription>
+          </SheetHeader>
 
-          <div className="flex flex-col gap-1.5">
-            <Label>{t("fechaCreacion")}</Label>
-            <Input
-              type="date"
-              defaultValue={todayInputValue()}
-              {...register("fechaCreacion")}
-            />
-            {errors.fechaCreacion && (
-              <p className="text-xs text-destructive">{errors.fechaCreacion.message}</p>
-            )}
-          </div>
+          <SheetBody>
+            <Field label={t("placaOrigen")} error={errors.origenPlacaId?.message}>
+              <Controller
+                control={control}
+                name="origenPlacaId"
+                render={({ field }) => (
+                  <ChoiceList
+                    type="radio"
+                    value={field.value}
+                    onChange={field.onChange}
+                    invalid={!!errors.origenPlacaId}
+                    empty={t("noHayPlacas")}
+                    items={placas.map((placa) => ({
+                      value: placa._id,
+                      label: placa.numeroPlaca,
+                      disabled: placa.estado !== "colonizado",
+                      aside: <StatusTag kind="placa" estado={placa.estado} />,
+                    }))}
+                  />
+                )}
+              />
+            </Field>
 
-          <SheetFooter className="px-0">
+            <Field label={t("fechaCreacion")} error={errors.fechaCreacion?.message}>
+              <Input
+                type="date"
+                defaultValue={todayInputValue()}
+                aria-invalid={!!errors.fechaCreacion || undefined}
+                {...register("fechaCreacion")}
+              />
+            </Field>
+          </SheetBody>
+
+          <SheetFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              {t("cancelar")}
+              {tCommon("cancel")}
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" loading={isSubmitting}>
               {t("crear")}
             </Button>
           </SheetFooter>

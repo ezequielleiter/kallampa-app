@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Pencil, Trash2 } from "lucide-react";
+import { PencilSimpleIcon, TrashIcon } from "@phosphor-icons/react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -18,7 +18,9 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState, PageContainer, PageHeader } from "@/components/kallampa/PageHeader";
+import { NOTA_PROSE_CLASSNAME } from "@/components/notas/NotaEditor";
+import { useBreadcrumbs } from "@/components/shared/Breadcrumbs";
 import { apiFetch } from "@/lib/api-client";
 import { formatFechaCorta } from "@/lib/format";
 import type { Nota } from "@/lib/types";
@@ -31,6 +33,10 @@ export default function NotaDetailPage() {
   const [loading, setLoading] = useState(true);
   const [borrarOpen, setBorrarOpen] = useState(false);
   const [borrando, setBorrando] = useState(false);
+  const tNav = useTranslations("nav");
+  useBreadcrumbs(
+    nota ? [{ label: tNav("notas"), href: "/notas" }, { label: nota.titulo }] : null
+  );
 
   const cargar = useCallback(async () => {
     try {
@@ -59,47 +65,36 @@ export default function NotaDetailPage() {
     }
   }
 
-  if (loading) {
-    return <p className="p-4 text-sm text-muted-foreground">{t("loading")}</p>;
-  }
-
-  if (!nota) {
-    return <p className="p-4 text-sm text-muted-foreground">{t("notFound")}</p>;
+  if (loading || !nota) {
+    return (
+      <PageContainer className="max-w-[880px]">
+        <EmptyState>{loading ? t("loading") : t("notFound")}</EmptyState>
+      </PageContainer>
+    );
   }
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <Button variant="ghost" size="sm" className="w-fit" onClick={() => router.push("/notas")}>
-          {t("backToNotas")}
-        </Button>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push(`/notas/${nota._id}/editar`)}
-          >
-            <Pencil /> {t("edit")}
-          </Button>
-          <Button variant="destructive" size="sm" onClick={() => setBorrarOpen(true)}>
-            <Trash2 /> {t("delete")}
-          </Button>
-        </div>
-      </div>
+    <PageContainer className="max-w-[880px]">
+      <PageHeader
+        title={nota.titulo}
+        subtitle={`${t("lastEdited")}: ${formatFechaCorta(nota.updatedAt)}`}
+        actions={
+          <>
+            <Button variant="outline" onClick={() => router.push(`/notas/${nota._id}/editar`)}>
+              <PencilSimpleIcon /> {t("edit")}
+            </Button>
+            <Button variant="destructive" onClick={() => setBorrarOpen(true)}>
+              <TrashIcon /> {t("delete")}
+            </Button>
+          </>
+        }
+      />
 
-      <Card>
-        <CardContent className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h1 className="text-xl font-semibold">{nota.titulo}</h1>
-            <span className="text-xs text-muted-foreground">
-              {t("lastEdited")}: {formatFechaCorta(nota.updatedAt)}
-            </span>
-          </div>
-          <div className="prose prose-sm dark:prose-invert max-w-none">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{nota.contenido}</ReactMarkdown>
-          </div>
-        </CardContent>
-      </Card>
+      <article className="rounded-lg bg-surface-card px-6 py-5 shadow-sm">
+        <div className={NOTA_PROSE_CLASSNAME}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{nota.contenido}</ReactMarkdown>
+        </div>
+      </article>
 
       <AlertDialog open={borrarOpen} onOpenChange={setBorrarOpen}>
         <AlertDialogContent>
@@ -109,12 +104,12 @@ export default function NotaDetailPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" disabled={borrando} onClick={handleBorrar}>
+            <AlertDialogAction variant="destructive" loading={borrando} onClick={handleBorrar}>
               {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageContainer>
   );
 }

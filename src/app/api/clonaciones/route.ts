@@ -92,7 +92,7 @@ async function crearFrascosLiquidosDirectos(
 ) {
   const frascosToCreate = Array.from({ length: cantidadFrascos }, (_, i) => ({
     numeroGuia: `${numeroLote}-L${String(i + 1).padStart(2, "0")}`,
-    estado: "valido" as const,
+    estado: "colonizando" as const,
     fechaCreacion: fechaInicio,
   }));
 

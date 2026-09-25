@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Plus, MoreHorizontal, TriangleAlert } from "lucide-react";
+import {
+  PlusIcon,
+  DotsThreeIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  WarningCircleIcon,
+  TrashIcon,
+} from "@phosphor-icons/react";
 import {
   Table,
   TableBody,
@@ -12,41 +19,45 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatFechaCorta } from "@/lib/format";
-import {
-  RECIPIENTE_ESTADO_BADGE_VARIANT,
-  RECIPIENTE_ESTADOS_TERMINALES,
-} from "@/lib/constants";
+import { SectionCard } from "@/components/kallampa/SectionCard";
+import { StatusTag } from "@/components/kallampa/StatusTag";
+import { ProgressDays } from "@/components/kallampa/ProgressDays";
+import { EmptyState } from "@/components/kallampa/PageHeader";
+import { useFormat } from "@/components/kallampa/useFormat";
+import { RECIPIENTE_ESTADOS_TERMINALES } from "@/lib/constants";
 import { alertaRecipiente, getOrigenFrascosLabel } from "@/lib/recipiente-utils";
-import type { FungusType, Recipiente } from "@/lib/types";
+import type { FungusType, Jar, Recipiente } from "@/lib/types";
 import { NuevoRecipienteSheet } from "./NuevoRecipienteSheet";
 import { FructificarSheet } from "./FructificarSheet";
 import { RecipienteEstadoDialog } from "./RecipienteEstadoDialog";
+import { diasIncubacion, nombreSustrato } from "./lote-view";
 
 interface RecipientesTableProps {
   batchId: string;
   fungusType: FungusType;
+  jars: Jar[];
   recipientes: Recipiente[];
   onChanged: () => void;
 }
 
 type EstadoObjetivo = "finalizado" | "contaminado" | "descartado";
 
+/** Seccion "02 Incubacion": recipientes del lote y sus acciones. */
 export function RecipientesTable({
   batchId,
   fungusType,
+  jars,
   recipientes,
   onChanged,
 }: RecipientesTableProps) {
   const t = useTranslations("components.recipientesTable");
-  const tEstado = useTranslations("estados.recipiente");
+  const fmt = useFormat();
   const [nuevoOpen, setNuevoOpen] = useState(false);
   const [fructificarTarget, setFructificarTarget] = useState<Recipiente | null>(null);
   const [estadoTarget, setEstadoTarget] = useState<{
@@ -54,110 +65,103 @@ export function RecipientesTable({
     estado: EstadoObjetivo;
   } | null>(null);
 
-  function nombreSustrato(r: Recipiente) {
-    return typeof r.tipoSustratoId === "object" ? r.tipoSustratoId.nombre : "—";
-  }
-
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">{t("title", { count: recipientes.length })}</h2>
-        <Button size="sm" onClick={() => setNuevoOpen(true)}>
-          <Plus /> {t("nuevaIncubacion")}
+    <SectionCard
+      number="02"
+      title={t("title")}
+      meta={t("meta", { count: recipientes.length })}
+      actions={
+        <Button onClick={() => setNuevoOpen(true)}>
+          <PlusIcon /> {t("nuevaIncubacion")}
         </Button>
-      </div>
-
+      }
+    >
       {recipientes.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("emptyState")}</p>
+        <EmptyState>{t("emptyState")}</EmptyState>
       ) : (
-        <Table>
+        <Table minWidth={720}>
           <TableHeader>
             <TableRow>
               <TableHead>{t("numeroSeguimiento")}</TableHead>
               <TableHead>{t("origen")}</TableHead>
               <TableHead>{t("sustrato")}</TableHead>
-              <TableHead>{t("pesoKg")}</TableHead>
+              <TableHead className="text-right">{t("peso")}</TableHead>
               <TableHead>{t("estado")}</TableHead>
-              <TableHead>{t("inicioIncubacion")}</TableHead>
               <TableHead>{t("dias")}</TableHead>
-              <TableHead className="w-8" />
+              <TableHead className="w-10">
+                <span className="sr-only">{t("acciones")}</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {recipientes.map((r) => {
-              const alerta = alertaRecipiente(r);
               const esTerminal = RECIPIENTE_ESTADOS_TERMINALES.includes(r.estado);
+              const dias = diasIncubacion(r);
+              const demorado = r.estado === "incubando" && alertaRecipiente(r).demorado;
               return (
                 <TableRow key={r._id}>
-                  <TableCell className="font-medium">{r.numeroSeguimiento}</TableCell>
-                  <TableCell className="max-w-48 truncate text-muted-foreground">
+                  <TableCell>{r.numeroSeguimiento}</TableCell>
+                  <TableCell className="max-w-48 truncate text-text-muted">
                     {getOrigenFrascosLabel(r)}
                   </TableCell>
                   <TableCell>{nombreSustrato(r)}</TableCell>
-                  <TableCell>{r.pesoSustratoKg.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">{fmt.kg(r.pesoSustratoKg)}</TableCell>
                   <TableCell>
-                    <Badge variant={RECIPIENTE_ESTADO_BADGE_VARIANT[r.estado]}>
-                      {tEstado(r.estado)}
-                    </Badge>
+                    <StatusTag kind="recipiente" estado={r.estado} />
                   </TableCell>
-                  <TableCell>{formatFechaCorta(r.fechaInicioIncubacion)}</TableCell>
                   <TableCell>
-                    {r.estado === "incubando" ? (
-                      <span
-                        className={
-                          alerta.demorado ? "flex items-center gap-1 text-destructive" : ""
-                        }
-                      >
-                        {alerta.demorado && <TriangleAlert className="size-3.5 shrink-0" />}
-                        {alerta.diasTranscurridos ?? "—"}
-                        {alerta.diasEsperados ? ` / ${alerta.diasEsperados}` : ""}
-                      </span>
+                    {dias !== null ? (
+                      <ProgressDays
+                        value={dias}
+                        total={r.diasEsperadosIncubacion}
+                        estado={r.estado === "incubando" ? "incubando" : "finalizado"}
+                        late={demorado}
+                      />
                     ) : (
-                      "—"
+                      <span className="text-text-subtle">—</span>
                     )}
                   </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        render={
-                          <Button variant="ghost" size="icon-sm">
-                            <MoreHorizontal />
-                          </Button>
-                        }
-                      />
-                      <DropdownMenuContent>
-                        {r.estado === "incubando" && (
-                          <DropdownMenuItem onClick={() => setFructificarTarget(r)}>
-                            {t("pasarAFructificacion")}
+                  <TableCell className="text-right">
+                    {!esTerminal && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label={t("accionesDe", { codigo: r.numeroSeguimiento })}
+                              className="text-text-muted hover:text-foreground"
+                            >
+                              <DotsThreeIcon weight="bold" />
+                            </Button>
+                          }
+                        />
+                        <DropdownMenuContent align="end" className="min-w-52">
+                          {r.estado === "incubando" && (
+                            <DropdownMenuItem onClick={() => setFructificarTarget(r)}>
+                              <ArrowRightIcon /> {t("pasarAFructificacion")}
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            onClick={() => setEstadoTarget({ recipiente: r, estado: "finalizado" })}
+                          >
+                            <CheckIcon /> {t("marcarFinalizado")}
                           </DropdownMenuItem>
-                        )}
-                        {!esTerminal && (
-                          <>
-                            <DropdownMenuItem
-                              onClick={() => setEstadoTarget({ recipiente: r, estado: "finalizado" })}
-                            >
-                              {t("marcarFinalizado")}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              variant="destructive"
-                              onClick={() =>
-                                setEstadoTarget({ recipiente: r, estado: "contaminado" })
-                              }
-                            >
-                              {t("marcarContaminado")}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              variant="destructive"
-                              onClick={() =>
-                                setEstadoTarget({ recipiente: r, estado: "descartado" })
-                              }
-                            >
-                              {t("marcarDescartado")}
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => setEstadoTarget({ recipiente: r, estado: "contaminado" })}
+                          >
+                            <WarningCircleIcon /> {t("marcarContaminado")}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => setEstadoTarget({ recipiente: r, estado: "descartado" })}
+                          >
+                            <TrashIcon /> {t("marcarDescartado")}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </TableCell>
                 </TableRow>
               );
@@ -171,6 +175,7 @@ export function RecipientesTable({
         onOpenChange={setNuevoOpen}
         batchId={batchId}
         fungusType={fungusType}
+        jars={jars}
         onSuccess={onChanged}
       />
 
@@ -198,6 +203,6 @@ export function RecipientesTable({
           onSuccess={onChanged}
         />
       )}
-    </div>
+    </SectionCard>
   );
 }

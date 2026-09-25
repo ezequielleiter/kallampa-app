@@ -1,0 +1,24 @@
+<!-- @dsCard group="Components" viewport="700x300" subtitle="Cards, secciones numeradas y pendientes" name="Layout" -->
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Kallampa · Layout</title>
+<link rel="stylesheet" href="../../../styles.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<style>body{margin:0;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);-webkit-font-smoothing:antialiased}a{color:var(--color-accent-300);text-decoration:none}a:hover{color:var(--color-accent-100)}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<script src="../../dev/load-components.js"></script>
+</head><body style="padding:20px"><div id="root"></div>
+<script type="text/babel">
+window.kallampaReady.then(NS => {
+
+const { Card, SectionCard, PendingList, Button, Tag } = NS;
+function Demo() { return (<div style={{ display: 'grid', gridTemplateColumns: '1fr 240px', gap: 14, alignItems: 'start' }}>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <SectionCard number="01" title="Inoculación en grano" meta="Arroz · 10 kg · $600/kg · 5 frascos" aside={<><Tag tone="accent">1 colonizado</Tag><Tag tone="danger">1 contaminado</Tag></>} />
+    <SectionCard number="02" title="Incubación" meta="3 recipientes · 1 incubando" actions={<Button icon="plus">Nueva incubación</Button>}><Card inset padding="12px 14px"><span style={{ fontSize: 12.5, color: 'var(--text-subtle)' }}>Todavía no se registraron oleadas.</span></Card></SectionCard>
+  </div>
+  <PendingList items={[{ icon: 'hourglass-medium', text: 'R03 incubando en Carpa 2: día 4 de 14' }, { icon: 'basket', text: 'R02: primera oleada esperada ≈ 05/10' }, { icon: 'warning-circle', text: 'F04 contaminado: descartar', tone: 'danger' }]} />
+</div>); }
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+});
+</script></body></html>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,7 +9,6 @@ import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -16,7 +16,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PlantIcon, FlaskIcon, PlusIcon } from "@phosphor-icons/react";
+import { PageContainer, PageHeader } from "@/components/kallampa/PageHeader";
+import { Field } from "@/components/kallampa/Field";
+import { SegmentedControl } from "@/components/kallampa/SegmentedControl";
+import { ChoiceList } from "@/components/kallampa/ChoiceList";
+import { StatusTag } from "@/components/kallampa/StatusTag";
+import { useBreadcrumbs } from "@/components/shared/Breadcrumbs";
 import { apiFetch } from "@/lib/api-client";
 import { translateErrorMessage } from "@/lib/error-messages";
 import type { FungusType, GrainType, Batch, FrascoLiquido } from "@/lib/types";
@@ -35,6 +41,8 @@ type OrigenLote = "hongo" | "frascoLiquido";
 export default function NuevoLotePage() {
   const router = useRouter();
   const t = useTranslations("pages.loteNuevo");
+  const tLotes = useTranslations("pages.lotes");
+  const tNav = useTranslations("nav");
   const [origen, setOrigen] = useState<OrigenLote>("hongo");
   const [fungusTypes, setFungusTypes] = useState<FungusType[]>([]);
   const [grainTypes, setGrainTypes] = useState<GrainType[]>([]);
@@ -52,6 +60,12 @@ export default function NuevoLotePage() {
     resolver: zodResolver(createBatchSchema),
   });
 
+  useBreadcrumbs([
+    { label: tNav("produccion"), href: "/" },
+    { label: tLotes("title"), href: "/" },
+    { label: t("title") },
+  ]);
+
   useEffect(() => {
     apiFetch<FungusType[]>("/api/fungus-types?activo=true").then(setFungusTypes);
     apiFetch<GrainType[]>("/api/grain-types?activo=true").then(setGrainTypes);
@@ -61,7 +75,7 @@ export default function NuevoLotePage() {
     if (origen !== "frascoLiquido" || frascosLiquidos.length > 0) return;
     void Promise.resolve().then(() => {
       setLoadingFrascosLiquidos(true);
-      apiFetch<FrascoLiquido[]>("/api/frascos-liquidos?estado=valido")
+      apiFetch<FrascoLiquido[]>("/api/frascos-liquidos?estado=colonizado")
         .then(setFrascosLiquidos)
         .finally(() => setLoadingFrascosLiquidos(false));
     });
@@ -108,235 +122,206 @@ export default function NuevoLotePage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-lg flex-col gap-4 p-4">
-      <h1 className="text-lg font-semibold">{t("title")}</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("cardTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("origenLote")}</Label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={origen === "hongo" ? "default" : "outline"}
-                  onClick={() => handleOrigenChange("hongo")}
-                >
-                  {t("tipoHongo")}
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={origen === "frascoLiquido" ? "default" : "outline"}
-                  onClick={() => handleOrigenChange("frascoLiquido")}
-                >
-                  {t("frascoLiquido")}
-                </Button>
-              </div>
-              {errors.fungusTypeId && origen === "frascoLiquido" && (
-                <p className="text-xs text-destructive">
-                  {translateErrorMessage(errors.fungusTypeId.message)}
-                </p>
-              )}
-            </div>
+    <PageContainer className="max-w-3xl">
+      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <form
+        className="flex flex-col gap-4 rounded-lg bg-surface-card px-5 py-[18px] shadow-sm"
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+      >
+        <Field
+          label={t("origenLote")}
+          error={
+            origen === "frascoLiquido" && errors.fungusTypeId
+              ? translateErrorMessage(errors.fungusTypeId.message)
+              : undefined
+          }
+        >
+          <SegmentedControl<OrigenLote>
+            aria-label={t("origenLote")}
+            value={origen}
+            onChange={handleOrigenChange}
+            options={[
+              { value: "hongo", label: t("tipoHongo"), icon: <PlantIcon /> },
+              { value: "frascoLiquido", label: t("frascoLiquido"), icon: <FlaskIcon /> },
+            ]}
+          />
+        </Field>
 
-            {origen === "hongo" ? (
-              <div className="flex flex-col gap-1.5">
-                <Label>{t("tipoHongo")}</Label>
-                <Controller
-                  control={control}
-                  name="fungusTypeId"
-                  render={({ field }) => (
-                    <Select
-                      items={fungusTypes.map((f) => ({ label: f.nombre, value: f._id }))}
-                      value={field.value}
-                      onValueChange={(v) => handleFungusChange(v, field.onChange)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={t("elegirHongo")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {fungusTypes.map((f) => (
-                          <SelectItem key={f._id} value={f._id}>
-                            {f.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
+        {origen === "hongo" ? (
+          <Field
+            label={t("tipoHongo")}
+            error={errors.fungusTypeId && translateErrorMessage(errors.fungusTypeId.message)}
+          >
+            <Controller
+              control={control}
+              name="fungusTypeId"
+              render={({ field }) => (
+                <Select
+                  items={fungusTypes.map((f) => ({ label: f.nombre, value: f._id }))}
+                  value={field.value ?? null}
+                  onValueChange={(v) => handleFungusChange(v, field.onChange)}
+                >
+                  <SelectTrigger className="w-full" aria-invalid={!!errors.fungusTypeId}>
+                    <SelectValue placeholder={t("elegirHongo")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fungusTypes.map((f) => (
+                      <SelectItem key={f._id} value={f._id}>
+                        {f.nombre}
+                        {f.nombreCientifico && (
+                          <span className="text-text-subtle italic">{f.nombreCientifico}</span>
+                        )}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </Field>
+        ) : (
+          <Field
+            label={t("frascoLiquido")}
+            hint={t("frascoLiquidoHint")}
+            error={
+              errors.origenFrascoLiquidoId &&
+              translateErrorMessage(errors.origenFrascoLiquidoId.message)
+            }
+          >
+            <Controller
+              control={control}
+              name="origenFrascoLiquidoId"
+              render={({ field }) => (
+                <ChoiceList
+                  type="radio"
+                  value={field.value ?? undefined}
+                  onChange={(v) => handleFrascoLiquidoChange(v, field.onChange)}
+                  invalid={!!errors.origenFrascoLiquidoId}
+                  empty={loadingFrascosLiquidos ? t("loading") : t("noFrascosLiquidos")}
+                  items={frascosLiquidos.map((f) => ({
+                    value: f._id,
+                    label: f.numeroGuia,
+                    meta: frascoLiquidoHongoNombre(f),
+                    aside: <StatusTag kind="frascoLiquido" estado={f.estado} />,
+                  }))}
                 />
-                {errors.fungusTypeId && (
-                  <p className="text-xs text-destructive">
-                    {translateErrorMessage(errors.fungusTypeId.message)}
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col gap-1.5">
-                <Label>{t("frascoLiquido")}</Label>
-                <p className="text-xs text-muted-foreground">{t("frascoLiquidoHint")}</p>
-                <Controller
-                  control={control}
-                  name="origenFrascoLiquidoId"
-                  render={({ field }) => (
-                    <Select
-                      items={frascosLiquidos.map((f) => ({
-                        label: `${f.numeroGuia} — ${frascoLiquidoHongoNombre(f)}`,
-                        value: f._id,
-                      }))}
-                      value={field.value}
-                      onValueChange={(v) => handleFrascoLiquidoChange(v, field.onChange)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue
-                          placeholder={
-                            loadingFrascosLiquidos
-                              ? t("loading")
-                              : frascosLiquidos.length === 0
-                                ? t("noFrascosLiquidos")
-                                : t("elegirFrasco")
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {frascosLiquidos.map((f) => (
-                          <SelectItem key={f._id} value={f._id}>
-                            {f.numeroGuia} — {frascoLiquidoHongoNombre(f)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {errors.origenFrascoLiquidoId && (
-                  <p className="text-xs text-destructive">
-                    {translateErrorMessage(errors.origenFrascoLiquidoId.message)}
-                  </p>
-                )}
-              </div>
+              )}
+            />
+          </Field>
+        )}
+
+        <Field
+          label={t("tipoGrano")}
+          error={errors.tipoGranoId && translateErrorMessage(errors.tipoGranoId.message)}
+        >
+          <Controller
+            control={control}
+            name="tipoGranoId"
+            render={({ field }) => (
+              <Select
+                items={grainTypes.map((g) => ({ label: g.nombre, value: g._id }))}
+                value={field.value ?? null}
+                onValueChange={field.onChange}
+              >
+                <SelectTrigger className="w-full" aria-invalid={!!errors.tipoGranoId}>
+                  <SelectValue placeholder={t("elegirGrano")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {grainTypes.map((g) => (
+                    <SelectItem key={g._id} value={g._id}>
+                      {g.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
+          />
+        </Field>
 
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("tipoGrano")}</Label>
-              <Controller
-                control={control}
-                name="tipoGranoId"
-                render={({ field }) => (
-                  <Select
-                    items={grainTypes.map((g) => ({ label: g.nombre, value: g._id }))}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={t("elegirGrano")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {grainTypes.map((g) => (
-                        <SelectItem key={g._id} value={g._id}>
-                          {g.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.tipoGranoId && (
-                <p className="text-xs text-destructive">
-                  {translateErrorMessage(errors.tipoGranoId.message)}
-                </p>
-              )}
-            </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Field
+            label={t("pesoGrano")}
+            error={errors.pesoGranoKg && translateErrorMessage(errors.pesoGranoKg.message)}
+          >
+            <Input
+              type="number"
+              step="any"
+              inputMode="decimal"
+              suffix="kg"
+              placeholder="0,00"
+              aria-invalid={!!errors.pesoGranoKg}
+              {...register("pesoGranoKg", {
+                setValueAs: (v) => (v === "" ? undefined : Number(v)),
+              })}
+            />
+          </Field>
+          <Field
+            label={t("precioPorKg")}
+            error={errors.precioPorKg && translateErrorMessage(errors.precioPorKg.message)}
+          >
+            <Input
+              type="number"
+              step="any"
+              inputMode="decimal"
+              prefix="$"
+              aria-invalid={!!errors.precioPorKg}
+              {...register("precioPorKg", {
+                setValueAs: (v) => (v === "" ? undefined : Number(v)),
+              })}
+            />
+          </Field>
+          <Field
+            label={t("cantidadFrascos")}
+            error={errors.cantidadFrascos && translateErrorMessage(errors.cantidadFrascos.message)}
+          >
+            <Input
+              type="number"
+              inputMode="numeric"
+              aria-invalid={!!errors.cantidadFrascos}
+              {...register("cantidadFrascos", {
+                setValueAs: (v) => (v === "" ? undefined : Number(v)),
+              })}
+            />
+          </Field>
+        </div>
 
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("pesoGrano")}</Label>
-              <Input
-                type="number"
-                step="any"
-                {...register("pesoGranoKg", {
-                  setValueAs: (v) => (v === "" ? undefined : Number(v)),
-                })}
-              />
-              {errors.pesoGranoKg && (
-                <p className="text-xs text-destructive">
-                  {translateErrorMessage(errors.pesoGranoKg.message)}
-                </p>
-              )}
-            </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Field
+            label={t("fechaInoculacion")}
+            error={errors.fechaInicio && translateErrorMessage(errors.fechaInicio.message)}
+          >
+            <Input
+              type="date"
+              defaultValue={new Date().toISOString().slice(0, 10)}
+              {...register("fechaInicio")}
+            />
+          </Field>
+          <Field
+            label={t("diasEsperados")}
+            className="sm:col-span-2"
+            error={errors.diasEsperados && translateErrorMessage(errors.diasEsperados.message)}
+          >
+            <Input
+              type="number"
+              inputMode="numeric"
+              className="sm:max-w-40"
+              aria-invalid={!!errors.diasEsperados}
+              {...register("diasEsperados", {
+                setValueAs: (v) => (v === "" ? undefined : Number(v)),
+              })}
+            />
+          </Field>
+        </div>
 
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("precioPorKg")}</Label>
-              <Input
-                type="number"
-                step="any"
-                {...register("precioPorKg", {
-                  setValueAs: (v) => (v === "" ? undefined : Number(v)),
-                })}
-              />
-              {errors.precioPorKg && (
-                <p className="text-xs text-destructive">
-                  {translateErrorMessage(errors.precioPorKg.message)}
-                </p>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("cantidadFrascos")}</Label>
-              <Input
-                type="number"
-                {...register("cantidadFrascos", {
-                  setValueAs: (v) => (v === "" ? undefined : Number(v)),
-                })}
-              />
-              {errors.cantidadFrascos && (
-                <p className="text-xs text-destructive">
-                  {translateErrorMessage(errors.cantidadFrascos.message)}
-                </p>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("fechaInoculacion")}</Label>
-              <Input
-                type="date"
-                defaultValue={new Date().toISOString().slice(0, 10)}
-                {...register("fechaInicio")}
-              />
-              {errors.fechaInicio && (
-                <p className="text-xs text-destructive">
-                  {translateErrorMessage(errors.fechaInicio.message)}
-                </p>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("diasEsperados")}</Label>
-              <Input
-                type="number"
-                {...register("diasEsperados", {
-                  setValueAs: (v) => (v === "" ? undefined : Number(v)),
-                })}
-              />
-              {errors.diasEsperados && (
-                <p className="text-xs text-destructive">
-                  {translateErrorMessage(errors.diasEsperados.message)}
-                </p>
-              )}
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => router.push("/")}>
-                {t("cancel")}
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {t("submit")}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+        <div className="-mx-5 mt-1 -mb-[18px] flex justify-end gap-2 rounded-b-lg border-t border-divider bg-surface-inset px-5 py-3">
+          <Button type="button" variant="outline" render={<Link href="/" />}>
+            {t("cancel")}
+          </Button>
+          <Button type="submit" loading={isSubmitting}>
+            <PlusIcon /> {t("submit")}
+          </Button>
+        </div>
+      </form>
+    </PageContainer>
   );
 }

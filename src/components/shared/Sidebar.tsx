@@ -4,39 +4,23 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import {
-  Sprout,
-  FlaskConical,
-  Network,
-  StickyNote,
-  Tag,
-  BookOpen,
-  BarChart3,
-  CalendarDays,
-  LogOut,
-} from "lucide-react";
+import { GearIcon, SignOutIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { clearSession, getSession, type Session } from "@/lib/session";
-import { useAppLocale } from "@/components/shared/LocaleProvider";
+import { AccountSettingsDialog } from "@/components/shared/AccountSettingsDialog";
+import { Logo } from "@/components/kallampa/Logo";
+import { NAV_LINKS, navLinkForPath } from "@/components/shared/nav";
 
-const NAV_LINKS = [
-  { href: "/", key: "produccion" as const, icon: Sprout },
-  { href: "/clonacion", key: "micelio" as const, icon: FlaskConical },
-  { href: "/calendario", key: "calendario" as const, icon: CalendarDays },
-  { href: "/trazabilidad", key: "trazabilidad" as const, icon: Network },
-  { href: "/notas", key: "notas" as const, icon: StickyNote },
-  { href: "/frascos", key: "frascos" as const, icon: Tag },
-  { href: "/catalogos", key: "catalogos" as const, icon: BookOpen },
-  { href: "/estadisticas", key: "estadisticas" as const, icon: BarChart3 },
-];
+const itemClassName =
+  "flex items-center gap-2.5 rounded-md px-2.5 py-[7px] text-[13.5px] transition-colors [&_svg]:size-4 [&_svg]:shrink-0";
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const t = useTranslations("nav");
-  const tCommon = useTranslations("common");
-  const { locale, setLocale } = useAppLocale();
+  const activeHref = navLinkForPath(pathname)?.href;
 
   useEffect(() => {
     void Promise.resolve().then(() => setSession(getSession()));
@@ -47,77 +31,62 @@ export function Sidebar() {
     router.push("/login");
   }
 
+  const username = session?.user.username;
+
   return (
-    <aside className="flex h-full w-56 shrink-0 flex-col border-r border-border bg-background">
-      <Link
-        href="/"
-        className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-4 text-base font-semibold"
-      >
-        🍄 {tCommon("appName")}
+    <aside className="sticky top-0 flex h-dvh w-(--sidebar-width) shrink-0 flex-col gap-0.5 border-r border-divider px-2.5 py-4">
+      <Link href="/" className="rounded-md px-2 pt-0.5 pb-[18px]">
+        <Logo size={24} />
       </Link>
-      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2">
+      <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto">
         {NAV_LINKS.map((link) => {
-          const active =
-            link.href === "/" ? pathname === "/" : pathname?.startsWith(link.href);
+          const active = link.href === activeHref;
           const Icon = link.icon;
           return (
             <Link
               key={link.href}
               href={link.href}
+              aria-current={active ? "page" : undefined}
               className={cn(
-                "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
+                itemClassName,
                 active
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "bg-surface-selected text-foreground shadow-[inset_2px_0_0_var(--color-accent)]"
+                  : "text-text-muted hover:bg-hover hover:text-foreground"
               )}
             >
-              <Icon className="size-4 shrink-0" />
+              <Icon />
               {t(link.key)}
             </Link>
           );
         })}
       </nav>
-      <div className="flex flex-col gap-2 border-t border-border p-3">
-        {session && (
-          <p className="truncate px-1 text-sm font-medium text-foreground">
-            {session.user.username}
-          </p>
+      <div className="mt-auto flex flex-col gap-0.5 border-t border-divider pt-3">
+        {username && (
+          <div className="flex items-center gap-2 px-2.5 py-1.5 text-[13px]">
+            <span className="grid size-6 shrink-0 place-items-center rounded-full bg-accent-800 text-[11px]">
+              {username.slice(0, 1).toUpperCase()}
+            </span>
+            <span className="truncate">{username}</span>
+          </div>
         )}
-        <div className="flex items-center gap-1 px-1" aria-label={tCommon("language")}>
-          <button
-            type="button"
-            onClick={() => setLocale("es")}
-            className={cn(
-              "rounded px-1.5 py-0.5 text-xs font-medium transition-colors",
-              locale === "es"
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-muted"
-            )}
-          >
-            ES
-          </button>
-          <button
-            type="button"
-            onClick={() => setLocale("en")}
-            className={cn(
-              "rounded px-1.5 py-0.5 text-xs font-medium transition-colors",
-              locale === "en"
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-muted"
-            )}
-          >
-            EN
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setSettingsOpen(true)}
+          className={cn(itemClassName, "text-[13px] text-text-muted hover:bg-hover hover:text-foreground")}
+        >
+          <GearIcon />
+          {t("settings")}
+        </button>
         <button
           type="button"
           onClick={handleLogout}
-          className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className={cn(itemClassName, "text-[13px] text-text-muted hover:bg-hover hover:text-foreground")}
         >
-          <LogOut className="size-4 shrink-0" />
+          <SignOutIcon />
           {t("logout")}
         </button>
       </div>
+      <AccountSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </aside>
   );
 }

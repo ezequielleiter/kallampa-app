@@ -27,7 +27,7 @@ describe("POST /api/frascos-liquidos", () => {
 
     expect(f1.numeroGuia).toBe(`${clonacion.numeroLote}-L01`);
     expect(f2.numeroGuia).toBe(`${clonacion.numeroLote}-L02`);
-    expect(f1.estado).toBe("valido");
+    expect(f1.estado).toBe("colonizando");
     expect(String(f1.clonacionId)).toBe(clonacion._id);
 
     // La placa de origen no cambia de estado (se puede reusar).
@@ -115,7 +115,7 @@ describe("GET /api/frascos-liquidos", () => {
 
     const { json } = await callRoute(GET, {
       headers,
-      searchParams: { estado: "valido,contaminado" },
+      searchParams: { estado: "colonizando,contaminado" },
     });
     expect(json.data).toHaveLength(2);
   });

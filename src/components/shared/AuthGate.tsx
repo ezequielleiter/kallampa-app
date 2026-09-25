@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Header } from "@/components/shared/Header";
 import { Sidebar } from "@/components/shared/Sidebar";
+import { BreadcrumbsProvider } from "@/components/shared/Breadcrumbs";
 import { getSession } from "@/lib/session";
 
 const PUBLIC_ROUTES = ["/login", "/registro"];
@@ -33,13 +34,16 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     return null;
   }
 
+  // Sidebar fija de 208px + columna de contenido con topbar pegajosa.
   return (
-    <>
-      <Sidebar />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Header />
-        <main className="flex-1 overflow-y-auto">{children}</main>
+    <BreadcrumbsProvider>
+      <div className="grid min-h-dvh grid-cols-[var(--sidebar-width)_minmax(0,1fr)]">
+        <Sidebar />
+        <div className="flex min-w-0 flex-col">
+          <Header />
+          <main className="flex min-w-0 flex-1 flex-col">{children}</main>
+        </div>
       </div>
-    </>
+    </BreadcrumbsProvider>
   );
 }

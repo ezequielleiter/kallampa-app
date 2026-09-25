@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SectionCard } from "@/components/kallampa/SectionCard";
+import { EmptyState, PageContainer, PageHeader } from "@/components/kallampa/PageHeader";
 import { KpiCards } from "@/components/stats/KpiCards";
 import { EstadoDistributionChart } from "@/components/stats/EstadoDistributionChart";
 import { AgregadoComparisonChart } from "@/components/stats/AgregadoComparisonChart";
@@ -42,25 +43,26 @@ export default function EstadisticasPage() {
       .finally(() => setLoading(false));
   }, [t]);
 
-  if (loading) {
-    return <p className="p-4 text-sm text-muted-foreground">{t("loading")}</p>;
-  }
-
-  if (!stats) {
-    return <p className="p-4 text-sm text-muted-foreground">{t("noData")}</p>;
+  if (loading || !stats) {
+    return (
+      <PageContainer>
+        <PageHeader title={t("title")} />
+        <EmptyState>{loading ? t("loading") : t("noData")}</EmptyState>
+      </PageContainer>
+    );
   }
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
-      <h1 className="text-lg font-semibold">{t("title")}</h1>
+    <PageContainer className="gap-3.5">
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle", { count: stats.kpis.totalLotes })}
+      />
 
       <KpiCards kpis={stats.kpis} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("compararLotes")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+      <SectionCard title={t("compararLotes")}>
+        <div className="flex flex-col gap-4">
           <LoteSelector
             lotes={stats.lotes}
             selectedIds={selectedLoteIds}
@@ -70,7 +72,7 @@ export default function EstadisticasPage() {
           {selectedLotes.length > 0 && (
             <>
               <LoteComparisonTable lotes={selectedLotes} />
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <AgregadoComparisonChart
                   data={comparisonData}
                   metric="eficienciaBiologicaPromedio"
@@ -98,32 +100,24 @@ export default function EstadisticasPage() {
               </div>
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("recipientesPorEstado")}</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="grid grid-cols-1 items-start gap-3.5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <SectionCard title={t("recipientesPorEstado")}>
           <EstadoDistributionChart data={stats.distribucionPorEstado} />
-        </CardContent>
-      </Card>
+        </SectionCard>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("lotesDemorados")}</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <SectionCard
+          title={t("lotesDemorados")}
+          meta={stats.lotesDemorados.length > 0 ? stats.lotesDemorados.length : undefined}
+        >
           <LotesDemoradosPanel lotes={stats.lotesDemorados} />
-        </CardContent>
-      </Card>
+        </SectionCard>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("comparativaHongo")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <SectionCard title={t("comparativaHongo")} meta={t("soloFinalizados")}>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:gap-6">
           <AgregadoComparisonChart
             data={stats.agregados.porHongo}
             metric="eficienciaBiologicaPromedio"
@@ -145,17 +139,11 @@ export default function EstadisticasPage() {
             unit="$"
             color={CHART_PALETTE[2]}
           />
-        </CardContent>
-        <CardContent className="pt-0 text-xs text-muted-foreground">
-          {t("soloFinalizados")}
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("comparativaGrano")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <SectionCard title={t("comparativaGrano")} meta={t("soloFinalizados")}>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:gap-6">
           <AgregadoComparisonChart
             data={stats.agregados.porGrano}
             metric="eficienciaBiologicaPromedio"
@@ -177,17 +165,11 @@ export default function EstadisticasPage() {
             unit="$"
             color={CHART_PALETTE[2]}
           />
-        </CardContent>
-        <CardContent className="pt-0 text-xs text-muted-foreground">
-          {t("soloFinalizados")}
-        </CardContent>
-      </Card>
+        </div>
+      </SectionCard>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("comparativaSustrato")}</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <SectionCard title={t("comparativaSustrato")} meta={t("soloFinalizados")}>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 lg:gap-6">
           <AgregadoComparisonChart
             data={stats.agregados.porSustrato}
             metric="eficienciaBiologicaPromedio"
@@ -209,11 +191,8 @@ export default function EstadisticasPage() {
             unit="$"
             color={CHART_PALETTE[2]}
           />
-        </CardContent>
-        <CardContent className="pt-0 text-xs text-muted-foreground">
-          {t("soloFinalizados")}
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </SectionCard>
+    </PageContainer>
   );
 }

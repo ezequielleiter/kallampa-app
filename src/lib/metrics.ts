@@ -325,7 +325,8 @@ export interface ResumenClonacion {
   placasColonizando: number;
   placasColonizado: number;
   placasContaminado: number;
-  frascosLiquidosValidos: number;
+  frascosLiquidosColonizando: number;
+  frascosLiquidosColonizados: number;
   frascosLiquidosVacios: number;
   frascosLiquidosFinalizados: number;
   frascosLiquidosContaminados: number;
@@ -342,7 +343,8 @@ export function resumenClonacion(
     placasColonizando: placas.filter((p) => p.estado === "colonizando").length,
     placasColonizado: placas.filter((p) => p.estado === "colonizado").length,
     placasContaminado: placas.filter((p) => p.estado === "contaminado").length,
-    frascosLiquidosValidos: frascosLiquidos.filter((f) => f.estado === "valido").length,
+    frascosLiquidosColonizando: frascosLiquidos.filter((f) => f.estado === "colonizando").length,
+    frascosLiquidosColonizados: frascosLiquidos.filter((f) => f.estado === "colonizado").length,
     frascosLiquidosVacios: frascosLiquidos.filter((f) => f.estado === "vacio").length,
     frascosLiquidosFinalizados: frascosLiquidos.filter((f) => f.estado === "finalizado").length,
     frascosLiquidosContaminados: frascosLiquidos.filter((f) => f.estado === "contaminado").length,

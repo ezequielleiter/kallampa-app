@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { Dna } from "lucide-react";
+import { GitBranchIcon } from "@phosphor-icons/react";
 import {
   Table,
   TableBody,
@@ -12,17 +12,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { StateSelect } from "@/components/kallampa/StateSelect";
+import { EmptyState } from "@/components/kallampa/PageHeader";
 import { JAR_ESTADOS, type JarEstado } from "@/lib/constants";
 import { apiFetch } from "@/lib/api-client";
 import type { Jar } from "@/lib/types";
+import { codigoCorto } from "./lote-view";
 
 interface JarsGridProps {
   jars: Jar[];
@@ -33,13 +29,18 @@ export function JarsGrid({ jars, onChanged }: JarsGridProps) {
   const t = useTranslations("components.jarsGrid");
   const tEstado = useTranslations("estados.jar");
 
-  async function handleEstadoChange(jarId: string, estado: JarEstado) {
+  async function handleEstadoChange(jar: Jar, estado: JarEstado) {
     try {
-      await apiFetch(`/api/jars/${jarId}`, {
+      await apiFetch(`/api/jars/${jar._id}`, {
         method: "PATCH",
         body: JSON.stringify({ estado }),
       });
-      toast.success(t("successMessage"));
+      toast.success(
+        t("successMessage", {
+          codigo: codigoCorto(jar.numeroGuia),
+          estado: tEstado(estado).toLowerCase(),
+        })
+      );
       onChanged();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("errorMessage"));
@@ -47,47 +48,43 @@ export function JarsGrid({ jars, onChanged }: JarsGridProps) {
   }
 
   if (jars.length === 0) {
-    return <p className="text-sm text-muted-foreground">{t("emptyState")}</p>;
+    return <EmptyState>{t("emptyState")}</EmptyState>;
   }
 
   return (
-    <Table>
+    <Table minWidth={420}>
       <TableHeader>
         <TableRow>
           <TableHead>{t("numeroGuia")}</TableHead>
           <TableHead>{t("estado")}</TableHead>
-          <TableHead className="w-32" />
+          <TableHead className="text-right">
+            <span className="sr-only">{t("acciones")}</span>
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {jars.map((jar) => (
           <TableRow key={jar._id}>
-            <TableCell className="font-medium">{jar.numeroGuia}</TableCell>
+            <TableCell>{jar.numeroGuia}</TableCell>
             <TableCell>
-              <Select
-                items={JAR_ESTADOS.map((estado) => ({
-                  label: tEstado(estado),
-                  value: estado,
-                }))}
+              <StateSelect
+                label={t("estadoDe", { codigo: jar.numeroGuia })}
                 value={jar.estado}
-                onValueChange={(v) => handleEstadoChange(jar._id, v as JarEstado)}
-              >
-                <SelectTrigger size="sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {JAR_ESTADOS.map((estado) => (
-                    <SelectItem key={estado} value={estado}>
-                      {tEstado(estado)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={JAR_ESTADOS.map((estado) => ({
+                  value: estado,
+                  label: tEstado(estado),
+                }))}
+                onChange={(v) => handleEstadoChange(jar, v as JarEstado)}
+              />
             </TableCell>
-            <TableCell>
-              {(jar.estado === "colonizado" || jar.estado === "usado") && (
-                <Button variant="ghost" size="sm" render={<Link href={`/clonacion/nueva?origenJarId=${jar._id}`} />}>
-                  <Dna /> {t("clonar")}
+            <TableCell className="text-right">
+              {jar.estado === "colonizado" && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  render={<Link href={`/clonacion/nueva?origenJarId=${jar._id}`} />}
+                >
+                  <GitBranchIcon /> {t("clonar")}
                 </Button>
               )}
             </TableCell>

@@ -38,3 +38,63 @@ export function extractoDeMarkdown(markdown: string, maxLength = 120): string {
   if (textoPlano.length <= maxLength) return textoPlano;
   return `${textoPlano.slice(0, maxLength).trimEnd()}…`;
 }
+
+// --- Numeros -----------------------------------------------------------------
+//
+// Formato del DS: coma decimal, punto de miles y espacio antes de la unidad
+// ("4,00 kg", "80,0 %", "$ 9.160"). Siempre cifras tabulares (lo resuelve el
+// CSS). En ingles se usa el formato en-US pero con la misma estructura.
+// Para usarlos desde componentes, preferir el hook `useFormat()`
+// (src/components/kallampa/useFormat.ts), que ya toma el idioma activo.
+
+export type NumberLocale = "es" | "en";
+
+const INTL_LOCALE: Record<NumberLocale, string> = { es: "es-AR", en: "en-US" };
+
+function nf(locale: NumberLocale, min: number, max = min) {
+  return new Intl.NumberFormat(INTL_LOCALE[locale], {
+    minimumFractionDigits: min,
+    maximumFractionDigits: max,
+  });
+}
+
+const DASH = "—";
+
+export function formatNumber(
+  value: number | null | undefined,
+  locale: NumberLocale = "es",
+  decimals = 0
+): string {
+  if (value == null || !Number.isFinite(value)) return DASH;
+  return nf(locale, decimals).format(value);
+}
+
+/** "4,00 kg" */
+export function formatKg(
+  value: number | null | undefined,
+  locale: NumberLocale = "es",
+  decimals = 2
+): string {
+  if (value == null || !Number.isFinite(value)) return DASH;
+  return `${nf(locale, decimals).format(value)} kg`;
+}
+
+/** "80,0 %" */
+export function formatPct(
+  value: number | null | undefined,
+  locale: NumberLocale = "es",
+  decimals = 1
+): string {
+  if (value == null || !Number.isFinite(value)) return DASH;
+  return `${nf(locale, decimals).format(value)} %`;
+}
+
+/** "$ 9.160" (sin decimales por defecto) */
+export function formatMoney(
+  value: number | null | undefined,
+  locale: NumberLocale = "es",
+  decimals = 0
+): string {
+  if (value == null || !Number.isFinite(value)) return DASH;
+  return `$ ${nf(locale, decimals).format(value)}`;
+}

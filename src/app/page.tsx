@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { Plus, TriangleAlert } from "lucide-react";
+import { PlusIcon, FlaskIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -15,17 +16,27 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { PageContainer, PageHeader, EmptyState } from "@/components/kallampa/PageHeader";
+import { SegmentedControl } from "@/components/kallampa/SegmentedControl";
+import { StatusTag } from "@/components/kallampa/StatusTag";
+import { useFormat } from "@/components/kallampa/useFormat";
+import { useBreadcrumbs } from "@/components/shared/Breadcrumbs";
 import { apiFetch } from "@/lib/api-client";
-import { formatFechaCorta } from "@/lib/format";
-import { ESTADO_DERIVADO_BADGE_VARIANT } from "@/lib/constants";
+import type { EstadoDerivado } from "@/lib/constants";
 import type { BatchListItem } from "@/lib/types";
+
+type Filtro = "todos" | EstadoDerivado;
 
 export default function Home() {
   const router = useRouter();
   const t = useTranslations("pages.lotes");
-  const tEstado = useTranslations("estados.lote");
+  const tNav = useTranslations("nav");
+  const fmt = useFormat();
   const [batches, setBatches] = useState<BatchListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filtro, setFiltro] = useState<Filtro>("todos");
+
+  useBreadcrumbs([{ label: tNav("produccion"), href: "/" }, { label: t("title") }]);
 
   const cargar = useCallback(async () => {
     setLoading(true);
@@ -43,57 +54,107 @@ export default function Home() {
     void Promise.resolve().then(() => cargar());
   }, [cargar]);
 
-  return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">{t("title")}</h1>
-        <Button size="sm" onClick={() => router.push("/lotes/nuevo")}>
-          <Plus /> {t("newBatch")}
-        </Button>
-      </div>
+  const count = (f: Filtro) =>
+    f === "todos" ? batches.length : batches.filter((b) => b.estadoDerivado === f).length;
+  const visibles = batches.filter((b) => filtro === "todos" || b.estadoDerivado === filtro);
 
-      {loading ? (
-        <p className="text-sm text-muted-foreground">{t("loading")}</p>
-      ) : batches.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("empty")}</p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("colNumero")}</TableHead>
-              <TableHead>{t("colHongo")}</TableHead>
-              <TableHead>{t("colFecha")}</TableHead>
-              <TableHead>{t("colEstado")}</TableHead>
-              <TableHead>{t("colAlertas")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {batches.map((batch) => (
-              <TableRow
-                key={batch._id}
-                className="cursor-pointer"
-                onClick={() => router.push(`/lotes/${batch._id}`)}
-              >
-                <TableCell className="font-medium">{batch.numeroLote}</TableCell>
-                <TableCell>{batch.fungusTypeId?.nombre}</TableCell>
-                <TableCell>{formatFechaCorta(batch.inoculacionGrano.fechaInicio)}</TableCell>
-                <TableCell>
-                  <Badge variant={ESTADO_DERIVADO_BADGE_VARIANT[batch.estadoDerivado]}>
-                    {tEstado(batch.estadoDerivado)}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {batch.alertas > 0 && (
-                    <Badge variant="destructive">
-                      <TriangleAlert /> {t("alertCount", { count: batch.alertas })}
-                    </Badge>
-                  )}
-                </TableCell>
+  return (
+    <PageContainer>
+      <PageHeader
+        title={t("title")}
+        subtitle={
+          loading
+            ? undefined
+            : t("subtitle", { enCurso: count("en_progreso"), finalizados: count("finalizado") })
+        }
+        actions={
+          <>
+            <SegmentedControl<Filtro>
+              aria-label={t("filterLabel")}
+              value={filtro}
+              onChange={setFiltro}
+              options={[
+                { value: "todos", label: t("filterTodos"), count: count("todos") },
+                { value: "en_progreso", label: t("filterEnCurso"), count: count("en_progreso") },
+                { value: "finalizado", label: t("filterFinalizados"), count: count("finalizado") },
+              ]}
+            />
+            <Button render={<Link href="/lotes/nuevo" />}>
+              <PlusIcon /> {t("newBatch")}
+            </Button>
+          </>
+        }
+      />
+
+      <div className="rounded-lg bg-surface-card px-4 pt-1.5 pb-2.5 shadow-sm">
+        {loading ? (
+          <EmptyState>{t("loading")}</EmptyState>
+        ) : batches.length === 0 ? (
+          <EmptyState>{t("empty")}</EmptyState>
+        ) : visibles.length === 0 ? (
+          <EmptyState>{t("emptyFiltered")}</EmptyState>
+        ) : (
+          <Table minWidth={680}>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("colNumero")}</TableHead>
+                <TableHead>{t("colHongo")}</TableHead>
+                <TableHead>{t("colOrigen")}</TableHead>
+                <TableHead>{t("colFecha")}</TableHead>
+                <TableHead>{t("colEstado")}</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-    </div>
+            </TableHeader>
+            <TableBody>
+              {visibles.map((batch) => (
+                <TableRow
+                  key={batch._id}
+                  className="cursor-pointer"
+                  onClick={() => router.push(`/lotes/${batch._id}`)}
+                >
+                  <TableCell className="font-medium">
+                    <Link
+                      href={`/lotes/${batch._id}`}
+                      className="text-foreground no-underline"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {batch.numeroLote}
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <div>{batch.fungusTypeId?.nombre}</div>
+                    {batch.fungusTypeId?.nombreCientifico && (
+                      <div className="text-[11.5px] text-text-subtle italic">
+                        {batch.fungusTypeId.nombreCientifico}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {typeof batch.origenFrascoLiquidoId === "object" ? (
+                      <span className="flex items-center gap-1.5 text-[12.5px]">
+                        <FlaskIcon className="size-4 text-accent" />
+                        {batch.origenFrascoLiquidoId.numeroGuia}
+                      </span>
+                    ) : (
+                      <span className="text-text-subtle">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{fmt.fecha(batch.inoculacionGrano.fechaInicio)}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1.5">
+                      <StatusTag kind="lote" estado={batch.estadoDerivado} />
+                      {batch.alertas > 0 && (
+                        <Badge variant="destructive">
+                          <WarningCircleIcon /> {t("alertCount", { count: batch.alertas })}
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    </PageContainer>
   );
 }

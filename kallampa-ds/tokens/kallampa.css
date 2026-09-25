@@ -1,0 +1,40 @@
+/* Kallampa — tokens de producto sobre la base Nocturne (base.css). */
+:root {
+  /* Semánticos: superficies */
+  --surface-page: var(--color-bg);
+  --surface-card: var(--color-surface);
+  --surface-inset: var(--color-neutral-900);
+  --surface-selected: var(--color-accent-900);
+  --surface-overlay: color-mix(in srgb, black 55%, transparent);
+
+  /* Semánticos: texto */
+  --text-strong: var(--color-text);
+  --text-body: color-mix(in srgb, var(--color-text) 78%, transparent);
+  --text-muted: color-mix(in srgb, var(--color-text) 64%, transparent);
+  --text-subtle: color-mix(in srgb, var(--color-text) 55%, transparent);
+  --text-accent: var(--color-accent-300);
+
+  /* Peligro / contaminación (único color fuera de la paleta mono; bajo croma) */
+  --color-danger: oklch(0.64 0.13 28);
+  --color-danger-text: oklch(0.78 0.1 28);
+  --color-danger-bg: color-mix(in oklch, oklch(0.64 0.13 28) 18%, transparent);
+
+  /* Estados de dominio */
+  --status-active: var(--color-accent);          /* colonizado, listo, fructificando */
+  --status-progress: var(--color-accent);        /* colonizando, incubando: anillo sin relleno */
+  --status-done: var(--color-neutral-500);       /* usado, finalizado, cosechado */
+  --status-danger: var(--color-danger);          /* contaminado */
+
+  /* Layout de la app */
+  --sidebar-width: 208px;
+  --topbar-height: 56px;
+  --drawer-width: 420px;
+  --dialog-width: 400px;
+  --content-max: 1360px;
+
+  /* Movimiento */
+  --ease-out: cubic-bezier(.2, .7, .2, 1);
+  --dur-fast: .15s;
+  --dur-base: .22s;
+  --dur-slow: .28s;
+}

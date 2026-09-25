@@ -9,6 +9,7 @@ import {
   makeClonacion,
   makeClonacionDirecta,
   colonizarPlacas,
+  colonizarFrascosLiquidos,
   makeFrascoLiquido,
   makeUser,
   authHeaders,
@@ -54,6 +55,8 @@ describe("GET /api/batches/[id]", () => {
     const [placaId] = await colonizarPlacas([clonacion.placas[0]], { userId: user._id, headers });
     const frasco = await makeFrascoLiquido({ userId: user._id, headers, origenPlacaId: placaId });
 
+    await colonizarFrascosLiquidos([frasco], { userId: user._id, headers });
+
     const batch = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1, origenFrascoLiquidoId: frasco._id });
 
     const { json } = await callRoute(GET, { headers, params: { id: batch._id } });
@@ -72,6 +75,8 @@ describe("GET /api/batches/[id]", () => {
       cantidadFrascos: 1,
     });
     const frasco = clonacion.frascosLiquidos[0];
+
+    await colonizarFrascosLiquidos([frasco], { userId: user._id, headers });
 
     const batch = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1, origenFrascoLiquidoId: frasco._id });
 

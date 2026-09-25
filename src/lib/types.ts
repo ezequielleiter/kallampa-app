@@ -55,6 +55,32 @@ export interface SubstrateType {
   updatedAt?: string;
 }
 
+// Dispositivo de monitoreo (microcontrolador) asociado a un invernadero. La
+// app no se comunica con el: `dominio` (host de la red local, sin
+// protocolo) se usa solo para abrir su pagina como `http://{dominio}`.
+export interface Dispositivo {
+  _id: string;
+  nombre: string;
+  dominio: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Invernadero (carpa/sala). Medidas en metros; superficie (largo ×
+// profundidad) y volumen se calculan en el cliente.
+export interface Invernadero {
+  _id: string;
+  nombre: string;
+  altoM: number;
+  largoM: number;
+  profundidadM: number;
+  notas?: string;
+  activo: boolean;
+  dispositivos: Dispositivo[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 // Sin cambios de forma respecto a v1.
 export interface Jar {
   _id: string;
@@ -226,7 +252,8 @@ export interface ClonacionResumen {
   placasColonizando: number;
   placasColonizado: number;
   placasContaminado: number;
-  frascosLiquidosValidos: number;
+  frascosLiquidosColonizando: number;
+  frascosLiquidosColonizados: number;
   frascosLiquidosVacios: number;
   frascosLiquidosFinalizados: number;
   frascosLiquidosContaminados: number;

@@ -1,5 +1,10 @@
 {
   "errors": {
+    "invernadero_no_encontrado": "Greenhouse not found",
+    "dispositivo_no_encontrado": "Device not found",
+    "dispositivo_nombre_en_uso": "There's already a device with that name in this greenhouse",
+    "dominio_invalido": "Enter a valid domain or IP (e.g. sensor-greenhouse1.local)",
+    "invernadero_nombre_en_uso": "A greenhouse with that name already exists",
     "usuario_email_en_uso": "Username or email is already in use",
     "credenciales_invalidas": "Invalid username/email or password",
     "usuario_no_encontrado": "User not found",

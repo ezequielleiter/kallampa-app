@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,19 +12,24 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
+  SheetBody,
   SheetFooter,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Field } from "@/components/kallampa/Field";
+import { Badge } from "@/components/ui/badge";
 import { apiFetch } from "@/lib/api-client";
 import type { FungusType, Recipiente } from "@/lib/types";
+import { codigoCorto } from "./lote-view";
 
-const fructificarSchema = z.object({
-  fechaInicioFructificacion: z.coerce.date(),
-  diasEsperadosFructificacion: z.number().positive().optional(),
-});
-type FructificarInput = z.infer<typeof fructificarSchema>;
+function buildSchema(positivo: string) {
+  return z.object({
+    fechaInicioFructificacion: z.coerce.date(),
+    diasEsperadosFructificacion: z.number(positivo).positive(positivo).optional(),
+  });
+}
+type FructificarInput = z.infer<ReturnType<typeof buildSchema>>;
 
 interface FructificarSheetProps {
   open: boolean;
@@ -45,12 +51,13 @@ export function FructificarSheet({
   onSuccess,
 }: FructificarSheetProps) {
   const t = useTranslations("components.fructificarSheet");
+  const schema = useMemo(() => buildSchema(t("errorPositivo")), [t]);
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm({
-    resolver: zodResolver(fructificarSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       diasEsperadosFructificacion: fungusType.diasEsperadosDefault.fructificacion,
     },
@@ -62,7 +69,7 @@ export function FructificarSheet({
         method: "POST",
         body: JSON.stringify(data),
       });
-      toast.success(t("successMessage"));
+      toast.success(t("successMessage", { codigo: codigoCorto(recipiente.numeroSeguimiento) }));
       onOpenChange(false);
       onSuccess();
     } catch (err) {
@@ -73,48 +80,41 @@ export function FructificarSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
-        <SheetHeader>
-          <SheetTitle>{t("title")}</SheetTitle>
-          <SheetDescription>{recipiente.numeroSeguimiento}</SheetDescription>
-        </SheetHeader>
-        <form
-          className="flex flex-col gap-4 px-4 py-2"
-          onSubmit={handleSubmit(onSubmit)}
-        >
-          <div className="flex flex-col gap-1.5">
-            <Label>{t("fechaInicio")}</Label>
-            <Input
-              type="date"
-              defaultValue={todayInputValue()}
-              {...register("fechaInicioFructificacion")}
-            />
-            {errors.fechaInicioFructificacion && (
-              <p className="text-xs text-destructive">
-                {errors.fechaInicioFructificacion.message}
-              </p>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label>{t("diasEsperados")}</Label>
-            <Input
-              type="number"
-              {...register("diasEsperadosFructificacion", {
-                setValueAs: (v) => (v === "" ? undefined : Number(v)),
-              })}
-            />
-            {errors.diasEsperadosFructificacion && (
-              <p className="text-xs text-destructive">
-                {errors.diasEsperadosFructificacion.message}
-              </p>
-            )}
-          </div>
-
-          <SheetFooter className="px-0">
+        <form className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit(onSubmit)} noValidate>
+          <SheetHeader
+            meta={
+              <Badge variant="secondary" className="tabular-nums">
+                {recipiente.numeroSeguimiento}
+              </Badge>
+            }
+          >
+            <SheetTitle>{t("title")}</SheetTitle>
+            <SheetDescription>{t("description")}</SheetDescription>
+          </SheetHeader>
+          <SheetBody>
+            <Field label={t("fechaInicio")} error={errors.fechaInicioFructificacion?.message}>
+              <Input
+                type="date"
+                defaultValue={todayInputValue()}
+                {...register("fechaInicioFructificacion")}
+              />
+            </Field>
+            <Field label={t("diasEsperados")} error={errors.diasEsperadosFructificacion?.message}>
+              <Input
+                type="number"
+                inputMode="numeric"
+                aria-invalid={!!errors.diasEsperadosFructificacion}
+                {...register("diasEsperadosFructificacion", {
+                  setValueAs: (v) => (v === "" ? undefined : Number(v)),
+                })}
+              />
+            </Field>
+          </SheetBody>
+          <SheetFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t("cancelar")}
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" loading={isSubmitting}>
               {t("confirmar")}
             </Button>
           </SheetFooter>

@@ -7,10 +7,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { Check } from "lucide-react";
+import { FlaskIcon, PackageIcon, PlantIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -19,7 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChoiceList } from "@/components/kallampa/ChoiceList";
+import { Field } from "@/components/kallampa/Field";
+import { EmptyState, PageContainer, PageHeader } from "@/components/kallampa/PageHeader";
+import { SegmentedControl } from "@/components/kallampa/SegmentedControl";
+import { StatusTag } from "@/components/kallampa/StatusTag";
+import { useBreadcrumbs } from "@/components/shared/Breadcrumbs";
 import { apiFetch } from "@/lib/api-client";
 import type {
   BatchListItem,
@@ -61,16 +65,22 @@ type Origen =
   | { tipo: "jar"; jar: JarDetail }
   | { tipo: "recipiente"; recipiente: RecipienteDetail };
 
-function jarGranoLabel(jar: Jar, batchesById: Record<string, BatchListItem>): string {
-  const batch = batchesById[jar.batchId];
-  if (!batch) return jar.numeroGuia;
-  return `${jar.numeroGuia} — ${batch.fungusTypeId?.nombre ?? "?"} (${batch.numeroLote})`;
-}
+const ORIGEN_ICON: Record<OrigenProceso, React.ReactNode> = {
+  placa: <FlaskIcon />,
+  comprado: <PackageIcon />,
+  frascoGrano: <PlantIcon />,
+};
 
 export default function NuevaClonacionPage() {
   const t = useTranslations("pages.clonacionNueva");
   return (
-    <Suspense fallback={<p className="p-4 text-sm text-muted-foreground">{t("loading")}</p>}>
+    <Suspense
+      fallback={
+        <PageContainer>
+          <EmptyState>{t("loading")}</EmptyState>
+        </PageContainer>
+      }
+    >
       <NuevaClonacionForm />
     </Suspense>
   );
@@ -80,6 +90,8 @@ function NuevaClonacionForm() {
   const router = useRouter();
   const t = useTranslations("pages.clonacionNueva");
   const tOrigen = useTranslations("estados.origenProceso");
+  const tNav = useTranslations("nav");
+  const tList = useTranslations("pages.clonacion");
   const searchParams = useSearchParams();
   const origenJarId = searchParams.get("origenJarId");
   const origenRecipienteId = searchParams.get("origenRecipienteId");
@@ -107,6 +119,12 @@ function NuevaClonacionForm() {
   } = useForm({
     resolver: zodResolver(nuevaClonacionSchema),
   });
+
+  useBreadcrumbs([
+    { label: tNav("micelio"), href: "/clonacion" },
+    { label: tList("title"), href: "/clonacion" },
+    { label: t("title") },
+  ]);
 
   useEffect(() => {
     apiFetch<FungusType[]>("/api/fungus-types?activo=true").then(setFungusTypes);
@@ -290,241 +308,197 @@ function NuevaClonacionForm() {
     }
   }
 
-  return (
-    <div className="mx-auto flex max-w-lg flex-col gap-4 p-4">
-      <h1 className="text-lg font-semibold">{t("title")}</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("cardTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("origenProceso")}</Label>
-              <div className="flex gap-2">
-                {(["placa", "comprado", "frascoGrano"] as OrigenProceso[]).map((op) => (
-                  <Button
-                    key={op}
-                    type="button"
-                    size="sm"
-                    variant={origenProceso === op ? "default" : "outline"}
-                    onClick={() => handleOrigenProcesoChange(op)}
-                  >
-                    {tOrigen(op)}
-                  </Button>
-                ))}
-              </div>
-            </div>
+  const hongoSelect = (
+    <Controller
+      control={control}
+      name="fungusTypeId"
+      render={({ field }) => (
+        <Select
+          items={fungusTypes.map((f) => ({ label: f.nombre, value: f._id }))}
+          value={field.value ?? null}
+          onValueChange={(v) => handleFungusChange(v, field.onChange)}
+        >
+          <SelectTrigger className="w-full" aria-invalid={!!errors.fungusTypeId || undefined}>
+            <SelectValue placeholder={t("elegirHongo")} />
+          </SelectTrigger>
+          <SelectContent>
+            {fungusTypes.map((f) => (
+              <SelectItem key={f._id} value={f._id}>
+                {f.nombre}
+                {f.nombreCientifico && (
+                  <span className="text-text-subtle italic">{f.nombreCientifico}</span>
+                )}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+    />
+  );
 
-            {origenProceso === "placa" && (
-              <div className="flex flex-col gap-1.5">
-                <Label>{t("tipoHongo")}</Label>
-                {loadingOrigen ? (
-                  <p className="text-sm text-muted-foreground">{t("loadingOrigen")}</p>
-                ) : origen.tipo === "jar" ? (
-                  <>
-                    <p className="text-sm font-medium">{origen.jar.batch.fungusTypeId?.nombre}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t("heredaDeLote", {
+  return (
+    <PageContainer className="max-w-[720px]">
+      <PageHeader title={t("title")} subtitle={t("subtitle")} />
+      <form
+        className="flex flex-col gap-4 rounded-lg bg-surface-card px-5 py-[18px] shadow-sm"
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+      >
+        <Field label={t("origenProceso")}>
+          <SegmentedControl<OrigenProceso>
+            block
+            aria-label={t("origenProceso")}
+            value={origenProceso}
+            onChange={handleOrigenProcesoChange}
+            options={(["placa", "comprado", "frascoGrano"] as OrigenProceso[]).map((op) => ({
+              value: op,
+              label: tOrigen(op),
+              icon: ORIGEN_ICON[op],
+            }))}
+          />
+        </Field>
+
+        {origenProceso === "placa" &&
+          (loadingOrigen ? (
+            <Field label={t("tipoHongo")}>
+              <p className="m-0 text-[13px] text-text-subtle">{t("loadingOrigen")}</p>
+            </Field>
+          ) : origen.tipo !== "ninguno" ? (
+            <Field label={t("tipoHongo")}>
+              <div className="rounded-md bg-surface-inset px-3 py-2.5">
+                <div className="text-[13.5px] font-medium">
+                  {origen.tipo === "jar"
+                    ? origen.jar.batch.fungusTypeId?.nombre
+                    : origen.recipiente.batch.fungusTypeId?.nombre}
+                </div>
+                <div className="mt-0.5 text-xs text-text-subtle">
+                  {origen.tipo === "jar"
+                    ? t("heredaDeLote", {
                         numeroLote: origen.jar.batch.numeroLote,
                         codigo: origen.jar.numeroGuia,
-                      })}
-                    </p>
-                  </>
-                ) : origen.tipo === "recipiente" ? (
-                  <>
-                    <p className="text-sm font-medium">
-                      {origen.recipiente.batch.fungusTypeId?.nombre}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t("heredaDeLote", {
+                      })
+                    : t("heredaDeLote", {
                         numeroLote: origen.recipiente.batch.numeroLote,
                         codigo: origen.recipiente.numeroSeguimiento,
                       })}
-                    </p>
-                  </>
-                ) : (
-                  <Controller
-                    control={control}
-                    name="fungusTypeId"
-                    render={({ field }) => (
-                      <Select
-                        items={fungusTypes.map((f) => ({ label: f.nombre, value: f._id }))}
-                        value={field.value ?? null}
-                        onValueChange={(v) => handleFungusChange(v, field.onChange)}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder={t("elegirHongo")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {fungusTypes.map((f) => (
-                            <SelectItem key={f._id} value={f._id}>
-                              {f.nombre}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                )}
-                {errors.fungusTypeId && (
-                  <p className="text-xs text-destructive">{errors.fungusTypeId.message}</p>
-                )}
-              </div>
-            )}
-
-            {origenProceso === "comprado" && (
-              <div className="flex flex-col gap-1.5">
-                <Label>{t("tipoHongo")}</Label>
-                <Controller
-                  control={control}
-                  name="fungusTypeId"
-                  render={({ field }) => (
-                    <Select
-                      items={fungusTypes.map((f) => ({ label: f.nombre, value: f._id }))}
-                      value={field.value ?? null}
-                      onValueChange={(v) => handleFungusChange(v, field.onChange)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder={t("elegirHongo")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {fungusTypes.map((f) => (
-                          <SelectItem key={f._id} value={f._id}>
-                            {f.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {errors.fungusTypeId && (
-                  <p className="text-xs text-destructive">{errors.fungusTypeId.message}</p>
-                )}
-              </div>
-            )}
-
-            {origenProceso === "frascoGrano" && (
-              <div className="flex flex-col gap-1.5">
-                <Label>{t("frascoGranoOrigen")}</Label>
-                <div className="flex max-h-56 flex-col gap-1 overflow-y-auto rounded-md border p-1">
-                  {loadingJarsGrano ? (
-                    <p className="p-3 text-center text-sm text-muted-foreground">
-                      {t("loading")}
-                    </p>
-                  ) : jarsGrano.length === 0 ? (
-                    <p className="p-3 text-center text-sm text-muted-foreground">
-                      {t("noJarsGrano")}
-                    </p>
-                  ) : (
-                    jarsGrano.map((jar) => {
-                      const selected = jarSeleccionado?._id === jar._id;
-                      return (
-                        <button
-                          key={jar._id}
-                          type="button"
-                          role="radio"
-                          aria-checked={selected}
-                          onClick={() => setJarSeleccionado(jar)}
-                          className={`flex items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm transition-colors ${
-                            selected ? "bg-accent" : "hover:bg-muted"
-                          }`}
-                        >
-                          <span className="flex size-4 shrink-0 items-center justify-center">
-                            {selected && <Check className="size-4 text-primary" />}
-                          </span>
-                          <span>{jarGranoLabel(jar, batchesById)}</span>
-                        </button>
-                      );
-                    })
-                  )}
                 </div>
               </div>
-            )}
+            </Field>
+          ) : (
+            <Field label={t("tipoHongo")} error={errors.fungusTypeId?.message}>
+              {hongoSelect}
+            </Field>
+          ))}
 
-            {origenProceso === "placa" && (
-              <div className="flex flex-col gap-1.5">
-                <Label>{t("cantidadPlacas")}</Label>
-                <Input
-                  type="number"
-                  {...register("cantidadPlacas", {
-                    setValueAs: (v) => (v === "" ? undefined : Number(v)),
-                  })}
-                />
-                {errors.cantidadPlacas && (
-                  <p className="text-xs text-destructive">{errors.cantidadPlacas.message}</p>
-                )}
-              </div>
-            )}
+        {origenProceso === "comprado" && (
+          <Field label={t("tipoHongo")} error={errors.fungusTypeId?.message}>
+            {hongoSelect}
+          </Field>
+        )}
 
-            {origenProceso !== "placa" && (
-              <div className="flex flex-col gap-1.5">
-                <Label>{t("cantidadFrascos")}</Label>
-                <Input
-                  type="number"
-                  {...register("cantidadFrascos", {
-                    setValueAs: (v) => (v === "" ? undefined : Number(v)),
-                  })}
-                />
-                {errors.cantidadFrascos && (
-                  <p className="text-xs text-destructive">{errors.cantidadFrascos.message}</p>
-                )}
-              </div>
-            )}
-
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("fechaInicio")}</Label>
-              <Input
-                type="date"
-                defaultValue={todayInputValue()}
-                {...register("fechaInicio")}
+        {origenProceso === "frascoGrano" && (
+          <Field label={t("frascoGranoOrigen")} hint={t("frascoGranoOrigenHint")}>
+            {loadingJarsGrano ? (
+              <p className="m-0 text-[13px] text-text-subtle">{t("loading")}</p>
+            ) : (
+              <ChoiceList
+                type="radio"
+                value={jarSeleccionado?._id}
+                onChange={(id) => setJarSeleccionado(jarsGrano.find((j) => j._id === id) ?? null)}
+                empty={t("noJarsGrano")}
+                items={jarsGrano.map((jar) => {
+                  const batch = batchesById[jar.batchId];
+                  return {
+                    value: jar._id,
+                    label: jar.numeroGuia,
+                    meta: batch
+                      ? `${batch.fungusTypeId?.nombre ?? "?"} · ${batch.numeroLote}`
+                      : undefined,
+                    aside: <StatusTag kind="jar" estado={jar.estado} />,
+                  };
+                })}
               />
-              {errors.fechaInicio && (
-                <p className="text-xs text-destructive">{errors.fechaInicio.message}</p>
-              )}
-            </div>
-
-            {origenProceso === "placa" && (
-              <div className="flex flex-col gap-1.5">
-                <Label>{t("diasEsperados")}</Label>
-                <Input
-                  type="number"
-                  {...register("diasEsperados", {
-                    setValueAs: (v) => (v === "" ? undefined : Number(v)),
-                  })}
-                />
-                <p className="text-xs text-muted-foreground">{t("diasEsperadosHint")}</p>
-                {errors.diasEsperados && (
-                  <p className="text-xs text-destructive">{errors.diasEsperados.message}</p>
-                )}
-              </div>
             )}
+          </Field>
+        )}
 
-            {origenProceso === "placa" && (
-              <div className="flex flex-col gap-1.5">
-                <Label>{t("recetaAgar")}</Label>
-                <Textarea
-                  placeholder={t("recetaAgarPlaceholder")}
-                  rows={3}
-                  {...register("recetaAgar")}
-                />
-                {errors.recetaAgar && (
-                  <p className="text-xs text-destructive">{errors.recetaAgar.message}</p>
-                )}
-              </div>
-            )}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {origenProceso === "placa" ? (
+            <Field label={t("cantidadPlacas")} error={errors.cantidadPlacas?.message}>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={1}
+                suffix={t("placasSuffix")}
+                aria-invalid={!!errors.cantidadPlacas || undefined}
+                {...register("cantidadPlacas", {
+                  setValueAs: (v) => (v === "" ? undefined : Number(v)),
+                })}
+              />
+            </Field>
+          ) : (
+            <Field label={t("cantidadFrascos")} error={errors.cantidadFrascos?.message}>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={1}
+                suffix={t("frascosSuffix")}
+                aria-invalid={!!errors.cantidadFrascos || undefined}
+                {...register("cantidadFrascos", {
+                  setValueAs: (v) => (v === "" ? undefined : Number(v)),
+                })}
+              />
+            </Field>
+          )}
 
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => router.push("/clonacion")}>
-                {t("cancel")}
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {t("submit")}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          <Field label={t("fechaInicio")} error={errors.fechaInicio?.message}>
+            <Input
+              type="date"
+              defaultValue={todayInputValue()}
+              aria-invalid={!!errors.fechaInicio || undefined}
+              {...register("fechaInicio")}
+            />
+          </Field>
+
+          {origenProceso === "placa" && (
+            <Field
+              label={t("diasEsperados")}
+              hint={t("diasEsperadosHint")}
+              error={errors.diasEsperados?.message}
+            >
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={1}
+                suffix={t("diasSuffix")}
+                aria-invalid={!!errors.diasEsperados || undefined}
+                {...register("diasEsperados", {
+                  setValueAs: (v) => (v === "" ? undefined : Number(v)),
+                })}
+              />
+            </Field>
+          )}
+        </div>
+
+        {origenProceso === "placa" && (
+          <Field label={t("recetaAgarLabel")} optional error={errors.recetaAgar?.message}>
+            <Textarea
+              placeholder={t("recetaAgarPlaceholder")}
+              rows={3}
+              {...register("recetaAgar")}
+            />
+          </Field>
+        )}
+
+        <div className="-mx-5 mt-1 -mb-[18px] flex justify-end gap-2 rounded-b-lg border-t border-divider bg-surface-inset px-5 py-3">
+          <Button type="button" variant="outline" onClick={() => router.push("/clonacion")}>
+            {t("cancel")}
+          </Button>
+          <Button type="submit" loading={isSubmitting}>
+            {t("submit")}
+          </Button>
+        </div>
+      </form>
+    </PageContainer>
   );
 }

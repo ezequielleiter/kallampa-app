@@ -9,24 +9,12 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { ESTADO_DERIVADO_BADGE_VARIANT } from "@/lib/constants";
+import { StatusTag } from "@/components/kallampa/StatusTag";
+import { useFormat } from "@/components/kallampa/useFormat";
 import type { StatsLote } from "@/lib/types";
 
 interface LoteComparisonTableProps {
   lotes: StatsLote[];
-}
-
-function fmtDias(d: number | null) {
-  return d === null ? "—" : `${d} d`;
-}
-
-function fmtPercent(n: number | null) {
-  return n === null ? "—" : `${n.toFixed(1)}%`;
-}
-
-function fmtMoney(n: number | null) {
-  return n === null ? "—" : `$${n.toFixed(0)}`;
 }
 
 // v2: un lote puede tener varios recipientes con fechas/etapas
@@ -34,21 +22,22 @@ function fmtMoney(n: number | null) {
 // se muestran promedios agregados en vez de columnas por etapa fija.
 export function LoteComparisonTable({ lotes }: LoteComparisonTableProps) {
   const t = useTranslations("components.loteComparisonTable");
-  const tEstado = useTranslations("estados.lote");
+  const fmt = useFormat();
+  const dias = (d: number | null) => (d === null ? "—" : `${fmt.number(d)} d`);
   return (
-    <Table>
+    <Table minWidth={900}>
       <TableHeader>
         <TableRow>
           <TableHead>{t("lote")}</TableHead>
           <TableHead>{t("hongo")}</TableHead>
           <TableHead>{t("estado")}</TableHead>
-          <TableHead>{t("diasTotales")}</TableHead>
-          <TableHead>{t("diasIncubacionProm")}</TableHead>
-          <TableHead>{t("diasFructificacionProm")}</TableHead>
-          <TableHead>{t("pesoCosechado")}</TableHead>
-          <TableHead>{t("eficienciaBiologica")}</TableHead>
-          <TableHead>{t("costoTotal")}</TableHead>
-          <TableHead>{t("costoPorKg")}</TableHead>
+          <TableHead className="text-right">{t("diasTotales")}</TableHead>
+          <TableHead className="text-right">{t("diasIncubacionProm")}</TableHead>
+          <TableHead className="text-right">{t("diasFructificacionProm")}</TableHead>
+          <TableHead className="text-right">{t("pesoCosechado")}</TableHead>
+          <TableHead className="text-right">{t("eficienciaBiologica")}</TableHead>
+          <TableHead className="text-right">{t("costoTotal")}</TableHead>
+          <TableHead className="text-right">{t("costoPorKg")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -59,17 +48,17 @@ export function LoteComparisonTable({ lotes }: LoteComparisonTableProps) {
               <TableCell className="font-medium">{l.numeroLote}</TableCell>
               <TableCell>{l.fungusTypeId?.nombre}</TableCell>
               <TableCell>
-                <Badge variant={ESTADO_DERIVADO_BADGE_VARIANT[r.estadoDerivado]}>
-                  {tEstado(r.estadoDerivado)}
-                </Badge>
+                <StatusTag kind="lote" estado={r.estadoDerivado} />
               </TableCell>
-              <TableCell>{fmtDias(r.diasTotales)}</TableCell>
-              <TableCell>{fmtDias(r.diasIncubacionPromedio)}</TableCell>
-              <TableCell>{fmtDias(r.diasFructificacionPromedio)}</TableCell>
-              <TableCell>{r.pesoTotalCosechado.toFixed(2)} kg</TableCell>
-              <TableCell>{fmtPercent(r.eficienciaBiologica)}</TableCell>
-              <TableCell>${r.costoProduccion.costoTotal.toFixed(0)}</TableCell>
-              <TableCell>{fmtMoney(r.costoProduccion.costoPorKgProducido)}</TableCell>
+              <TableCell className="text-right">{dias(r.diasTotales)}</TableCell>
+              <TableCell className="text-right">{dias(r.diasIncubacionPromedio)}</TableCell>
+              <TableCell className="text-right">{dias(r.diasFructificacionPromedio)}</TableCell>
+              <TableCell className="text-right">{fmt.kg(r.pesoTotalCosechado)}</TableCell>
+              <TableCell className="text-right">{fmt.pct(r.eficienciaBiologica)}</TableCell>
+              <TableCell className="text-right">{fmt.money(r.costoProduccion.costoTotal)}</TableCell>
+              <TableCell className="text-right">
+                {fmt.money(r.costoProduccion.costoPorKgProducido)}
+              </TableCell>
             </TableRow>
           );
         })}

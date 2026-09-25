@@ -13,11 +13,12 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Field } from "@/components/kallampa/Field";
 import { apiFetch } from "@/lib/api-client";
 import type { RecipienteEstado } from "@/lib/constants";
 import type { Recipiente } from "@/lib/types";
+import { codigoCorto } from "./lote-view";
 
 interface RecipienteEstadoDialogProps {
   open: boolean;
@@ -27,6 +28,12 @@ interface RecipienteEstadoDialogProps {
   estadoObjetivo: Extract<RecipienteEstado, "finalizado" | "contaminado" | "descartado">;
   onSuccess: () => void;
 }
+
+const TITULO_KEYS: Record<RecipienteEstadoDialogProps["estadoObjetivo"], string> = {
+  finalizado: "tituloFinalizado",
+  contaminado: "tituloContaminado",
+  descartado: "tituloDescartado",
+};
 
 const DESCRIPCION_KEYS: Record<RecipienteEstadoDialogProps["estadoObjetivo"], string> = {
   finalizado: "descripcionFinalizado",
@@ -54,7 +61,12 @@ export function RecipienteEstadoDialog({
         method: "POST",
         body: JSON.stringify({ estado: estadoObjetivo, motivo: motivo.trim() || undefined }),
       });
-      toast.success(t("successMessage", { estado: tEstado(estadoObjetivo).toLowerCase() }));
+      toast.success(
+        t("successMessage", {
+          codigo: codigoCorto(numeroSeguimiento),
+          estado: tEstado(estadoObjetivo).toLowerCase(),
+        })
+      );
       setMotivo("");
       onOpenChange(false);
       onSuccess();
@@ -69,22 +81,24 @@ export function RecipienteEstadoDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>
-            {tEstado(estadoObjetivo)} — {numeroSeguimiento}
-          </AlertDialogTitle>
+          <AlertDialogTitle>{t(TITULO_KEYS[estadoObjetivo])}</AlertDialogTitle>
+          <div className="text-[12.5px] text-text-muted tabular-nums">{numeroSeguimiento}</div>
           <AlertDialogDescription>{t(DESCRIPCION_KEYS[estadoObjetivo])}</AlertDialogDescription>
         </AlertDialogHeader>
-        <div className="flex flex-col gap-1.5">
-          <Label>{t("motivo")}</Label>
+        <Field label={t("motivo")} optional>
           <Textarea
             value={motivo}
             onChange={(e) => setMotivo(e.target.value)}
             placeholder={t("motivoPlaceholder")}
           />
-        </div>
+        </Field>
         <AlertDialogFooter>
           <AlertDialogCancel>{t("cancelar")}</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" disabled={submitting} onClick={handleConfirm}>
+          <AlertDialogAction
+            variant={estadoObjetivo === "finalizado" ? "default" : "destructive"}
+            loading={submitting}
+            onClick={handleConfirm}
+          >
             {t("confirmar")}
           </AlertDialogAction>
         </AlertDialogFooter>

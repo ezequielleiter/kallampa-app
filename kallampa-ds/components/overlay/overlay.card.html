@@ -1,0 +1,30 @@
+<!-- @dsCard group="Components" viewport="700x400" subtitle="Modal, menú contextual y confirmación" name="Overlay" -->
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Kallampa · Overlay</title>
+<link rel="stylesheet" href="../../../styles.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<style>body{margin:0;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);-webkit-font-smoothing:antialiased}a{color:var(--color-accent-300);text-decoration:none}a:hover{color:var(--color-accent-100)}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<script src="../../dev/load-components.js"></script>
+</head><body style="padding:20px"><div id="root"></div>
+<script type="text/babel">
+window.kallampaReady.then(NS => {
+
+const { Dialog, Menu, Toast, Button, IconButton, Field, Input, Tag } = NS;
+function Demo() {
+  const [open, setOpen] = React.useState(true); const [m, setM] = React.useState(true); const [t, setT] = React.useState('R04 creado en Carpa 1');
+  return (<div style={{ minHeight: 360, position: 'relative' }}>
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}><Button onClick={() => setOpen(true)}>Abrir modal</Button>
+      <div style={{ position: 'relative' }}><IconButton icon="dots-three" label="Acciones" onClick={() => setM(!m)} /><Menu open={m} onClose={() => setM(false)} align="left" items={[{ label: 'Pasar a fructificación', icon: 'arrow-right' }, { label: 'Marcar finalizado', icon: 'check' }, { label: 'Marcar contaminado', icon: 'warning-circle', danger: true }]} /></div>
+      <Button variant="secondary" onClick={() => setT('2ª oleada de R02 guardada: 1,20 kg')}>Toast</Button></div>
+    <Dialog open={open} onClose={() => setOpen(false)} title="Agregar oleada" badge={<Tag tone="accent">1ª oleada</Tag>} subtitle="ENK-L-2026-001-R02 · Paja de trigo · 3,00 kg"
+      footer={<><Button variant="secondary" onClick={() => setOpen(false)}>Cancelar</Button><Button>Guardar oleada</Button></>}>
+      <Field label="Peso cosechado" error="Ingresá el peso cosechado."><Input invalid suffix="kg" placeholder="0,00" /></Field>
+    </Dialog>
+    <Toast message={t} onDone={() => setT(null)} />
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+});
+</script></body></html>

@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Field } from "@/components/kallampa/Field";
 import { Textarea } from "@/components/ui/textarea";
 import { apiFetch } from "@/lib/api-client";
 import { translateErrorMessage } from "@/lib/error-messages";
@@ -41,6 +41,7 @@ export function FungusTypeFormDialog({
   onSuccess,
 }: FungusTypeFormDialogProps) {
   const t = useTranslations("components.fungusTypeFormDialog");
+  const tCommon = useTranslations("common");
   const isEdit = !!fungusType;
   const {
     register,
@@ -86,101 +87,100 @@ export function FungusTypeFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="w-[460px]">
         <DialogHeader>
           <DialogTitle>{isEdit ? t("editTitle") : t("newTitle")}</DialogTitle>
         </DialogHeader>
-        <form className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto" onSubmit={handleSubmit(onSubmit)}>
-          <div className="flex flex-col gap-1.5">
-            <Label>{t("nombre")}</Label>
+        <form className="flex flex-col gap-3.5" onSubmit={handleSubmit(onSubmit)}>
+          <Field
+            label={t("nombre")}
+            error={errors.nombre ? translateErrorMessage(errors.nombre.message) : undefined}
+          >
             <Input {...register("nombre")} />
-            {errors.nombre && (
-              <p className="text-xs text-destructive">
-                {translateErrorMessage(errors.nombre.message)}
-              </p>
-            )}
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label>{t("nombreCientifico")}</Label>
+          </Field>
+          <Field label={t("nombreCientifico")}>
             <Input {...register("nombreCientifico")} />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label>{t("iniciales")}</Label>
+          </Field>
+          <Field
+            label={t("iniciales")}
+            hint={t("inicialesHelp")}
+            error={errors.iniciales ? translateErrorMessage(errors.iniciales.message) : undefined}
+          >
             <Input {...register("iniciales")} maxLength={4} className="uppercase" />
-            <p className="text-xs text-muted-foreground">{t("inicialesHelp")}</p>
-            {errors.iniciales && (
-              <p className="text-xs text-destructive">
-                {translateErrorMessage(errors.iniciales.message)}
-              </p>
-            )}
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label>{t("notas")}</Label>
+          </Field>
+          <Field label={t("notas")}>
             <Textarea {...register("notas")} />
-          </div>
+          </Field>
 
-          <p className="text-xs font-medium text-muted-foreground">{t("diasEsperadosTitle")}</p>
+          <p className="mt-1 text-xs tracking-[0.05em] text-text-subtle uppercase">{t("diasEsperadosTitle")}</p>
           <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("inoculacionGrano")}</Label>
+            <Field
+              label={t("inoculacionGrano")}
+              error={
+                errors.diasEsperadosDefault?.inoculacionGrano
+                  ? translateErrorMessage(errors.diasEsperadosDefault.inoculacionGrano.message)
+                  : undefined
+              }
+            >
               <Input
                 type="number"
                 {...register("diasEsperadosDefault.inoculacionGrano", {
                   setValueAs: (v) => (v === "" ? undefined : Number(v)),
                 })}
               />
-              {errors.diasEsperadosDefault?.inoculacionGrano && (
-                <p className="text-xs text-destructive">
-                  {translateErrorMessage(errors.diasEsperadosDefault.inoculacionGrano.message)}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("incubacion")}</Label>
+            </Field>
+            <Field
+              label={t("incubacion")}
+              error={
+                errors.diasEsperadosDefault?.incubacion
+                  ? translateErrorMessage(errors.diasEsperadosDefault.incubacion.message)
+                  : undefined
+              }
+            >
               <Input
                 type="number"
                 {...register("diasEsperadosDefault.incubacion", {
                   setValueAs: (v) => (v === "" ? undefined : Number(v)),
                 })}
               />
-              {errors.diasEsperadosDefault?.incubacion && (
-                <p className="text-xs text-destructive">
-                  {translateErrorMessage(errors.diasEsperadosDefault.incubacion.message)}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("fructificacion")}</Label>
+            </Field>
+            <Field
+              label={t("fructificacion")}
+              error={
+                errors.diasEsperadosDefault?.fructificacion
+                  ? translateErrorMessage(errors.diasEsperadosDefault.fructificacion.message)
+                  : undefined
+              }
+            >
               <Input
                 type="number"
                 {...register("diasEsperadosDefault.fructificacion", {
                   setValueAs: (v) => (v === "" ? undefined : Number(v)),
                 })}
               />
-              {errors.diasEsperadosDefault?.fructificacion && (
-                <p className="text-xs text-destructive">
-                  {translateErrorMessage(errors.diasEsperadosDefault.fructificacion.message)}
-                </p>
-              )}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("colonizacionPlacas")}</Label>
+            </Field>
+            <Field
+              label={t("colonizacionPlacas")}
+              error={
+                errors.diasEsperadosDefault?.colonizacionPlacas
+                  ? translateErrorMessage(errors.diasEsperadosDefault.colonizacionPlacas.message)
+                  : undefined
+              }
+            >
               <Input
                 type="number"
                 {...register("diasEsperadosDefault.colonizacionPlacas", {
                   setValueAs: (v) => (v === "" ? undefined : Number(v)),
                 })}
               />
-              {errors.diasEsperadosDefault?.colonizacionPlacas && (
-                <p className="text-xs text-destructive">
-                  {translateErrorMessage(errors.diasEsperadosDefault.colonizacionPlacas.message)}
-                </p>
-              )}
-            </div>
+            </Field>
           </div>
 
           <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              {tCommon("cancel")}
+            </Button>
+            <Button type="submit" loading={isSubmitting}>
               {t("guardar")}
             </Button>
           </DialogFooter>

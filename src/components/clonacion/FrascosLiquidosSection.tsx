@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { Plus, MoreHorizontal } from "lucide-react";
+import {
+  CheckCircleIcon,
+  DotsThreeIcon,
+  DropIcon,
+  PlusIcon,
+  WarningCircleIcon,
+} from "@phosphor-icons/react";
 import {
   Table,
   TableBody,
@@ -13,37 +19,41 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { EmptyState } from "@/components/kallampa/PageHeader";
+import { SectionCard } from "@/components/kallampa/SectionCard";
+import { StatusTag } from "@/components/kallampa/StatusTag";
+import { useFormat } from "@/components/kallampa/useFormat";
 import { apiFetch } from "@/lib/api-client";
-import { formatFechaCorta } from "@/lib/format";
-import {
-  FRASCO_LIQUIDO_ESTADO_BADGE_VARIANT,
-  type FrascoLiquidoEstado,
-} from "@/lib/constants";
-import type { FrascoLiquido } from "@/lib/types";
+import type { FrascoLiquidoEstado } from "@/lib/constants";
+import type { FrascoLiquido, Placa } from "@/lib/types";
 import { NuevoFrascoLiquidoSheet } from "./NuevoFrascoLiquidoSheet";
 
 interface FrascosLiquidosSectionProps {
-  clonacionId: string;
+  /** Numero de seccion ("02" si hay placas antes, "01" si no). */
+  number?: string;
   frascosLiquidos: FrascoLiquido[];
+  /** Placas de la clonacion, para elegir el origen de un frasco nuevo. */
+  placas: Placa[];
   onChanged: () => void;
   permiteAgregar: boolean;
 }
 
 export function FrascosLiquidosSection({
-  clonacionId,
+  number,
   frascosLiquidos,
+  placas,
   onChanged,
   permiteAgregar,
 }: FrascosLiquidosSectionProps) {
   const t = useTranslations("components.frascosLiquidosSection");
   const tEstado = useTranslations("estados.frascoLiquido");
+  const fmt = useFormat();
   const [nuevoOpen, setNuevoOpen] = useState(false);
 
   async function handleMarcarEstado(frasco: FrascoLiquido, estado: FrascoLiquidoEstado) {
@@ -52,7 +62,12 @@ export function FrascosLiquidosSection({
         method: "PATCH",
         body: JSON.stringify({ estado }),
       });
-      toast.success(t("frascoMarked", { estado: tEstado(estado).toLowerCase() }));
+      toast.success(
+        t("frascoMarcadoCodigo", {
+          numero: frasco.numeroGuia,
+          estado: tEstado(estado).toLowerCase(),
+        })
+      );
       onChanged();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("errorMessage"));
@@ -63,67 +78,86 @@ export function FrascosLiquidosSection({
     if (frasco.origenPlacaId === undefined) return "—";
     return typeof frasco.origenPlacaId === "object"
       ? frasco.origenPlacaId.numeroPlaca
-      : frasco.origenPlacaId;
+      : (placas.find((p) => p._id === frasco.origenPlacaId)?.numeroPlaca ??
+          frasco.origenPlacaId);
   }
 
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">
-          {t("title", { count: frascosLiquidos.length })}
-        </h2>
-        {permiteAgregar && (
-          <Button size="sm" onClick={() => setNuevoOpen(true)}>
-            <Plus /> {t("nuevoFrasco")}
-          </Button>
-        )}
-      </div>
+  const colonizados = frascosLiquidos.filter((f) => f.estado === "colonizado").length;
 
+  return (
+    <SectionCard
+      number={number}
+      title={t("sectionTitle")}
+      meta={t("meta", { count: frascosLiquidos.length, colonizados })}
+      actions={
+        permiteAgregar && (
+          <Button onClick={() => setNuevoOpen(true)}>
+            <PlusIcon /> {t("nuevoFrasco")}
+          </Button>
+        )
+      }
+    >
       {frascosLiquidos.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("emptyState")}</p>
+        <EmptyState>{t("emptyState")}</EmptyState>
       ) : (
-        <Table>
+        <Table minWidth={560}>
           <TableHeader>
             <TableRow>
               <TableHead>{t("numeroGuia")}</TableHead>
               <TableHead>{t("placaOrigen")}</TableHead>
               <TableHead>{t("fecha")}</TableHead>
               <TableHead>{t("estado")}</TableHead>
-              <TableHead className="w-8" />
+              <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {frascosLiquidos.map((frasco) => (
               <TableRow key={frasco._id}>
                 <TableCell className="font-medium">{frasco.numeroGuia}</TableCell>
-                <TableCell className="text-muted-foreground">{placaOrigenLabel(frasco)}</TableCell>
-                <TableCell>{formatFechaCorta(frasco.fechaCreacion)}</TableCell>
+                <TableCell className="text-text-muted">{placaOrigenLabel(frasco)}</TableCell>
+                <TableCell>{fmt.fecha(frasco.fechaCreacion)}</TableCell>
                 <TableCell>
-                  <Badge variant={FRASCO_LIQUIDO_ESTADO_BADGE_VARIANT[frasco.estado]}>
-                    {tEstado(frasco.estado)}
-                  </Badge>
+                  <StatusTag kind="frascoLiquido" estado={frasco.estado} />
                 </TableCell>
-                <TableCell>
-                  {frasco.estado === "valido" && (
+                <TableCell className="text-right">
+                  {(frasco.estado === "colonizando" || frasco.estado === "colonizado") && (
                     <DropdownMenu>
                       <DropdownMenuTrigger
                         render={
-                          <Button variant="ghost" size="icon-sm">
-                            <MoreHorizontal />
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={t("acciones", { numero: frasco.numeroGuia })}
+                          >
+                            <DotsThreeIcon className="size-4" />
                           </Button>
                         }
                       />
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleMarcarEstado(frasco, "vacio")}>
-                          {t("marcarVacio")}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleMarcarEstado(frasco, "finalizado")}>
-                          {t("marcarFinalizado")}
-                        </DropdownMenuItem>
+                      <DropdownMenuContent align="end" className="min-w-52">
+                        {frasco.estado === "colonizando" ? (
+                          <DropdownMenuItem onClick={() => handleMarcarEstado(frasco, "colonizado")}>
+                            <CheckCircleIcon />
+                            {t("marcarColonizado")}
+                          </DropdownMenuItem>
+                        ) : (
+                          <>
+                            <DropdownMenuItem onClick={() => handleMarcarEstado(frasco, "vacio")}>
+                              <DropIcon />
+                              {t("marcarVacio")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleMarcarEstado(frasco, "finalizado")}
+                            >
+                              <CheckCircleIcon />
+                              {t("marcarFinalizado")}
+                            </DropdownMenuItem>
+                          </>
+                        )}
                         <DropdownMenuItem
                           variant="destructive"
                           onClick={() => handleMarcarEstado(frasco, "contaminado")}
                         >
+                          <WarningCircleIcon />
                           {t("marcarContaminado")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -140,10 +174,10 @@ export function FrascosLiquidosSection({
         <NuevoFrascoLiquidoSheet
           open={nuevoOpen}
           onOpenChange={setNuevoOpen}
-          clonacionId={clonacionId}
+          placas={placas}
           onSuccess={onChanged}
         />
       )}
-    </div>
+    </SectionCard>
   );
 }

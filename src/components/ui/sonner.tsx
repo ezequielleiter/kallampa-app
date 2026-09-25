@@ -1,53 +1,50 @@
 "use client"
 
-import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
-import { CircleCheckIcon, InfoIcon, TriangleAlertIcon, OctagonXIcon, Loader2Icon } from "lucide-react"
+import {
+  CheckCircleIcon,
+  InfoIcon,
+  WarningIcon,
+  WarningCircleIcon,
+  CircleNotchIcon,
+} from "@phosphor-icons/react"
 
+// Toast de Kallampa: tarjeta abajo al centro, 3,2s, icono de acento (coral en
+// errores). El texto nombra registro y resultado: "R04 creado", etc.
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
-
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme="dark"
+      position="bottom-center"
+      duration={3200}
       className="toaster group"
       icons={{
-        success: (
-          <CircleCheckIcon className="size-4" />
-        ),
-        info: (
-          <InfoIcon className="size-4" />
-        ),
-        warning: (
-          <TriangleAlertIcon className="size-4" />
-        ),
-        error: (
-          <OctagonXIcon className="size-4" />
-        ),
-        loading: (
-          <Loader2Icon className="size-4 animate-spin" />
-        ),
+        success: <CheckCircleIcon className="size-[17px] text-accent" />,
+        info: <InfoIcon className="size-[17px] text-accent" />,
+        warning: <WarningIcon className="size-[17px] text-danger-text" />,
+        error: <WarningCircleIcon className="size-[17px] text-danger-text" />,
+        loading: <CircleNotchIcon className="size-[17px] animate-[k-spin_.8s_linear_infinite] text-accent" />,
       }}
       style={
         {
-          "--normal-bg": "var(--brand-ink-700)",
-          "--normal-text": "var(--brand-bone-100)",
-          "--normal-border": "var(--brand-ink-700)",
-          "--success-bg": "var(--brand-ink-700)",
-          "--success-text": "var(--brand-bone-100)",
-          "--success-border": "var(--brand-ink-700)",
-          "--error-bg": "var(--brand-orange)",
-          "--error-text": "var(--brand-ink-900)",
-          "--error-border": "var(--brand-orange)",
-          "--warning-bg": "var(--brand-orange)",
-          "--warning-text": "var(--brand-ink-900)",
-          "--warning-border": "var(--brand-orange)",
-          "--border-radius": "999px",
+          "--normal-bg": "var(--surface-card)",
+          "--normal-text": "var(--color-text)",
+          "--normal-border": "var(--color-neutral-500)",
+          "--success-bg": "var(--surface-card)",
+          "--success-text": "var(--color-text)",
+          "--success-border": "var(--color-neutral-500)",
+          "--error-bg": "var(--surface-card)",
+          "--error-text": "var(--color-danger-text)",
+          "--error-border": "var(--color-danger)",
+          "--warning-bg": "var(--surface-card)",
+          "--warning-text": "var(--color-danger-text)",
+          "--warning-border": "var(--color-danger)",
+          "--border-radius": "var(--radius-md)",
         } as React.CSSProperties
       }
       toastOptions={{
         classNames: {
-          toast: "cn-toast shadow-lg",
+          toast: "cn-toast !gap-2 !px-3.5 !py-2.5 !text-[13px] !shadow-[0_0_0_1px_var(--color-neutral-500),0_16px_40px_rgba(0,0,0,.65)]",
         },
       }}
       {...props}

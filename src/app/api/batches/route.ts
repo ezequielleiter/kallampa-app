@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
           400
         );
       }
-      if (frascoLiquido.estado !== "valido") {
+      if (frascoLiquido.estado !== "colonizado") {
         return fail(
           `frasco_liquido_no_disponible:El frasco de micelio líquido '${frascoLiquido.numeroGuia}' no está disponible (estado actual: '${frascoLiquido.estado}')`,
           409

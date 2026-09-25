@@ -3,18 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { Search } from "lucide-react";
+import { ArrowRightIcon, BarcodeIcon, MagnifyingGlassIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { PageContainer, PageHeader } from "@/components/kallampa/PageHeader";
+import { StatusTag } from "@/components/kallampa/StatusTag";
 import { apiFetch } from "@/lib/api-client";
-import { JAR_ESTADO_BADGE_VARIANT } from "@/lib/constants";
 import type { JarSearchResult } from "@/lib/types";
 
 export default function FrascosPage() {
   const t = useTranslations("pages.frascos");
-  const tEstado = useTranslations("estados.jar");
   const [numeroGuia, setNumeroGuia] = useState("");
   const [resultado, setResultado] = useState<JarSearchResult | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -39,50 +37,74 @@ export default function FrascosPage() {
     }
   }
 
+  const fungus = resultado?.batch?.fungusTypeId;
+
   return (
-    <div className="mx-auto flex max-w-lg flex-col gap-4 p-4">
-      <h1 className="text-lg font-semibold">{t("title")}</h1>
+    <PageContainer className="max-w-[640px]">
+      <PageHeader title={t("title")} subtitle={t("subtitle")} />
       <form onSubmit={handleSearch} className="flex items-center gap-2">
-        <Input
-          autoFocus
-          value={numeroGuia}
-          onChange={(e) => setNumeroGuia(e.target.value)}
-          placeholder={t("searchPlaceholder")}
-        />
-        <Button type="submit" disabled={loading}>
-          <Search /> {t("searchButton")}
+        <div className="relative flex-1">
+          <BarcodeIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-text-subtle" />
+          <Input
+            autoFocus
+            value={numeroGuia}
+            onChange={(e) => setNumeroGuia(e.target.value)}
+            placeholder={t("searchPlaceholder")}
+            aria-label={t("searchPlaceholder")}
+            className="pl-8 tabular-nums"
+          />
+        </div>
+        <Button type="submit" loading={loading}>
+          {!loading && <MagnifyingGlassIcon />} {t("searchButton")}
         </Button>
       </form>
 
-      {notFound && <p className="text-sm text-destructive">{t("notFound")}</p>}
+      {notFound && (
+        <div
+          role="alert"
+          className="flex items-center gap-2 text-[13px] text-danger-text"
+        >
+          <WarningCircleIcon className="size-4 shrink-0" />
+          {t("notFound")}
+        </div>
+      )}
 
       {resultado && (
-        <Card>
-          <CardContent className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-base font-medium">{resultado.numeroGuia}</span>
-              <Badge variant={JAR_ESTADO_BADGE_VARIANT[resultado.estado]}>
-                {tEstado(resultado.estado)}
-              </Badge>
-            </div>
-            {resultado.batch && (
-              <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-                <span>{t("lote")}: {resultado.batch.numeroLote}</span>
-                <span>{t("hongo")}: {resultado.batch.fungusTypeId?.nombre}</span>
+        <div className="flex flex-col gap-3.5 rounded-lg bg-surface-card px-5 py-4 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="text-base font-medium tabular-nums">{resultado.numeroGuia}</span>
+            <StatusTag kind="jar" estado={resultado.estado} />
+          </div>
+          {resultado.batch && (
+            <dl className="grid grid-cols-2 gap-3 rounded-md bg-surface-inset px-3.5 py-3">
+              <div>
+                <dt className="text-xs text-text-subtle">{t("lote")}</dt>
+                <dd className="mt-0.5 text-[13.5px] tabular-nums">{resultado.batch.numeroLote}</dd>
               </div>
-            )}
-            {resultado.batch && (
-              <Button
-                size="sm"
-                className="w-fit"
-                render={<Link href={`/lotes/${resultado.batch._id}`} />}
-              >
-                {t("verLote")}
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+              <div>
+                <dt className="text-xs text-text-subtle">{t("hongo")}</dt>
+                <dd className="mt-0.5 text-[13.5px]">
+                  {fungus?.nombre}
+                  {fungus?.nombreCientifico && (
+                    <span className="block text-[11.5px] text-text-subtle italic">
+                      {fungus.nombreCientifico}
+                    </span>
+                  )}
+                </dd>
+              </div>
+            </dl>
+          )}
+          {resultado.batch && (
+            <Button
+              size="sm"
+              className="w-fit"
+              render={<Link href={`/lotes/${resultado.batch._id}`} />}
+            >
+              {t("verLote")} <ArrowRightIcon />
+            </Button>
+          )}
+        </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

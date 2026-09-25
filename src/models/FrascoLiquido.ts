@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, Model, Types } from "mongoose";
 
-export const FRASCO_LIQUIDO_ESTADOS = ["valido", "vacio", "finalizado", "contaminado"] as const;
+export const FRASCO_LIQUIDO_ESTADOS = ["colonizando", "colonizado", "vacio", "finalizado", "contaminado"] as const;
 
 export type FrascoLiquidoEstado = (typeof FRASCO_LIQUIDO_ESTADOS)[number];
 
@@ -40,7 +40,7 @@ const frascoLiquidoSchema = new Schema<FrascoLiquidoDoc>(
     estado: {
       type: String,
       enum: FRASCO_LIQUIDO_ESTADOS,
-      default: "valido",
+      default: "colonizando",
     },
   },
   { timestamps: true }

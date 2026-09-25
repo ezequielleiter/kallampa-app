@@ -1,24 +1,32 @@
 {
   "common": {
-    "appName": "Cultivo",
-    "language": "Language"
+    "appName": "Kallampa",
+    "language": "Language",
+    "close": "Close",
+    "cancel": "Cancel",
+    "optional": "optional",
+    "breadcrumb": "Breadcrumb",
+    "actions": "Actions",
+    "user": "User"
   },
   "nav": {
     "produccion": "Production",
     "micelio": "Mycelium",
+    "invernaderos": "Greenhouses",
     "calendario": "Calendar",
     "trazabilidad": "Traceability",
     "notas": "Notes",
-    "frascos": "Jars",
-    "catalogos": "Catalogs",
+    "frascos": "Identifier",
+    "catalogos": "Inventory",
     "estadisticas": "Statistics",
+    "settings": "Settings",
     "logout": "Log out"
   },
   "auth": {
     "login": {
       "title": "Log in",
       "subtitle": "Enter your credentials to continue",
-      "identificadorLabel": "Username or email",
+      "identificadorLabel": "Email or username",
       "passwordLabel": "Password",
       "submit": "Log in",
       "genericError": "Error logging in",
@@ -39,7 +47,7 @@
     }
   },
   "header": {
-    "searchPlaceholder": "Search jar by tracking #…",
+    "searchPlaceholder": "Search by tracking #…",
     "jarWithoutBatch": "The jar exists but has no associated batch",
     "jarNotFound": "No jar found with that tracking number"
   },
@@ -65,7 +73,8 @@
       "frascoGrano": "Mycelium from grain jars"
     },
     "frascoLiquido": {
-      "valido": "Valid",
+      "colonizando": "Colonizing",
+      "colonizado": "Colonized",
       "vacio": "Empty",
       "finalizado": "Finished",
       "contaminado": "Contaminated"

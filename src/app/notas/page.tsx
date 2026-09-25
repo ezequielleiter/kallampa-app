@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { Plus } from "lucide-react";
+import { MagnifyingGlassIcon, PlusIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { EmptyState, PageContainer, PageHeader } from "@/components/kallampa/PageHeader";
 import { apiFetch } from "@/lib/api-client";
 import { formatFechaCorta } from "@/lib/format";
 import type { NotaListItem } from "@/lib/types";
@@ -49,56 +50,67 @@ export default function NotasPage() {
   }, [notas, query]);
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">{t("title")}</h1>
-        <Button size="sm" onClick={() => router.push("/notas/nueva")}>
-          <Plus /> {t("newNota")}
-        </Button>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title={t("title")}
+        subtitle={loading ? undefined : t("subtitle", { count: notas.length })}
+        actions={
+          <>
+            {notas.length > 0 && (
+              <div className="relative w-56">
+                <MagnifyingGlassIcon className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-text-subtle" />
+                <Input
+                  placeholder={t("searchPlaceholder")}
+                  aria-label={t("searchPlaceholder")}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="pl-[30px]"
+                />
+              </div>
+            )}
+            <Button onClick={() => router.push("/notas/nueva")}>
+              <PlusIcon /> {t("newNota")}
+            </Button>
+          </>
+        }
+      />
 
-      {!loading && notas.length > 0 && (
-        <Input
-          placeholder={t("searchPlaceholder")}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      )}
-
-      {loading ? (
-        <p className="text-sm text-muted-foreground">{t("loading")}</p>
-      ) : notas.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("empty")}</p>
-      ) : notasFiltradas.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("noSearchResults")}</p>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("colTitulo")}</TableHead>
-              <TableHead>{t("colExtracto")}</TableHead>
-              <TableHead className="text-right">{t("colUltimaEdicion")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {notasFiltradas.map((nota) => (
-              <TableRow
-                key={nota._id}
-                className="cursor-pointer"
-                onClick={() => router.push(`/notas/${nota._id}`)}
-              >
-                <TableCell className="font-medium">{nota.titulo}</TableCell>
-                <TableCell className="max-w-sm truncate text-muted-foreground">
-                  {nota.extracto}
-                </TableCell>
-                <TableCell className="text-right text-muted-foreground">
-                  {formatFechaCorta(nota.updatedAt)}
-                </TableCell>
+      <div className="rounded-lg bg-surface-card px-4 pt-1.5 pb-2.5 shadow-sm">
+        {loading ? (
+          <EmptyState>{t("loading")}</EmptyState>
+        ) : notas.length === 0 ? (
+          <EmptyState>{t("empty")}</EmptyState>
+        ) : notasFiltradas.length === 0 ? (
+          <EmptyState>{t("noSearchResults")}</EmptyState>
+        ) : (
+          <Table minWidth={560}>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("colTitulo")}</TableHead>
+                <TableHead>{t("colExtracto")}</TableHead>
+                <TableHead className="text-right">{t("colUltimaEdicion")}</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-    </div>
+            </TableHeader>
+            <TableBody>
+              {notasFiltradas.map((nota) => (
+                <TableRow
+                  key={nota._id}
+                  className="cursor-pointer"
+                  onClick={() => router.push(`/notas/${nota._id}`)}
+                >
+                  <TableCell className="font-medium">{nota.titulo}</TableCell>
+                  <TableCell className="max-w-sm truncate text-text-subtle">
+                    {nota.extracto}
+                  </TableCell>
+                  <TableCell className="text-right text-text-muted">
+                    {formatFechaCorta(nota.updatedAt)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    </PageContainer>
   );
 }

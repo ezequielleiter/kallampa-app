@@ -10,13 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { EmptyState } from "@/components/kallampa/PageHeader";
+import { StateSelect } from "@/components/kallampa/StateSelect";
 import { PLACA_ESTADOS, type PlacaEstado } from "@/lib/constants";
 import { apiFetch } from "@/lib/api-client";
 import type { Placa } from "@/lib/types";
@@ -30,13 +25,15 @@ export function PlacasGrid({ placas, onChanged }: PlacasGridProps) {
   const t = useTranslations("components.placasGrid");
   const tEstado = useTranslations("estados.placa");
 
-  async function handleEstadoChange(placaId: string, estado: PlacaEstado) {
+  async function handleEstadoChange(placa: Placa, estado: PlacaEstado) {
     try {
-      await apiFetch(`/api/placas/${placaId}`, {
+      await apiFetch(`/api/placas/${placa._id}`, {
         method: "PATCH",
         body: JSON.stringify({ estado }),
       });
-      toast.success(t("successMessage"));
+      toast.success(
+        t("markedAs", { numero: placa.numeroPlaca, estado: tEstado(estado).toLowerCase() })
+      );
       onChanged();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("errorMessage"));
@@ -44,11 +41,11 @@ export function PlacasGrid({ placas, onChanged }: PlacasGridProps) {
   }
 
   if (placas.length === 0) {
-    return <p className="text-sm text-muted-foreground">{t("emptyState")}</p>;
+    return <EmptyState>{t("emptyState")}</EmptyState>;
   }
 
   return (
-    <Table>
+    <Table minWidth={360}>
       <TableHeader>
         <TableRow>
           <TableHead>{t("numeroPlaca")}</TableHead>
@@ -60,25 +57,15 @@ export function PlacasGrid({ placas, onChanged }: PlacasGridProps) {
           <TableRow key={placa._id}>
             <TableCell className="font-medium">{placa.numeroPlaca}</TableCell>
             <TableCell>
-              <Select
-                items={PLACA_ESTADOS.map((estado) => ({
-                  label: tEstado(estado),
-                  value: estado,
-                }))}
+              <StateSelect
+                label={t("estadoDe", { numero: placa.numeroPlaca })}
                 value={placa.estado}
-                onValueChange={(v) => handleEstadoChange(placa._id, v as PlacaEstado)}
-              >
-                <SelectTrigger size="sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PLACA_ESTADOS.map((estado) => (
-                    <SelectItem key={estado} value={estado}>
-                      {tEstado(estado)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={PLACA_ESTADOS.map((estado) => ({
+                  value: estado,
+                  label: tEstado(estado),
+                }))}
+                onChange={(v) => handleEstadoChange(placa, v as PlacaEstado)}
+              />
             </TableCell>
           </TableRow>
         ))}

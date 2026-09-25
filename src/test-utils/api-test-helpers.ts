@@ -386,6 +386,19 @@ export async function colonizarPlacas(placas: { _id: string }[], opts: AuthOpts)
   return placas.map((p) => p._id);
 }
 
+export async function colonizarFrascosLiquidos(frascos: { _id: string }[], opts: AuthOpts) {
+  const { PATCH } = await import("@/app/api/frascos-liquidos/[id]/route");
+  for (const frasco of frascos) {
+    await callRoute(PATCH, {
+      method: "PATCH",
+      headers: opts.headers,
+      params: { id: frasco._id },
+      body: { estado: "colonizado" },
+    });
+  }
+  return frascos.map((f) => f._id);
+}
+
 export interface MakeFrascoLiquidoOpts extends AuthOpts {
   origenPlacaId: string;
   fechaCreacion?: string;
@@ -420,4 +433,31 @@ export async function makeFrascoLiquido(opts: MakeFrascoLiquidoOpts) {
     throw new Error(`No se pudo crear frasco liquido de fixture: ${JSON.stringify(json)}`);
   }
   return json.data;
+}
+
+export async function makeInvernadero(opts: AuthOpts & Record<string, unknown>) {
+  const { headers, ...rest } = opts;
+  const { POST } = await import("@/app/api/invernaderos/route");
+  const { status, json } = await callRoute(POST, {
+    method: "POST",
+    headers,
+    body: {
+      nombre: `Carpa Test ${Math.random().toString(36).slice(2)}`,
+      altoM: 2.5,
+      largoM: 6,
+      profundidadM: 3,
+      ...rest,
+    },
+  });
+  if (status !== 201) {
+    throw new Error(`No se pudo crear invernadero de fixture: ${JSON.stringify(json)}`);
+  }
+  return json.data as {
+    _id: string;
+    nombre: string;
+    altoM: number;
+    largoM: number;
+    profundidadM: number;
+    activo: boolean;
+  };
 }

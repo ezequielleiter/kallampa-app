@@ -16,6 +16,14 @@ import {
   CHART_PALETTE,
   type RecipienteEstado,
 } from "@/lib/constants";
+import {
+  CHART_AXIS,
+  CHART_GRID_STROKE,
+  CHART_TICK,
+  CHART_TOOLTIP_CURSOR,
+  CHART_TOOLTIP_LABEL_STYLE,
+  CHART_TOOLTIP_STYLE,
+} from "./chartTheme";
 
 interface EstadoDistributionChartProps {
   data: { label: string; value: number }[];
@@ -48,23 +56,21 @@ export function EstadoDistributionChart({ data }: EstadoDistributionChartProps) 
   });
 
   return (
-    <ResponsiveContainer width="100%" height={280}>
+    <ResponsiveContainer width="100%" height={260}>
       <BarChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-        <XAxis
-          dataKey="label"
-          tick={{ fontSize: 11 }}
-          interval={0}
-          angle={-15}
-          textAnchor="end"
-          height={50}
-        />
-        <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+        <CartesianGrid stroke={CHART_GRID_STROKE} vertical={false} />
+        <XAxis dataKey="label" tick={CHART_TICK} {...CHART_AXIS} interval={0} />
+        <YAxis allowDecimals={false} tick={CHART_TICK} {...CHART_AXIS} axisLine={false} width={32} />
         <Tooltip
-          formatter={(value) => [t("countUnit", { count: Number(value) }), t("cantidad")] as [string, string]}
-          contentStyle={{ fontSize: 12, borderRadius: 8 }}
+          cursor={CHART_TOOLTIP_CURSOR}
+          formatter={(value) =>
+            [t("countUnit", { count: Number(value) }), t("cantidad")] as [string, string]
+          }
+          contentStyle={CHART_TOOLTIP_STYLE}
+          labelStyle={CHART_TOOLTIP_LABEL_STYLE}
+          itemStyle={{ color: "var(--color-text)" }}
         />
-        <Bar dataKey="value" radius={[4, 4, 0, 0]} name={t("recipientes")}>
+        <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={56} name={t("recipientes")}>
           {chartData.map((entry) => (
             <Cell key={entry.estado} fill={entry.color} />
           ))}

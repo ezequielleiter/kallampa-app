@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 import {
   startOfMonth,
   endOfMonth,
@@ -19,6 +19,7 @@ import type { CalendarioResponse, Tarea, LotePill } from "@/lib/types";
 import { LOTE_PILL_COLORS } from "@/lib/constants";
 import { TareaFormDialog } from "@/components/calendario/TareaFormDialog";
 import { useAppLocale } from "@/components/shared/LocaleProvider";
+import { EmptyState, PageContainer, PageHeader } from "@/components/kallampa/PageHeader";
 
 // Clave YYYY-MM-DD en horario LOCAL (para comparar contra celdas de la
 // grilla, que tambien se generan en horario local). Distinto del criterio
@@ -149,110 +150,116 @@ export default function CalendarioPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-semibold">{t("title")}</h1>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={irHoy}>
-            {t("today")}
-          </Button>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={irMesAnterior}
-            aria-label={t("prevMonth")}
-          >
-            <ChevronLeft />
-          </Button>
-          <span className="min-w-32 text-center text-sm font-medium capitalize">
-            {tituloMes}
-          </span>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={irMesSiguiente}
-            aria-label={t("nextMonth")}
-          >
-            <ChevronRight />
-          </Button>
-        </div>
-      </div>
-
-      {loading && !data ? (
-        <p className="text-sm text-muted-foreground">{t("loading")}</p>
-      ) : (
-        <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-border bg-border text-sm">
-          {DIAS_SEMANA.map((d) => (
-            <div
-              key={d}
-              className="bg-muted px-2 py-1 text-center text-xs font-medium text-muted-foreground"
+    <PageContainer>
+      <PageHeader
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <div className="flex items-center gap-1.5">
+            <Button variant="outline" size="sm" onClick={irHoy}>
+              {t("today")}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={irMesAnterior}
+              aria-label={t("prevMonth")}
             >
-              {d}
-            </div>
-          ))}
-          {dias.map((dia) => {
-            const key = toKey(dia);
-            const esDelMes = dia.getMonth() === month - 1;
-            const esHoy = key === hoyKey;
-            const tareasDia = tareasPorDia.get(key) ?? [];
-            const pillsDia = pillsPorDia.get(key) ?? [];
-            return (
+              <CaretLeftIcon />
+            </Button>
+            <span className="min-w-36 text-center text-sm font-medium" aria-live="polite">
+              {tituloMes}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={irMesSiguiente}
+              aria-label={t("nextMonth")}
+            >
+              <CaretRightIcon />
+            </Button>
+          </div>
+        }
+      />
+
+      <div className="overflow-x-auto rounded-lg bg-surface-card p-3 shadow-sm">
+        {loading && !data ? (
+          <EmptyState>{t("loading")}</EmptyState>
+        ) : (
+          <div className="grid min-w-[720px] grid-cols-7 gap-1 text-[13px]">
+            {DIAS_SEMANA.map((d) => (
               <div
-                key={key}
-                className={cn(
-                  "flex min-h-24 cursor-pointer flex-col gap-1 bg-background p-1.5",
-                  !esDelMes && "bg-muted/30"
-                )}
-                onClick={() => abrirCreacion(key)}
+                key={d}
+                className="px-2 pt-0.5 pb-1.5 text-[11px] tracking-[0.08em] text-text/60 uppercase"
               >
-                <span
-                  className={cn(
-                    "w-fit rounded px-1 text-xs",
-                    !esDelMes && "text-muted-foreground",
-                    esHoy && "bg-primary font-semibold text-primary-foreground"
-                  )}
-                >
-                  {dia.getDate()}
-                </span>
-                <div className="flex flex-col gap-1">
-                  {tareasDia.map((t) => (
-                    <button
-                      key={t._id}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        abrirEdicion(t);
-                      }}
-                      className={cn(
-                        "truncate rounded bg-secondary px-1.5 py-0.5 text-left text-xs text-secondary-foreground hover:opacity-80",
-                        t.estado === "hecha" && "text-muted-foreground line-through opacity-70"
-                      )}
-                      title={t.titulo}
-                    >
-                      {t.titulo}
-                    </button>
-                  ))}
-                  {pillsDia.map((p) => (
-                    <button
-                      key={`${p.tipo}-${p.codigo}`}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(p.href);
-                      }}
-                      style={{ backgroundColor: LOTE_PILL_COLORS[p.tipo] }}
-                      className="truncate rounded px-1.5 py-0.5 text-left text-xs text-white hover:opacity-90"
-                      title={`${tPill(p.tipo)} · ${p.codigo}`}
-                    >
-                      {tPill(p.tipo)} · {p.codigo}
-                    </button>
-                  ))}
-                </div>
+                {d}
               </div>
-            );
-          })}
-        </div>
-      )}
+            ))}
+            {dias.map((dia) => {
+              const key = toKey(dia);
+              const esDelMes = dia.getMonth() === month - 1;
+              const esHoy = key === hoyKey;
+              const tareasDia = tareasPorDia.get(key) ?? [];
+              const pillsDia = pillsPorDia.get(key) ?? [];
+              return (
+                <div
+                  key={key}
+                  className={cn(
+                    "group flex min-h-24 cursor-pointer flex-col gap-1 rounded-md bg-surface-inset p-1.5 transition-colors hover:shadow-[inset_0_0_0_1px_var(--color-divider)]",
+                    !esDelMes && "bg-transparent opacity-55",
+                    esHoy && "shadow-[inset_0_0_0_1px_var(--color-accent)] hover:shadow-[inset_0_0_0_1px_var(--color-accent)]"
+                  )}
+                  onClick={() => abrirCreacion(key)}
+                >
+                  <span
+                    className={cn(
+                      "grid size-5 place-items-center rounded-full text-xs tabular-nums",
+                      esDelMes ? "text-text-muted" : "text-text-subtle",
+                      esHoy && "bg-accent-800 font-medium text-accent-100"
+                    )}
+                  >
+                    {dia.getDate()}
+                  </span>
+                  <div className="flex flex-col gap-1">
+                    {tareasDia.map((t) => (
+                      <button
+                        key={t._id}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          abrirEdicion(t);
+                        }}
+                        className={cn(
+                          "truncate rounded-sm bg-neutral-800 px-1.5 py-0.5 text-left text-[11.5px] text-neutral-100 transition-colors hover:bg-neutral-700",
+                          t.estado === "hecha" && "text-text-subtle line-through opacity-70"
+                        )}
+                        title={t.titulo}
+                      >
+                        {t.titulo}
+                      </button>
+                    ))}
+                    {pillsDia.map((p) => (
+                      <button
+                        key={`${p.tipo}-${p.codigo}`}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(p.href);
+                        }}
+                        style={{ backgroundColor: LOTE_PILL_COLORS[p.tipo] }}
+                        className="truncate rounded-sm px-1.5 py-0.5 text-left text-[11.5px] text-accent-100 tabular-nums transition-[filter] hover:brightness-115"
+                        title={`${tPill(p.tipo)} · ${p.codigo}`}
+                      >
+                        {tPill(p.tipo)} · {p.codigo}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <TareaFormDialog
         key={tareaEditando ? tareaEditando._id : `nueva-${fechaNueva ?? ""}`}
@@ -263,6 +270,6 @@ export default function CalendarioPage() {
         onSuccess={cargar}
         onDeleted={cargar}
       />
-    </div>
+    </PageContainer>
   );
 }

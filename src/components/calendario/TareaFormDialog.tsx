@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { Trash2 } from "lucide-react";
+import { TrashIcon } from "@phosphor-icons/react";
 import {
   Dialog,
   DialogContent,
@@ -26,15 +26,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Field } from "@/components/kallampa/Field";
+import { SegmentedControl } from "@/components/kallampa/SegmentedControl";
 import { apiFetch } from "@/lib/api-client";
 import type { Tarea } from "@/lib/types";
 import { TAREA_ESTADOS } from "@/lib/constants";
@@ -143,73 +137,50 @@ export function TareaFormDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{isEdit ? t("editTitle") : t("newTitle")}</DialogTitle>
           </DialogHeader>
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("titulo")}</Label>
-              <Input {...register("titulo")} />
-              {errors.titulo && (
-                <p className="text-xs text-destructive">{errors.titulo.message}</p>
-              )}
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("descripcion")}</Label>
+          <form className="flex flex-col gap-3.5" onSubmit={handleSubmit(onSubmit)}>
+            <Field label={t("titulo")} error={errors.titulo?.message}>
+              <Input {...register("titulo")} aria-invalid={errors.titulo ? true : undefined} />
+            </Field>
+            <Field label={t("descripcion")}>
               <Textarea {...register("descripcion")} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>{t("fecha")}</Label>
+            </Field>
+            <Field label={t("fecha")} error={errors.fecha?.message}>
               <Input
                 type="date"
                 defaultValue={tarea ? tarea.fecha.slice(0, 10) : fechaInicial ?? ""}
                 {...register("fecha")}
               />
-              {errors.fecha && (
-                <p className="text-xs text-destructive">{errors.fecha.message}</p>
-              )}
-            </div>
+            </Field>
             {isEdit && (
-              <div className="flex flex-col gap-1.5">
-                <Label>{t("estado")}</Label>
+              <Field label={t("estado")}>
                 <Controller
                   control={control}
                   name="estado"
                   render={({ field }) => (
-                    <Select
-                      items={TAREA_ESTADOS.map((e) => ({
-                        label: tEstado(e),
-                        value: e,
-                      }))}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TAREA_ESTADOS.map((e) => (
-                          <SelectItem key={e} value={e}>
-                            {tEstado(e)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <SegmentedControl
+                      aria-label={t("estado")}
+                      value={field.value ?? "pendiente"}
+                      onChange={field.onChange}
+                      options={TAREA_ESTADOS.map((e) => ({ value: e, label: tEstado(e) }))}
+                    />
                   )}
                 />
-              </div>
+              </Field>
             )}
 
             <DialogFooter className="sm:justify-between">
               {isEdit ? (
                 <Button
                   type="button"
-                  variant="destructive"
-                  size="sm"
+                  variant="ghost"
+                  className="text-danger-text hover:bg-danger-bg"
                   onClick={() => setBorrarOpen(true)}
                 >
-                  <Trash2 /> {t("eliminar")}
+                  <TrashIcon /> {t("eliminar")}
                 </Button>
               ) : (
                 <span />
@@ -218,7 +189,7 @@ export function TareaFormDialog({
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                   {t("cancelar")}
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" loading={isSubmitting}>
                   {t("guardar")}
                 </Button>
               </div>
@@ -236,7 +207,7 @@ export function TareaFormDialog({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>{t("cancelar")}</AlertDialogCancel>
-              <AlertDialogAction variant="destructive" disabled={borrando} onClick={handleBorrar}>
+              <AlertDialogAction variant="destructive" loading={borrando} onClick={handleBorrar}>
                 {t("eliminar")}
               </AlertDialogAction>
             </AlertDialogFooter>

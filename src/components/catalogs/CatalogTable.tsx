@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { Plus, Pencil } from "lucide-react";
+import { PlusIcon, PencilSimpleIcon } from "@phosphor-icons/react";
 import {
   Table,
   TableBody,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/kallampa/PageHeader";
 import { apiFetch } from "@/lib/api-client";
 import { CatalogFormDialog, type CatalogItem } from "./CatalogFormDialog";
 
@@ -61,19 +62,22 @@ export function CatalogTable({ endpoint, itemLabel }: CatalogTableProps) {
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex justify-end">
+    <div className="rounded-lg bg-surface-card px-4 pt-3 pb-2.5 shadow-sm">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[12.5px] text-text-subtle tabular-nums">
+          {loading ? "" : t("count", { count: items.length })}
+        </span>
         <Button size="sm" onClick={() => setDialogTarget("new")}>
-          <Plus /> {t("newItem", { item: itemLabel })}
+          <PlusIcon /> {t("newItem", { item: itemLabel })}
         </Button>
       </div>
 
       {loading ? (
-        <p className="text-sm text-muted-foreground">{t("cargando")}</p>
+        <EmptyState>{t("cargando")}</EmptyState>
       ) : items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("emptyState")}</p>
+        <EmptyState>{t("emptyState")}</EmptyState>
       ) : (
-        <Table>
+        <Table minWidth={560} containerClassName="mt-1.5">
           <TableHeader>
             <TableRow>
               <TableHead>{t("nombre")}</TableHead>
@@ -86,21 +90,29 @@ export function CatalogTable({ endpoint, itemLabel }: CatalogTableProps) {
             {items.map((item) => (
               <TableRow key={item._id}>
                 <TableCell className="font-medium">{item.nombre}</TableCell>
-                <TableCell className="max-w-64 truncate text-muted-foreground">
+                <TableCell className="max-w-64 truncate text-text-subtle">
                   {item.notas}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={item.activo ? "default" : "secondary"}>
+                  <Badge variant={item.activo ? "default" : "outline"}>
                     {item.activo ? t("activo") : t("inactivo")}
                   </Badge>
                 </TableCell>
-                <TableCell className="flex justify-end gap-1">
-                  <Button variant="ghost" size="icon-sm" onClick={() => setDialogTarget(item)}>
-                    <Pencil />
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => toggleActivo(item)}>
-                    {item.activo ? t("desactivar") : t("activar")}
-                  </Button>
+                <TableCell>
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={t("editar")}
+                      title={t("editar")}
+                      onClick={() => setDialogTarget(item)}
+                    >
+                      <PencilSimpleIcon />
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => toggleActivo(item)}>
+                      {item.activo ? t("desactivar") : t("activar")}
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

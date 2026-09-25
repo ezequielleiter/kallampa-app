@@ -12,6 +12,11 @@ function getMarkdown(editor: Editor): string {
   return (editor.storage as unknown as { markdown: { getMarkdown(): string } }).markdown.getMarkdown();
 }
 
+// Tipografia de las notas (lectura y edicion): prose oscuro, titulos en 500
+// (el DS nunca pasa de 500) y links en acento.
+export const NOTA_PROSE_CLASSNAME =
+  "prose prose-sm prose-invert max-w-none text-[13.5px] text-text-body prose-headings:font-medium prose-headings:tracking-[-0.01em] prose-headings:text-text prose-strong:font-medium prose-strong:text-text prose-a:text-accent-300 prose-a:underline-offset-3 hover:prose-a:text-accent-100 prose-code:text-accent-200 prose-li:marker:text-text-subtle prose-hr:border-divider prose-blockquote:border-accent-700 prose-blockquote:text-text-muted prose-th:text-text-muted";
+
 interface NotaEditorProps {
   /** Markdown crudo actual/inicial. Si cambia externamente (ej. termina de
    * cargar una nota existente) y el editor no tiene el foco, se rehidrata. */
@@ -34,8 +39,7 @@ export function NotaEditor({ content, onChange }: NotaEditorProps) {
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        class:
-          "prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-[280px]",
+        class: `${NOTA_PROSE_CLASSNAME} min-h-[280px] focus:outline-none`,
       },
     },
     onUpdate: ({ editor }) => {
@@ -55,7 +59,7 @@ export function NotaEditor({ content, onChange }: NotaEditorProps) {
   }, [content, editor]);
 
   return (
-    <div className="rounded-md border border-input bg-transparent px-3 py-2 shadow-xs focus-within:ring-1 focus-within:ring-ring">
+    <div className="rounded-md border border-divider bg-surface px-3.5 py-2.5 caret-accent transition-colors hover:border-text/45 focus-within:border-accent">
       <EditorContent editor={editor} />
     </div>
   );

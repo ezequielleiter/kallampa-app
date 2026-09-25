@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Sistema de diseño de referencia (Claude Design): no es código de la app.
+    "kallampa-ds/**",
   ]),
 ]);
 

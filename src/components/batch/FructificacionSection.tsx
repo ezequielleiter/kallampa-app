@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { TriangleAlert, Dna } from "lucide-react";
+import { GitBranchIcon } from "@phosphor-icons/react";
 import {
   Table,
   TableBody,
@@ -13,106 +12,87 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { formatFechaCorta } from "@/lib/format";
-import { RECIPIENTE_ESTADO_BADGE_VARIANT } from "@/lib/constants";
+import { SectionCard } from "@/components/kallampa/SectionCard";
+import { StatusTag } from "@/components/kallampa/StatusTag";
+import { ProgressDays } from "@/components/kallampa/ProgressDays";
+import { EmptyState } from "@/components/kallampa/PageHeader";
+import { useFormat } from "@/components/kallampa/useFormat";
 import { alertaRecipiente } from "@/lib/recipiente-utils";
-import type { FungusType, Recipiente } from "@/lib/types";
-import { FructificarSheet } from "./FructificarSheet";
+import type { Recipiente } from "@/lib/types";
 
 interface FructificacionSectionProps {
-  fungusType: FungusType;
   recipientes: Recipiente[];
-  onChanged: () => void;
 }
 
-export function FructificacionSection({
-  fungusType,
-  recipientes,
-  onChanged,
-}: FructificacionSectionProps) {
+/**
+ * Seccion "03 Fructificacion": recipientes que ya pasaron a fructificar.
+ * El pase a fructificacion se hace desde el menu de cada recipiente en
+ * "02 Incubacion".
+ */
+export function FructificacionSection({ recipientes }: FructificacionSectionProps) {
   const t = useTranslations("components.fructificacionSection");
-  const tEstado = useTranslations("estados.recipiente");
-  const [target, setTarget] = useState<Recipiente | null>(null);
-
-  if (recipientes.length === 0) {
-    return <p className="text-sm text-muted-foreground">{t("emptyState")}</p>;
-  }
+  const fmt = useFormat();
+  const enFructificacion = recipientes.filter((r) => !!r.fechaInicioFructificacion);
+  const activos = enFructificacion.filter((r) => r.estado === "fructificando").length;
 
   return (
-    <div className="flex flex-col gap-3">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t("numeroSeguimiento")}</TableHead>
-            <TableHead>{t("estado")}</TableHead>
-            <TableHead>{t("inicioFructificacion")}</TableHead>
-            <TableHead>{t("dias")}</TableHead>
-            <TableHead className="w-48" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {recipientes.map((r) => {
-            const alerta = alertaRecipiente(r);
-            return (
-              <TableRow key={r._id}>
-                <TableCell className="font-medium">{r.numeroSeguimiento}</TableCell>
-                <TableCell>
-                  <Badge variant={RECIPIENTE_ESTADO_BADGE_VARIANT[r.estado]}>
-                    {tEstado(r.estado)}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {r.fechaInicioFructificacion ? formatFechaCorta(r.fechaInicioFructificacion) : "—"}
-                </TableCell>
-                <TableCell>
-                  {r.estado === "fructificando" ? (
-                    <span
-                      className={alerta.demorado ? "flex items-center gap-1 text-destructive" : ""}
-                    >
-                      {alerta.demorado && <TriangleAlert className="size-3.5 shrink-0" />}
-                      {alerta.diasTranscurridos ?? "—"}
-                      {alerta.diasEsperados ? ` / ${alerta.diasEsperados}` : ""}
-                    </span>
-                  ) : (
-                    "—"
-                  )}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {r.estado === "incubando" && (
-                      <Button size="sm" onClick={() => setTarget(r)}>
-                        {t("pasarAFructificacion")}
-                      </Button>
+    <SectionCard number="03" title={t("title")} meta={t("meta", { count: activos })}>
+      {enFructificacion.length === 0 ? (
+        <EmptyState>{t("emptyState")}</EmptyState>
+      ) : (
+        <Table minWidth={560}>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("numeroSeguimiento")}</TableHead>
+              <TableHead>{t("estado")}</TableHead>
+              <TableHead>{t("inicioFructificacion")}</TableHead>
+              <TableHead>{t("dias")}</TableHead>
+              <TableHead className="text-right">
+                <span className="sr-only">{t("acciones")}</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {enFructificacion.map((r) => {
+              const alerta = alertaRecipiente(r);
+              return (
+                <TableRow key={r._id}>
+                  <TableCell>{r.numeroSeguimiento}</TableCell>
+                  <TableCell>
+                    <StatusTag kind="recipiente" estado={r.estado} />
+                  </TableCell>
+                  <TableCell>{fmt.fecha(r.fechaInicioFructificacion)}</TableCell>
+                  <TableCell>
+                    {r.estado === "fructificando" &&
+                    alerta.diasTranscurridos !== null &&
+                    alerta.diasEsperados !== null ? (
+                      <ProgressDays
+                        value={alerta.diasTranscurridos}
+                        total={alerta.diasEsperados}
+                        estado="fructificando"
+                        late={alerta.demorado}
+                      />
+                    ) : (
+                      <span className="text-text-subtle">—</span>
                     )}
+                  </TableCell>
+                  <TableCell className="text-right">
                     {r.estado === "fructificando" && (
                       <Button
                         variant="ghost"
                         size="sm"
                         render={<Link href={`/clonacion/nueva?origenRecipienteId=${r._id}`} />}
                       >
-                        <Dna /> {t("clonar")}
+                        <GitBranchIcon /> {t("clonar")}
                       </Button>
                     )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-
-      {target && (
-        <FructificarSheet
-          open={!!target}
-          onOpenChange={(open) => {
-            if (!open) setTarget(null);
-          }}
-          recipiente={target}
-          fungusType={fungusType}
-          onSuccess={onChanged}
-        />
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
       )}
-    </div>
+    </SectionCard>
   );
 }

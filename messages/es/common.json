@@ -1,24 +1,32 @@
 {
   "common": {
-    "appName": "Cultivo",
-    "language": "Idioma"
+    "appName": "Kallampa",
+    "language": "Idioma",
+    "close": "Cerrar",
+    "cancel": "Cancelar",
+    "optional": "opcional",
+    "breadcrumb": "Ruta",
+    "actions": "Acciones",
+    "user": "Usuario"
   },
   "nav": {
     "produccion": "Producción",
     "micelio": "Micelio",
+    "invernaderos": "Invernaderos",
     "calendario": "Calendario",
     "trazabilidad": "Trazabilidad",
     "notas": "Notas",
-    "frascos": "Frascos",
-    "catalogos": "Catálogos",
+    "frascos": "Identificador",
+    "catalogos": "Inventario",
     "estadisticas": "Estadísticas",
+    "settings": "Configuraciones",
     "logout": "Cerrar sesión"
   },
   "auth": {
     "login": {
       "title": "Iniciar sesión",
       "subtitle": "Ingresá tus credenciales para continuar",
-      "identificadorLabel": "Usuario o email",
+      "identificadorLabel": "Email o usuario",
       "passwordLabel": "Contraseña",
       "submit": "Iniciar sesión",
       "genericError": "Error al iniciar sesión",
@@ -39,7 +47,7 @@
     }
   },
   "header": {
-    "searchPlaceholder": "Buscar frasco por N° de guía…",
+    "searchPlaceholder": "Buscar por N° de guía…",
     "jarWithoutBatch": "El frasco existe pero no tiene un lote asociado",
     "jarNotFound": "No se encontró ningún frasco con ese número de guía"
   },
@@ -65,7 +73,8 @@
       "frascoGrano": "Micelio de frascos de grano"
     },
     "frascoLiquido": {
-      "valido": "Válido",
+      "colonizando": "Colonizando",
+      "colonizado": "Colonizado",
       "vacio": "Vacío",
       "finalizado": "Finalizado",
       "contaminado": "Contaminado"

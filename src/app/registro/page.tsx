@@ -7,22 +7,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Field } from "@/components/kallampa/Field";
+import { AuthShell } from "@/components/shared/AuthShell";
 import { apiFetch } from "@/lib/api-client";
 import { saveSession, type Session } from "@/lib/session";
 import { registerSchema } from "@/lib/validations/auth.schema";
 import { translateErrorMessage } from "@/lib/error-messages";
-import { useAppLocale } from "@/components/shared/LocaleProvider";
-import { cn } from "@/lib/utils";
 
 // Extiende el schema del backend con un campo puramente client-side
 // (confirmarPassword) que nunca se envía a la API.
@@ -40,8 +32,6 @@ type RegisterFormInput = z.infer<typeof registerFormSchema>;
 export default function RegistroPage() {
   const router = useRouter();
   const t = useTranslations("auth.register");
-  const tCommon = useTranslations("common");
-  const { locale, setLocale } = useAppLocale();
   const {
     register,
     handleSubmit,
@@ -69,94 +59,51 @@ export default function RegistroPage() {
   }
 
   return (
-    <div className="flex min-h-full w-full items-center justify-center bg-background p-4">
-      <div className="flex w-full max-w-sm flex-col gap-6">
-        <div className="flex items-center justify-center gap-1" aria-label={tCommon("language")}>
-          <button
-            type="button"
-            onClick={() => setLocale("es")}
-            className={cn(
-              "rounded px-1.5 py-0.5 text-xs font-medium transition-colors",
-              locale === "es"
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-muted"
-            )}
-          >
-            ES
-          </button>
-          <button
-            type="button"
-            onClick={() => setLocale("en")}
-            className={cn(
-              "rounded px-1.5 py-0.5 text-xs font-medium transition-colors",
-              locale === "en"
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-muted"
-            )}
-          >
-            EN
-          </button>
-        </div>
-        <div className="flex flex-col items-center gap-1 text-center">
-          <span className="text-3xl">🍄</span>
-          <h1 className="text-lg font-semibold">{tCommon("appName")}</h1>
-        </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("title")}</CardTitle>
-            <CardDescription>{t("subtitle")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-              <div className="flex flex-col gap-1.5">
-                <Label>{t("usernameLabel")}</Label>
-                <Input {...register("username")} autoFocus />
-                {errors.username && (
-                  <p className="text-xs text-destructive">
-                    {translateErrorMessage(errors.username.message)}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label>{t("emailLabel")}</Label>
-                <Input type="email" {...register("email")} />
-                {errors.email && (
-                  <p className="text-xs text-destructive">
-                    {translateErrorMessage(errors.email.message)}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label>{t("passwordLabel")}</Label>
-                <Input type="password" {...register("password")} />
-                {errors.password && (
-                  <p className="text-xs text-destructive">
-                    {translateErrorMessage(errors.password.message)}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label>{t("confirmPasswordLabel")}</Label>
-                <Input type="password" {...register("confirmarPassword")} />
-                {errors.confirmarPassword && (
-                  <p className="text-xs text-destructive">
-                    {translateErrorMessage(errors.confirmarPassword.message)}
-                  </p>
-                )}
-              </div>
-              <Button type="submit" disabled={isSubmitting} className="mt-2">
-                {t("submit")}
-              </Button>
-            </form>
-            <p className="mt-4 text-center text-sm text-muted-foreground">
-              {t("hasAccount")}{" "}
-              <Link href="/login" className="font-medium text-primary hover:underline">
-                {t("loginLink")}
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <AuthShell
+      title={t("title")}
+      subtitle={t("subtitle")}
+      footer={
+        <>
+          {t("hasAccount")}{" "}
+          <Link href="/login" className="text-accent-300 hover:text-accent-100">
+            {t("loginLink")}
+          </Link>
+        </>
+      }
+    >
+      <form className="flex flex-col gap-3.5" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <Field
+          label={t("usernameLabel")}
+          htmlFor="username"
+          error={errors.username && translateErrorMessage(errors.username.message)}
+        >
+          <Input id="username" autoComplete="username" autoFocus aria-invalid={!!errors.username} {...register("username")} />
+        </Field>
+        <Field
+          label={t("emailLabel")}
+          htmlFor="email"
+          error={errors.email && translateErrorMessage(errors.email.message)}
+        >
+          <Input id="email" type="email" autoComplete="email" aria-invalid={!!errors.email} {...register("email")} />
+        </Field>
+        <Field
+          label={t("passwordLabel")}
+          htmlFor="password"
+          error={errors.password && translateErrorMessage(errors.password.message)}
+        >
+          <Input id="password" type="password" autoComplete="new-password" aria-invalid={!!errors.password} {...register("password")} />
+        </Field>
+        <Field
+          label={t("confirmPasswordLabel")}
+          htmlFor="confirmarPassword"
+          error={errors.confirmarPassword && translateErrorMessage(errors.confirmarPassword.message)}
+        >
+          <Input id="confirmarPassword" type="password" autoComplete="new-password" aria-invalid={!!errors.confirmarPassword} {...register("confirmarPassword")} />
+        </Field>
+        <Button type="submit" size="block" loading={isSubmitting} className="mt-1.5">
+          {t("submit")}
+        </Button>
+      </form>
+    </AuthShell>
   );
 }

@@ -2,26 +2,40 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
-import { TriangleAlert, Network } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TreeStructureIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState, PageContainer } from "@/components/kallampa/PageHeader";
+import { KpiGrid, type KpiItem } from "@/components/kallampa/Kpi";
+import { ProgressDays } from "@/components/kallampa/ProgressDays";
+import { SectionCard } from "@/components/kallampa/SectionCard";
+import { Stepper, type Step } from "@/components/kallampa/Stepper";
+import { useFormat } from "@/components/kallampa/useFormat";
+import { useBreadcrumbs } from "@/components/shared/Breadcrumbs";
 import { PlacasGrid } from "@/components/clonacion/PlacasGrid";
 import { FrascosLiquidosSection } from "@/components/clonacion/FrascosLiquidosSection";
 import { apiFetch } from "@/lib/api-client";
-import { formatFechaCorta } from "@/lib/format";
 import { diasTranscurridos } from "@/lib/recipiente-utils";
 import type { ClonacionDetail } from "@/lib/types";
 
 export default function ClonacionDetailPage() {
   const params = useParams<{ id: string }>();
-  const router = useRouter();
   const t = useTranslations("pages.clonacionDetalle");
+  const tList = useTranslations("pages.clonacion");
+  const tNav = useTranslations("nav");
+  const tOrigen = useTranslations("estados.origenProceso");
+  const fmt = useFormat();
   const [clonacion, setClonacion] = useState<ClonacionDetail | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useBreadcrumbs([
+    { label: tNav("micelio"), href: "/clonacion" },
+    { label: tList("title"), href: "/clonacion" },
+    ...(clonacion ? [{ label: clonacion.numeroLote }] : []),
+  ]);
 
   const cargar = useCallback(async () => {
     try {
@@ -39,19 +53,34 @@ export default function ClonacionDetailPage() {
   }, [cargar]);
 
   if (loading) {
-    return <p className="p-4 text-sm text-muted-foreground">{t("loading")}</p>;
+    return (
+      <PageContainer>
+        <EmptyState>{t("loading")}</EmptyState>
+      </PageContainer>
+    );
   }
 
   if (!clonacion) {
-    return <p className="p-4 text-sm text-muted-foreground">{t("notFound")}</p>;
+    return (
+      <PageContainer>
+        <EmptyState>{t("notFound")}</EmptyState>
+      </PageContainer>
+    );
   }
 
-  const placasDemoradas = clonacion.placas.filter((p) => {
-    if (clonacion.origenProceso !== "placa") return false;
-    if (p.estado !== "colonizando") return false;
-    const dias = diasTranscurridos(clonacion.colonizacion?.fechaInicio ?? "");
-    return dias !== null && dias > (clonacion.colonizacion?.diasEsperados ?? 0);
-  }).length;
+  const esPlaca = clonacion.origenProceso === "placa";
+  const { placas, frascosLiquidos, colonizacion } = clonacion;
+
+  const diasColonizacion = diasTranscurridos(colonizacion?.fechaInicio);
+  const diasEsperados = colonizacion?.diasEsperados ?? 0;
+  const placasColonizando = placas.filter((p) => p.estado === "colonizando").length;
+  const placasColonizadas = placas.filter((p) => p.estado === "colonizado").length;
+  const placasContaminadas = placas.filter((p) => p.estado === "contaminado").length;
+  const placasDemoradas =
+    esPlaca && diasColonizacion !== null && diasColonizacion > diasEsperados
+      ? placasColonizando
+      : 0;
+  const frascosColonizados = frascosLiquidos.filter((f) => f.estado === "colonizado").length;
 
   const origenBatch =
     typeof clonacion.origenBatchId === "object" ? clonacion.origenBatchId : null;
@@ -62,100 +91,147 @@ export default function ClonacionDetailPage() {
         ? clonacion.origenRecipienteId.numeroSeguimiento
         : null;
 
+  // Etapas: solo las clonaciones por placas tienen colonizacion; las demas
+  // arrancan directamente con el micelio liquido.
+  const steps: Step[] = [
+    {
+      name: t("stepInicio"),
+      meta: `${fmt.fecha(clonacion.fechaInicio)} · ${tOrigen(clonacion.origenProceso)}`,
+      state: "done",
+    },
+    ...(esPlaca
+      ? [
+          {
+            name: t("stepColonizacion"),
+            meta: t("stepColonizacionMeta", {
+              colonizadas: placasColonizadas,
+              total: placas.length,
+            }),
+            state: placasColonizando > 0 ? ("active" as const) : ("done" as const),
+          },
+        ]
+      : []),
+    {
+      name: t("stepMicelio"),
+      meta: t("stepMicelioMeta", { count: frascosLiquidos.length, colonizados: frascosColonizados }),
+      state:
+        frascosLiquidos.length === 0
+          ? "pending"
+          : frascosLiquidos.some((f) => f.estado === "colonizando" || f.estado === "colonizado")
+            ? "active"
+            : "done",
+    },
+  ];
+
+  const kpis: KpiItem[] = esPlaca
+    ? [
+        {
+          label: t("kpiPlacasColonizadas"),
+          value: `${placasColonizadas} / ${placas.length}`,
+        },
+        { label: t("kpiPlacasContaminadas"), value: placasContaminadas },
+        {
+          label: t("kpiDiasColonizacion"),
+          value:
+            diasColonizacion === null ? (
+              "—"
+            ) : (
+              <ProgressDays
+                value={diasColonizacion}
+                total={diasEsperados}
+                late={placasDemoradas > 0}
+                width={72}
+              />
+            ),
+        },
+        { label: t("kpiMicelioColonizado"), value: frascosColonizados },
+      ]
+    : [
+        { label: t("cantidadFrascosLabel"), value: clonacion.cantidadFrascos ?? "—" },
+        { label: t("kpiMicelioColonizado"), value: frascosColonizados },
+      ];
+
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <Button variant="ghost" size="sm" className="w-fit" onClick={() => router.push("/clonacion")}>
-          {t("backToClonaciones")}
-        </Button>
-        <Button variant="outline" size="sm" render={<Link href="/trazabilidad" />}>
-          <Network /> {t("viewTraceability")}
-        </Button>
+    <PageContainer>
+      <div className="rounded-lg bg-surface-card px-5 py-[18px] shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="m-0 text-[22px] leading-tight font-medium tracking-[-0.015em]">
+                {clonacion.numeroLote}
+              </h1>
+              {placasDemoradas > 0 && (
+                <Badge variant="destructive">
+                  <WarningCircleIcon /> {t("delayedPlacas", { count: placasDemoradas })}
+                </Badge>
+              )}
+            </div>
+            <div className="mt-1.5 text-[13px] text-text-muted">
+              {clonacion.fungusTypeId?.nombre}
+              {clonacion.fungusTypeId?.nombreCientifico && (
+                <>
+                  {" · "}
+                  <i>{clonacion.fungusTypeId.nombreCientifico}</i>
+                </>
+              )}
+              {" · "}
+              {t("startedOn")} {fmt.fecha(clonacion.fechaInicio)}
+              {origenBatch && (
+                <>
+                  {" · "}
+                  {t("startedFromBatch")}{" "}
+                  <Link
+                    href={`/lotes/${origenBatch._id}`}
+                    className="text-accent-300 hover:text-accent-100"
+                  >
+                    {origenBatch.numeroLote}
+                  </Link>
+                  {origenEtiqueta ? ` (${origenEtiqueta})` : ""}
+                </>
+              )}
+            </div>
+          </div>
+          <Button variant="outline" size="sm" render={<Link href="/trazabilidad" />}>
+            <TreeStructureIcon /> {t("viewTraceability")}
+          </Button>
+        </div>
+
+        <div className="mt-5">
+          <Stepper steps={steps} />
+        </div>
+
+        <KpiGrid items={kpis} className="mt-[18px] border-t border-divider pt-4" />
       </div>
 
-      <Card>
-        <CardContent className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-xl font-semibold">{clonacion.numeroLote}</h1>
-            {placasDemoradas > 0 && (
-              <Badge variant="destructive">
-                <TriangleAlert /> {t("delayedPlacas", { count: placasDemoradas })}
-              </Badge>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {clonacion.fungusTypeId?.nombre}
-            {clonacion.fungusTypeId?.nombreCientifico
-              ? ` (${clonacion.fungusTypeId.nombreCientifico})`
-              : ""}
-            {" · "}
-            {t("startedOn")}{" "}
-            {formatFechaCorta(clonacion.fechaInicio)}
-          </p>
-          {clonacion.origenProceso !== "placa" && clonacion.cantidadFrascos !== undefined && (
-            <p className="text-sm text-muted-foreground">
-              {t("cantidadFrascosLabel")}:{" "}
-              <span className="font-medium">{clonacion.cantidadFrascos}</span>
-            </p>
-          )}
-          {origenBatch && (
-            <p className="text-sm text-muted-foreground">
-              {t("startedFromBatch")}{" "}
-              <Link href={`/lotes/${origenBatch._id}`} className="font-medium text-primary hover:underline">
-                {origenBatch.numeroLote}
-              </Link>
-              {origenEtiqueta ? ` (${origenEtiqueta})` : ""}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {clonacion.origenProceso === "placa" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("colonizacionTitle")}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xs text-muted-foreground">{t("cantidadPlacas")}</span>
-                <span className="font-medium">{clonacion.colonizacion?.cantidadPlacas}</span>
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xs text-muted-foreground">{t("fechaInicio")}</span>
-                <span className="font-medium">
-                  {formatFechaCorta(clonacion.colonizacion?.fechaInicio ?? "")}
-                </span>
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xs text-muted-foreground">{t("diasEsperados")}</span>
-                <span className="font-medium">{clonacion.colonizacion?.diasEsperados}</span>
-              </div>
-            </div>
+      {esPlaca && (
+        <SectionCard
+          number="01"
+          title={t("colonizacionTitle")}
+          meta={t("colonizacionMeta", {
+            count: colonizacion?.cantidadPlacas ?? placas.length,
+            fecha: fmt.fecha(colonizacion?.fechaInicio),
+            dias: diasEsperados,
+          })}
+        >
+          <div className="flex flex-col gap-3">
             {clonacion.recetaAgar && (
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xs text-muted-foreground">{t("recetaAgar")}</span>
-                <p className="whitespace-pre-wrap text-sm">{clonacion.recetaAgar}</p>
+              <div className="rounded-md bg-surface-inset px-3.5 py-3">
+                <div className="text-xs text-text-subtle">{t("recetaAgar")}</div>
+                <p className="m-0 mt-1 text-[13px] whitespace-pre-wrap">{clonacion.recetaAgar}</p>
               </div>
             )}
-            <PlacasGrid placas={clonacion.placas} onChanged={cargar} />
-          </CardContent>
-        </Card>
+            <PlacasGrid placas={placas} onChanged={cargar} />
+          </div>
+        </SectionCard>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("micelioLiquido")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <FrascosLiquidosSection
-            clonacionId={clonacion._id}
-            frascosLiquidos={clonacion.frascosLiquidos}
-            onChanged={cargar}
-            permiteAgregar={clonacion.origenProceso === "placa"}
-          />
-        </CardContent>
-      </Card>
-    </div>
+      <FrascosLiquidosSection
+        number={esPlaca ? "02" : "01"}
+        frascosLiquidos={frascosLiquidos}
+        placas={placas}
+        onChanged={cargar}
+        permiteAgregar={esPlaca}
+      />
+    </PageContainer>
   );
 }

@@ -10,6 +10,7 @@ import {
   makeClonacion,
   makeClonacionDirecta,
   colonizarPlacas,
+  colonizarFrascosLiquidos,
   makeFrascoLiquido,
   makeUser,
   authHeaders,
@@ -158,6 +159,8 @@ describe("POST /api/batches - origen desde un frasco de micelio liquido (Clonaci
     const [placaId] = await colonizarPlacas([clonacion.placas[0]], { userId: user._id, headers });
     const frasco = await makeFrascoLiquido({ userId: user._id, headers, origenPlacaId: placaId });
 
+    await colonizarFrascosLiquidos([frasco], { userId: user._id, headers });
+
     const batch = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1, origenFrascoLiquidoId: frasco._id });
 
     expect(batch.fungusTypeId).toBe(clonacion.fungusTypeId);
@@ -194,13 +197,15 @@ describe("POST /api/batches - origen desde un frasco de micelio liquido (Clonaci
     });
     const frasco = clonacion.frascosLiquidos[0];
 
+    await colonizarFrascosLiquidos([frasco], { userId: user._id, headers });
+
     const batch = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1, origenFrascoLiquidoId: frasco._id });
 
     expect(batch.fungusTypeId).toBe(fungusType._id);
     expect(batch.origenFrascoLiquidoId).toBe(frasco._id);
   });
 
-  it("rechaza un frasco liquido que no esta 'valido' (ej. contaminado) con 409", async () => {
+  it("rechaza un frasco liquido que no esta 'colonizado' (ej. contaminado) con 409", async () => {
     const clonacion = await makeClonacion({ userId: user._id, headers, cantidadPlacas: 1 });
     const [placaId] = await colonizarPlacas([clonacion.placas[0]], { userId: user._id, headers });
     const frasco = await makeFrascoLiquido({ userId: user._id, headers, origenPlacaId: placaId });
@@ -229,6 +234,29 @@ describe("POST /api/batches - origen desde un frasco de micelio liquido (Clonaci
 
     expect(status).toBe(409);
     expect(json.error).toMatch(/no está disponible/i);
+  });
+
+  it("rechaza con 409 un frasco liquido que todavia esta 'colonizando'", async () => {
+    const clonacion = await makeClonacion({ userId: user._id, headers, cantidadPlacas: 1 });
+    const [placaId] = await colonizarPlacas([clonacion.placas[0]], { userId: user._id, headers });
+    const frasco = await makeFrascoLiquido({ userId: user._id, headers, origenPlacaId: placaId });
+
+    const grainType = await makeGrainType({ userId: user._id, headers });
+    const { status, json } = await callRoute(POST, {
+      method: "POST",
+      headers,
+      body: {
+        origenFrascoLiquidoId: frasco._id,
+        tipoGranoId: grainType._id,
+        pesoGranoKg: 10,
+        precioPorKg: 100,
+        cantidadFrascos: 2,
+        fechaInicio: new Date().toISOString(),
+      },
+    });
+
+    expect(status).toBe(409);
+    expect(json.error).toMatch(/colonizando/);
   });
 });
 

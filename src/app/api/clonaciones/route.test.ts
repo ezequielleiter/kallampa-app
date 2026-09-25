@@ -337,7 +337,7 @@ describe("POST /api/clonaciones - origenProceso 'comprado'", () => {
     ]);
     clonacion.frascosLiquidos.forEach((f: { origenPlacaId?: unknown; estado: string }) => {
       expect(f.origenPlacaId).toBeUndefined();
-      expect(f.estado).toBe("valido");
+      expect(f.estado).toBe("colonizando");
     });
   });
 });
@@ -447,7 +447,8 @@ describe("GET /api/clonaciones", () => {
       placasColonizando: 0,
       placasColonizado: 2,
       placasContaminado: 1,
-      frascosLiquidosValidos: 0,
+      frascosLiquidosColonizando: 0,
+      frascosLiquidosColonizados: 0,
       frascosLiquidosVacios: 0,
       frascosLiquidosFinalizados: 0,
       frascosLiquidosContaminados: 0,

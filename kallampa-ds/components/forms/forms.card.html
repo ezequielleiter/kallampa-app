@@ -1,0 +1,33 @@
+<!-- @dsCard group="Components" viewport="700x400" subtitle="Campos, errores, selección y estados en línea" name="Forms" -->
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Kallampa · Forms</title>
+<link rel="stylesheet" href="../../../styles.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<style>body{margin:0;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);-webkit-font-smoothing:antialiased}a{color:var(--color-accent-300);text-decoration:none}a:hover{color:var(--color-accent-100)}</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+<script src="../../dev/load-components.js"></script>
+</head><body style="padding:20px"><div id="root"></div>
+<script type="text/babel">
+window.kallampaReady.then(NS => {
+
+const { Field, Input, Select, SegmentedControl, ChoiceList, StateSelect, Checkbox } = NS;
+function Demo() {
+  const [o, setO] = React.useState('petri'); const [sel, setSel] = React.useState(['F05']); const [st, setSt] = React.useState('Colonizado');
+  return (<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <SegmentedControl block name="o" value={o} onChange={setO} options={[{ value: 'petri', label: 'Placas Petri', icon: 'circle-half' }, { value: 'comprado', label: 'Comprado', icon: 'shopping-bag' }, { value: 'grano', label: 'Frasco de grano', icon: 'grains' }]} />
+      <Field label="Tipo de grano" hint="35 kg disponibles · $600/kg"><Select placeholder="Elegí un grano" options={['Arroz', 'Trigo', 'Sorgo']} defaultValue="Arroz" /></Field>
+      <Field label="Peso de grano (kg)" error="Hay 8 kg de centeno en inventario. Reducí el peso o cargá más stock."><Input invalid suffix="kg" defaultValue="12" /></Field>
+      <Checkbox label="Guardar como receta para la próxima" />
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <Field label="Frascos de origen"><ChoiceList type="checkbox" name="f" value={sel} onChange={setSel} items={[{ value: 'F01', label: 'ENK-L-2026-001-F01', note: 'ya usado en R01' }, { value: 'F04', label: 'ENK-L-2026-001-F04', status: 'Contaminado', disabled: true }, { value: 'F05', label: 'ENK-L-2026-001-F05', status: 'Colonizado' }]} /></Field>
+      <Field label="Estado en tabla"><StateSelect value={st} onChange={setSt} options={['Colonizando', 'Colonizado', 'Contaminado', 'Usado']} /></Field>
+      <Field label="Fecha de inoculación"><Input type="date" defaultValue="2026-09-25" /></Field>
+    </div>
+  </div>);
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo />);
+});
+</script></body></html>

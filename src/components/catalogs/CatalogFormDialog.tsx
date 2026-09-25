@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Field } from "@/components/kallampa/Field";
 import { Textarea } from "@/components/ui/textarea";
 import { apiFetch } from "@/lib/api-client";
 import { translateErrorMessage } from "@/lib/error-messages";
@@ -48,6 +48,7 @@ export function CatalogFormDialog({
   onSuccess,
 }: CatalogFormDialogProps) {
   const t = useTranslations("components.catalogFormDialog");
+  const tCommon = useTranslations("common");
   const isEdit = !!item;
   const {
     register,
@@ -89,22 +90,21 @@ export function CatalogFormDialog({
         <DialogHeader>
           <DialogTitle>{isEdit ? t("editTitle") : t("newTitle")}</DialogTitle>
         </DialogHeader>
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
-          <div className="flex flex-col gap-1.5">
-            <Label>{t("nombre")}</Label>
+        <form className="flex flex-col gap-3.5" onSubmit={handleSubmit(onSubmit)}>
+          <Field
+            label={t("nombre")}
+            error={errors.nombre ? translateErrorMessage(errors.nombre.message) : undefined}
+          >
             <Input {...register("nombre")} />
-            {errors.nombre && (
-              <p className="text-xs text-destructive">
-                {translateErrorMessage(errors.nombre.message)}
-              </p>
-            )}
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label>{t("notas")}</Label>
+          </Field>
+          <Field label={t("notas")}>
             <Textarea {...register("notas")} />
-          </div>
+          </Field>
           <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              {tCommon("cancel")}
+            </Button>
+            <Button type="submit" loading={isSubmitting}>
               {t("guardar")}
             </Button>
           </DialogFooter>

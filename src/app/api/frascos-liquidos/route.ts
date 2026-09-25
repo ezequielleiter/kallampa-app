@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       origenPlacaId: parsed.origenPlacaId,
       numeroGuia,
       fechaCreacion: parsed.fechaCreacion,
-      estado: "valido",
+      estado: "colonizando",
     });
 
     return ok(frascoLiquido, 201);
