@@ -331,6 +331,152 @@
       "quitarError": "Couldn't remove the device",
       "colInflux": "InfluxDB",
       "sinVincular": "not linked"
+    },
+    "landing": {
+      "nav": {
+        "modulos": "Modules",
+        "trazabilidad": "Traceability",
+        "invernaderos": "Greenhouses",
+        "contacto": "Contact",
+        "login": "Log in",
+        "panel": "Go to dashboard",
+        "menu": "Main navigation"
+      },
+      "hero": {
+        "titulo1": "From mycelium to harvest.",
+        "titulo2": "Every batch, under control.",
+        "bajada": "Kallampa is the management system for mushroom farms: production, contamination control, cloning, traceability, costs and your greenhouse climate, in one place."
+      },
+      "panel": {
+        "titulo": "Greenhouse 02",
+        "sub": "Pink oyster · Fruiting · day 6",
+        "automatico": "Automatic",
+        "humedad": "Humidity",
+        "temperatura": "Temperature",
+        "co2": "CO₂",
+        "objetivo": "Target {v}",
+        "nebulizador": "Mister",
+        "encendido": "On",
+        "extractor": "Exhaust fan",
+        "calefactor": "Heater",
+        "enEspera": "Standby",
+        "aria": "Sample greenhouse dashboard with live readings"
+      },
+      "traz": {
+        "kicker": "Traceability",
+        "titulo": "One batch, from strain to sale.",
+        "lote": "Batch OST-L-2026-007",
+        "especie": "Pleurotus djamor",
+        "etapas": {
+          "cepa": "Strain",
+          "clonacion": "Cloning",
+          "inoculacion": "Inoculation",
+          "incubacion": "Incubation",
+          "fructificacion": "Fruiting",
+          "cosecha": "Harvest",
+          "venta": "Sale"
+        },
+        "metas": {
+          "cepa": "P. djamor · M-03",
+          "clonacion": "G2 · plate 11",
+          "inoculacion": "120 bags · 09/02",
+          "incubacion": "14 days · 24 °C",
+          "fructificacion": "Greenhouse 02",
+          "cosecha": "38.4 kg · BE 82 %",
+          "venta": "Central market"
+        }
+      },
+      "modulos": {
+        "kicker": "Modules",
+        "titulo": "The whole growing cycle, connected.",
+        "produccion": {
+          "titulo": "Production",
+          "texto": "Plan batches by species and substrate, log every stage and forecast the week's harvests. Yield and biological efficiency are calculated for you."
+        },
+        "contaminacion": {
+          "titulo": "Contamination control",
+          "texto": "Flag contaminated bags or jars from your phone, identify the agent and trace it back to the substrate batch or the sterilization that failed.",
+          "alerta": "Bag 14 · Trichoderma",
+          "origen": "Autoclave #2 · 08:40"
+        },
+        "clonacion": {
+          "titulo": "Cloning and strains",
+          "texto": "A family tree per strain: from the mother plate to every generation of clones, with its real yield to decide which one to keep propagating.",
+          "madre": "Mother",
+          "placa": "plate 01",
+          "enPrueba": "testing"
+        },
+        "costos": {
+          "titulo": "Costs and pricing",
+          "texto": "Substrate, energy, labor and losses are assigned to each batch. Know your real cost per kilo and set prices with the margin you need.",
+          "costoKg": "Cost per kg · OST-L-2026-007",
+          "sustrato": "Substrate",
+          "energia": "Energy",
+          "manoDeObra": "Labor",
+          "mermas": "Losses",
+          "precioSugerido": "Suggested price (45 % margin)"
+        },
+        "lotes": {
+          "shiitake": "Shiitake",
+          "ostra": "Pink oyster",
+          "melena": "Lion's mane",
+          "incubacion": "Incubation",
+          "fructificacion": "Fruiting",
+          "inoculacion": "Inoculation"
+        }
+      },
+      "auto": {
+        "kicker": "Automation",
+        "titulo": "Your greenhouses adjust themselves.",
+        "texto": "Connect humidity, temperature and CO₂ sensors and set rules per stage. Kallampa turns misters, exhaust fans and heaters on, and alerts you when something goes out of range.",
+        "tagHumedad": "Relative humidity",
+        "tagTemperatura": "Temperature",
+        "tagCo2": "CO₂",
+        "tagAlertas": "Alerts",
+        "si": "If",
+        "activarRegla": "Enable rule: {regla}",
+        "reglasActivas": "{n, plural, one {# active rule} other {# active rules}} · last action 2 min ago",
+        "reglas": {
+          "hrAccion": "Mister 30 s",
+          "hrMeta": "Fruiting · every 5 min",
+          "co2Accion": "Exhaust fan at 60 %",
+          "co2Meta": "Fruiting",
+          "tBajaAccion": "Heater",
+          "tBajaMeta": "All stages",
+          "tAltaAccion": "WhatsApp alert",
+          "tAltaMeta": "Incubation"
+        }
+      },
+      "contacto": {
+        "kicker": "Greenhouse automation",
+        "titulo": "We install climate control in your greenhouse.",
+        "texto": "Automation needs sensors and controllers on site. Tell us about your farm and we'll get in touch to assess the installation.",
+        "paso1": "Site visit and space measurement",
+        "paso2": "Sensor and actuator installation",
+        "paso3": "Per-stage rules set up in your dashboard",
+        "nombre": "Name",
+        "nombrePh": "Your name",
+        "correo": "Email",
+        "correoPh": "you@email.com",
+        "telefono": "Phone",
+        "telefonoPh": "+54 …",
+        "invernaderos": "Greenhouses",
+        "invernaderosPh": "2",
+        "superficie": "Approx. area",
+        "superficiePh": "120 m²",
+        "mensaje": "Message",
+        "mensajePh": "Species, stage you want to automate, location…",
+        "enviar": "Contact us",
+        "enviando": "Sending…",
+        "enviado": "Sent, we'll get in touch",
+        "error": "Couldn't send it. Please try again in a while.",
+        "nombreRequerido": "Enter your name.",
+        "correoInvalido": "Enter a valid email."
+      },
+      "footer": {
+        "desarrollado": "Developed as an inter-cooperative project by",
+        "copyright": "© 2026 Kallampa"
+      }
     }
   }
 }

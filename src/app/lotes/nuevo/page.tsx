@@ -61,8 +61,8 @@ export default function NuevoLotePage() {
   });
 
   useBreadcrumbs([
-    { label: tNav("produccion"), href: "/" },
-    { label: tLotes("title"), href: "/" },
+    { label: tNav("produccion"), href: "/lotes" },
+    { label: tLotes("title"), href: "/lotes" },
     { label: t("title") },
   ]);
 
@@ -314,7 +314,7 @@ export default function NuevoLotePage() {
         </div>
 
         <div className="-mx-5 mt-1 -mb-[18px] flex justify-end gap-2 rounded-b-lg border-t border-divider bg-surface-inset px-5 py-3">
-          <Button type="button" variant="outline" render={<Link href="/" />}>
+          <Button type="button" variant="outline" render={<Link href="/lotes" />}>
             {t("cancel")}
           </Button>
           <Button type="submit" loading={isSubmitting}>

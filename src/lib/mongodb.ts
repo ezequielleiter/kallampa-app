@@ -19,6 +19,7 @@ import "@/models/FrascoLiquido";
 import "@/models/Nota";
 import "@/models/Tarea";
 import "@/models/Invernadero";
+import "@/models/Contacto";
 
 // La variable se lee recien al conectar (no al importar el modulo): el build
 // de produccion (p. ej. en Vercel) importa las rutas sin necesitar la base.

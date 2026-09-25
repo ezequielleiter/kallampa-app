@@ -37,7 +37,7 @@ export default function LoginPage() {
         body: JSON.stringify(data),
       });
       saveSession(result);
-      router.push("/");
+      router.push("/lotes");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("genericError"));
     }

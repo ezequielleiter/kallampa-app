@@ -35,8 +35,8 @@ export default function BatchDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useBreadcrumbs([
-    { label: tNav("produccion"), href: "/" },
-    { label: tLotes("title"), href: "/" },
+    { label: tNav("produccion"), href: "/lotes" },
+    { label: tLotes("title"), href: "/lotes" },
     { label: batch?.numeroLote ?? "…" },
   ]);
 

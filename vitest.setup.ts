@@ -18,12 +18,14 @@ import Nota from "@/models/Nota";
 import Tarea from "@/models/Tarea";
 import User from "@/models/User";
 import Invernadero from "@/models/Invernadero";
+import Contacto from "@/models/Contacto";
 
 beforeEach(async () => {
   await dbConnect();
   await Promise.all([
     User.deleteMany({}),
     Invernadero.deleteMany({}),
+    Contacto.deleteMany({}),
     Batch.deleteMany({}),
     Jar.deleteMany({}),
     Recipiente.deleteMany({}),

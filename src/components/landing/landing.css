@@ -1,0 +1,150 @@
+/* Landing de Kallampa (fuente: "Kallampa Landing.dc.html" de Claude Design).
+   Animaciones propias de la landing; las comunes (k-grow, k-cap, k-spin,
+   k-blink) vienen de src/styles/kallampa/motion.css. Todo se apaga con
+   prefers-reduced-motion (regla global en motion.css). */
+
+@keyframes l-tip {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.6);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes l-ring {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+@keyframes l-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes l-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes l-drip {
+  0% {
+    transform: translateY(-3px);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(4px);
+    opacity: 0;
+  }
+}
+
+.landing {
+  min-height: 100dvh;
+  overflow: hidden;
+  color: var(--color-text);
+  text-wrap: pretty;
+  background:
+    radial-gradient(
+      1200px 720px at 82% -160px,
+      color-mix(in srgb, var(--color-accent-900) 75%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      1100px 800px at -10% 100%,
+      color-mix(in srgb, black 30%, transparent),
+      transparent 55%
+    ),
+    var(--color-bg);
+}
+.landing a:not(.landing-btn) {
+  color: var(--color-accent-300);
+  text-decoration: none;
+}
+.landing a:not(.landing-btn):hover {
+  color: var(--color-accent-100);
+}
+
+/* Contenedor de 1200px con el gutter fluido del diseño. */
+.landing-wrap {
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: clamp(20px, 5vw, 72px);
+}
+
+/* Banda de seccion (trazabilidad, contacto). */
+.landing-band {
+  background:
+    radial-gradient(
+      900px 420px at 85% -40%,
+      color-mix(in srgb, var(--color-section-glow) 70%, transparent),
+      transparent 64%
+    ),
+    var(--color-section);
+}
+
+.landing-h2 {
+  font-weight: 500;
+  font-size: clamp(28px, 3.4vw, 40px);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  margin: 12px 0 0;
+}
+.landing-kicker {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Entrada del hero y aparicion al hacer scroll (scroll-driven donde el
+   navegador lo soporta; si no, el elemento queda visible). */
+.landing-rise {
+  animation: l-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.landing-reveal {
+  animation: l-rise linear both;
+  animation-timeline: view();
+  animation-range: entry 0% entry 70%;
+}
+.landing-fill {
+  transform-origin: left;
+  animation: l-fill 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-timeline: view();
+  animation-range: entry 10% entry 100%;
+}
+
+.landing-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.landing-btn:hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}

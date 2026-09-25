@@ -1,11 +1,10 @@
 # TODO: lo que muestra el diseño Kallampa y el back todavía no soporta
 
-Surge de aplicar el sistema de diseño `kallampa-ds/` al front. Todo lo de esta lista **se dejó afuera del front a propósito**, porque no hay modelo, endpoint o dato que lo respalde. Cuando exista el back, el front se completa con los componentes que ya están en `src/components/kallampa/`.
+Surge de aplicar el sistema de diseño Kallampa (Claude Design) al front. Todo lo de esta lista **se dejó afuera del front a propósito**, porque no hay modelo, endpoint o dato que lo respalde. Cuando exista el back, el front se completa con los componentes que ya están en `src/components/kallampa/`.
 
 ## Módulos nuevos
 
 - [ ] **Invernaderos: automatización y alertas**: los invernaderos tienen medidas, dispositivos asociados (nombre + dominio, que abren su propia página desde la misma wifi) y gráficos de calefacción y humidificación leídos de InfluxDB del lado del servidor (variables `INFLUX_*`). Falta: CO₂, alertas (por ejemplo temperatura fuera de rango), controlar los equipos desde la app y leer la mínima y la máxima directo del equipo (`/heater`); hoy se cargan a mano porque el servidor no llega a la red local.
-- [ ] **Landing de marketing y formulario de contacto**: el README del DS la menciona (`Kallampa Landing.dc.html`), pero ese prototipo no está en `kallampa-ds/`, y el formulario necesita un endpoint para recibir los contactos.
 
 ## Producción (lotes, recipientes y cosecha)
 
@@ -23,10 +22,15 @@ Surge de aplicar el sistema de diseño `kallampa-ds/` al front. Todo lo de esta 
 
 - [ ] **Estado de la clonación ("en curso / finalizada")**: la lista de Producción filtra por estado y, en Micelio, la clonación no tiene un estado propio (ni derivado en la API). Por eso el filtro de la lista de clonaciones es por origen (placas / comprado / frascos de grano).
 
+## Landing
+
+- [ ] **Ver las consultas de contacto**: el formulario de la landing guarda cada consulta en la colección `contactos` (`POST /api/contacto`, público, con campo trampa contra bots), pero todavía no hay una pantalla para verlas ni un aviso por mail. Hoy se consultan directo en Atlas.
+- [ ] **Contenido de la landing vs. funcionalidades reales**: la landing muestra funciones que el panel todavía no tiene (identificar el agente de contaminación y su autoclave, costos de mano de obra y mermas, precio sugerido, reglas de automatización y alertas por WhatsApp, etapa de venta). Son datos ilustrativos del diseño.
+
 ## Topbar
 
 - [ ] **Escanear código**: la topbar del DS tiene un botón `barcode` para escanear el N° de guía con la cámara. Es solo front (cámara + lectura de código de barras), pero es una funcionalidad nueva y quedó fuera del rediseño. La búsqueda por texto contra `/api/jars/search` sí está.
 
 ## Marca
 
-- [ ] **Logo de Lawal**: el DS lo marca como faltante (solo está `kallampa-ds/assets/teo-logo.png`).
+- [ ] **Logo de Lawal**: falta el asset. En el pie de la landing Lawal figura solo con el nombre; el de Teo está en `public/brand/teo-logo.png`.

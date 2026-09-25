@@ -14,7 +14,7 @@ import {
 // Secciones del panel, en el orden de la sidebar. Iconos segun el DS
 // (kallampa-ds/README.md, ICONOGRAPHY). Las claves son las de `nav.*`.
 export const NAV_LINKS: { href: string; key: NavKey; icon: Icon }[] = [
-  { href: "/", key: "produccion", icon: PlantIcon },
+  { href: "/lotes", key: "produccion", icon: PlantIcon },
   { href: "/clonacion", key: "micelio", icon: FlaskIcon },
   { href: "/invernaderos", key: "invernaderos", icon: ThermometerSimpleIcon },
   { href: "/calendario", key: "calendario", icon: CalendarBlankIcon },
@@ -38,6 +38,5 @@ export type NavKey =
 
 export function navLinkForPath(pathname: string | null) {
   if (!pathname) return undefined;
-  if (pathname === "/" || pathname.startsWith("/lotes")) return NAV_LINKS[0];
-  return NAV_LINKS.find((l) => l.href !== "/" && pathname.startsWith(l.href));
+  return NAV_LINKS.find((l) => pathname.startsWith(l.href));
 }

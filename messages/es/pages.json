@@ -331,6 +331,152 @@
       "quitarError": "No se pudo quitar el dispositivo",
       "colInflux": "InfluxDB",
       "sinVincular": "sin vincular"
+    },
+    "landing": {
+      "nav": {
+        "modulos": "Módulos",
+        "trazabilidad": "Trazabilidad",
+        "invernaderos": "Invernaderos",
+        "contacto": "Contacto",
+        "login": "Iniciar sesión",
+        "panel": "Ir al panel",
+        "menu": "Navegación principal"
+      },
+      "hero": {
+        "titulo1": "Del micelio a la cosecha.",
+        "titulo2": "Cada lote, bajo control.",
+        "bajada": "Kallampa es el sistema de gestión para cultivos de hongos: producción, control de contaminación, clonación, trazabilidad, costos y el clima de tus invernaderos, en un solo lugar."
+      },
+      "panel": {
+        "titulo": "Invernadero 02",
+        "sub": "Ostra rosada · Fructificación · día 6",
+        "automatico": "Automático",
+        "humedad": "Humedad",
+        "temperatura": "Temperatura",
+        "co2": "CO₂",
+        "objetivo": "Objetivo {v}",
+        "nebulizador": "Nebulizador",
+        "encendido": "Encendido",
+        "extractor": "Extractor",
+        "calefactor": "Calefactor",
+        "enEspera": "En espera",
+        "aria": "Ejemplo de panel de un invernadero con lecturas en vivo"
+      },
+      "traz": {
+        "kicker": "Trazabilidad",
+        "titulo": "Un lote, de la cepa a la venta.",
+        "lote": "Lote OST-L-2026-007",
+        "especie": "Pleurotus djamor",
+        "etapas": {
+          "cepa": "Cepa",
+          "clonacion": "Clonación",
+          "inoculacion": "Inoculación",
+          "incubacion": "Incubación",
+          "fructificacion": "Fructificación",
+          "cosecha": "Cosecha",
+          "venta": "Venta"
+        },
+        "metas": {
+          "cepa": "P. djamor · M-03",
+          "clonacion": "G2 · placa 11",
+          "inoculacion": "120 bolsas · 02/09",
+          "incubacion": "14 días · 24 °C",
+          "fructificacion": "Invernadero 02",
+          "cosecha": "38,4 kg · EB 82 %",
+          "venta": "Mercado central"
+        }
+      },
+      "modulos": {
+        "kicker": "Módulos",
+        "titulo": "Todo el ciclo del cultivo, conectado.",
+        "produccion": {
+          "titulo": "Producción",
+          "texto": "Planificá lotes por especie y sustrato, registrá cada etapa y proyectá las cosechas de la semana. El rendimiento y la eficiencia biológica se calculan solos."
+        },
+        "contaminacion": {
+          "titulo": "Control de contaminación",
+          "texto": "Marcá bolsas o frascos contaminados desde el celular, identificá el agente y rastreá su origen hasta el lote de sustrato o la esterilización que falló.",
+          "alerta": "Bolsa 14 · Trichoderma",
+          "origen": "Autoclave #2 · 08:40"
+        },
+        "clonacion": {
+          "titulo": "Clonación y cepas",
+          "texto": "Un árbol genealógico por cepa: de la placa madre a cada generación de clones, con su rendimiento real para decidir cuál seguir propagando.",
+          "madre": "Madre",
+          "placa": "placa 01",
+          "enPrueba": "en prueba"
+        },
+        "costos": {
+          "titulo": "Gastos y precios",
+          "texto": "Sustrato, energía, mano de obra y mermas se asignan a cada lote. Conocé tu costo real por kilo y fijá precios con el margen que necesitás.",
+          "costoKg": "Costo por kg · OST-L-2026-007",
+          "sustrato": "Sustrato",
+          "energia": "Energía",
+          "manoDeObra": "Mano de obra",
+          "mermas": "Mermas",
+          "precioSugerido": "Precio sugerido (margen 45 %)"
+        },
+        "lotes": {
+          "shiitake": "Shiitake",
+          "ostra": "Ostra rosada",
+          "melena": "Melena de león",
+          "incubacion": "Incubación",
+          "fructificacion": "Fructificación",
+          "inoculacion": "Inoculación"
+        }
+      },
+      "auto": {
+        "kicker": "Automatización",
+        "titulo": "Tus invernaderos se ajustan solos.",
+        "texto": "Conectá sensores de humedad, temperatura y CO₂ y definí reglas por etapa. Kallampa enciende nebulizadores, extractores y calefactores, y te avisa cuando algo sale del rango.",
+        "tagHumedad": "Humedad relativa",
+        "tagTemperatura": "Temperatura",
+        "tagCo2": "CO₂",
+        "tagAlertas": "Alertas",
+        "si": "Si",
+        "activarRegla": "Activar regla: {regla}",
+        "reglasActivas": "{n, plural, one {# regla activa} other {# reglas activas}} · última acción hace 2 min",
+        "reglas": {
+          "hrAccion": "Nebulizador 30 s",
+          "hrMeta": "Fructificación · cada 5 min",
+          "co2Accion": "Extractor al 60 %",
+          "co2Meta": "Fructificación",
+          "tBajaAccion": "Calefactor",
+          "tBajaMeta": "Todas las etapas",
+          "tAltaAccion": "Alerta por WhatsApp",
+          "tAltaMeta": "Incubación"
+        }
+      },
+      "contacto": {
+        "kicker": "Automatización de invernaderos",
+        "titulo": "Instalamos el control de clima en tu invernadero.",
+        "texto": "La automatización requiere sensores y controladores en el lugar. Contanos sobre tu cultivo y te contactamos para evaluar la instalación.",
+        "paso1": "Visita técnica y medición del espacio",
+        "paso2": "Instalación de sensores y actuadores",
+        "paso3": "Configuración de reglas por etapa en tu panel",
+        "nombre": "Nombre",
+        "nombrePh": "Tu nombre",
+        "correo": "Correo",
+        "correoPh": "tu@correo.com",
+        "telefono": "Teléfono",
+        "telefonoPh": "+54 …",
+        "invernaderos": "Invernaderos",
+        "invernaderosPh": "2",
+        "superficie": "Superficie aprox.",
+        "superficiePh": "120 m²",
+        "mensaje": "Mensaje",
+        "mensajePh": "Especies, etapa que querés automatizar, ubicación…",
+        "enviar": "Contactar",
+        "enviando": "Enviando…",
+        "enviado": "Enviado, te contactamos",
+        "error": "No se pudo enviar. Probá de nuevo en un rato.",
+        "nombreRequerido": "Ingresá tu nombre.",
+        "correoInvalido": "Ingresá un correo válido."
+      },
+      "footer": {
+        "desarrollado": "Desarrollado de forma intercooperativa por",
+        "copyright": "© 2026 Kallampa"
+      }
     }
   }
 }

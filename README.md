@@ -61,6 +61,9 @@ Lo desarrollan en forma intercooperativa las cooperativas de trabajo **Teo** y *
   - tienen rangos de 1 h a 7 días;
   - traen una **tabla de ciclos** (cuánto estuvo prendido, cuánto subió, cuánto duró el efecto y a qué ritmo cae).
 
+### Landing
+- Página pública en `/` que presenta el sistema: hero con micelio animado y un panel de invernadero en vivo, trazabilidad, módulos, automatización y un **formulario de contacto** para pedir la instalación del control de clima. El panel arranca en `/lotes`.
+
 ### Y además
 - **Calendario** con las fechas esperadas de cada etapa y tareas propias.
 - **Notas** en Markdown.
@@ -82,7 +85,7 @@ Lo desarrollan en forma intercooperativa las cooperativas de trabajo **Teo** y *
 | **Tests** | [Vitest](https://vitest.dev) contra una base MongoDB de test real |
 | **Deploy** | [Vercel](https://vercel.com) |
 
-La interfaz sigue el sistema de diseño propio **Kallampa**, que está en [`kallampa-ds/`](kallampa-ds/): oscuro, denso y con un solo color de acento, pensado para usar todos los días.
+La interfaz sigue el sistema de diseño propio **Kallampa**: oscuro, denso y con un solo color de acento, pensado para usar todos los días. Los tokens están en [`src/styles/kallampa/`](src/styles/kallampa/) y los componentes, en [`src/components/kallampa/`](src/components/kallampa/).
 
 ## Empezar
 
@@ -96,7 +99,7 @@ cp .env.example .env.local   # completá JWT_SECRET (openssl rand -hex 32)
 npm run dev
 ```
 
-Abrí [http://localhost:3000](http://localhost:3000), creá tu cuenta en `/registro` y cargá el inventario (hongos, granos y sustratos) para empezar tu primer lote.
+Abrí [http://localhost:3000](http://localhost:3000) para ver la landing, creá tu cuenta en `/registro` y cargá el inventario (hongos, granos y sustratos) para empezar tu primer lote.
 
 ### Variables de entorno
 
@@ -125,17 +128,17 @@ Abrí [http://localhost:3000](http://localhost:3000), creá tu cuenta en `/regis
 
 ```
 src/
-├── app/            # páginas (lotes, clonación, invernaderos, …) y API (app/api/**)
+├── app/            # landing (/), páginas del panel (lotes, clonación, invernaderos, …) y API (app/api/**)
 ├── components/
 │   ├── ui/         # primitivas (botón, diálogo, tabla…) con el estilo Kallampa
 │   ├── kallampa/   # componentes del sistema de diseño (etapas, tags de estado, KPIs…)
+│   ├── landing/    # secciones de la landing pública
 │   ├── monitoreo/  # gráfico de barras SVG y tabla de ciclos
 │   └── …           # componentes por módulo (batch, clonacion, invernaderos, stats…)
 ├── lib/            # validaciones, métricas, cliente de Influx, helpers
 ├── models/         # modelos de Mongoose
 └── styles/kallampa # tokens de diseño
 messages/           # textos en español e inglés
-kallampa-ds/        # sistema de diseño de referencia
 ```
 
 ## Deploy

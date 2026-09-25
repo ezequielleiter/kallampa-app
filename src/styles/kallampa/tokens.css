@@ -43,6 +43,13 @@
   --color-accent-800: #423a6a;
   --color-accent-900: #2b2741;
 
+  /* Banda de sección de la landing (trazabilidad, contacto): índigo saturado
+     de fondo con resplandor y trazo "fantasma". Solo para superficies
+     grandes de marketing, no para la interfaz del panel. */
+  --color-section: #262a60;
+  --color-section-glow: #353b80;
+  --color-section-ghost: #4c5397;
+
   /* Peligro / contaminación: único color fuera de la paleta mono, bajo croma. */
   --color-danger: oklch(0.64 0.13 28);
   --color-danger-text: oklch(0.78 0.1 28);
@@ -75,6 +82,14 @@
   --status-progress: var(--color-accent);
   --status-done: var(--color-neutral-500);
   --status-danger: var(--color-danger);
+
+  /* ---- Espaciado (escala densa del DS, 0,7×) ---- */
+  --space-1: 2.8px;
+  --space-2: 5.6px;
+  --space-3: 8.4px;
+  --space-4: 11.2px;
+  --space-6: 16.8px;
+  --space-8: 22.4px;
 
   /* ---- Layout ---- */
   --sidebar-width: 208px;

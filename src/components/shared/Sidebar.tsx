@@ -35,7 +35,7 @@ export function Sidebar() {
 
   return (
     <aside className="sticky top-0 flex h-dvh w-(--sidebar-width) shrink-0 flex-col gap-0.5 border-r border-divider px-2.5 py-4">
-      <Link href="/" className="rounded-md px-2 pt-0.5 pb-[18px]">
+      <Link href="/lotes" className="rounded-md px-2 pt-0.5 pb-[18px]">
         <Logo size={24} />
       </Link>
       <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto">

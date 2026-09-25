@@ -7,7 +7,8 @@ import { Sidebar } from "@/components/shared/Sidebar";
 import { BreadcrumbsProvider } from "@/components/shared/Breadcrumbs";
 import { getSession } from "@/lib/session";
 
-const PUBLIC_ROUTES = ["/login", "/registro"];
+// "/" es la landing publica; el panel arranca en /lotes.
+const PUBLIC_ROUTES = ["/", "/login", "/registro"];
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
