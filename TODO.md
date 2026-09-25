@@ -4,7 +4,7 @@ Surge de aplicar el sistema de diseño `kallampa-ds/` al front. Todo lo de esta 
 
 ## Módulos nuevos
 
-- [ ] **Invernaderos: lecturas y automatización**: ya se pueden cargar invernaderos con nombre y medidas (alto × largo × profundidad) en `/invernaderos` y asociarles dispositivos de monitoreo (nombre + dominio en la red local). La app no se comunica con esos dispositivos: solo abre su página, y eso funciona únicamente desde la misma red wifi. Si algún día se quiere ver humedad, temperatura o CO₂ dentro de la app, o automatizar (ventiladores, riego), hace falta definir cómo leer los datos del micro (endpoint JSON, CORS o un proxy en la misma red) y, si se quiere historial, dónde guardarlo.
+- [ ] **Invernaderos: automatización y alertas**: los invernaderos tienen medidas, dispositivos asociados (nombre + dominio, que abren su propia página desde la misma wifi) y gráficos de calefacción y humidificación leídos de InfluxDB del lado del servidor (variables `INFLUX_*`). Falta: CO₂, alertas (por ejemplo temperatura fuera de rango), controlar los equipos desde la app y leer la mínima y la máxima directo del equipo (`/heater`); hoy se cargan a mano porque el servidor no llega a la red local.
 - [ ] **Landing de marketing y formulario de contacto**: el README del DS la menciona (`Kallampa Landing.dc.html`), pero ese prototipo no está en `kallampa-ds/`, y el formulario necesita un endpoint para recibir los contactos.
 
 ## Producción (lotes, recipientes y cosecha)

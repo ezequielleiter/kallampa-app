@@ -9,3 +9,7 @@ Este proyecto tiene **tres bases MongoDB separadas**, cada una con un único uso
 - **`cultivo_hongos_agent`** — para cuando un agente (una subtarea, una verificación en navegador, un `curl` de prueba, sembrar datos QA) necesita levantar la app de verdad y pegarle. Corré `npm run dev:agent` (arranca en el puerto **3099**, contra esta base, sin tocar `.env.local` ni el server que ya esté corriendo en 3000). Es de uso libre y descartable: para dejarla vacía de nuevo, `npm run db:reset-agent`.
 
 **Regla para cualquier agente que trabaje en este repo**: si necesitás correr la app para verificar algo (no solo tests de Vitest), usá `npm run dev:agent`, nunca `npm run dev` a pelo — así no tocás los datos reales ni tenés que limpiar nada a mano después.
+
+## Monitoreo (InfluxDB)
+
+Los gráficos de calefacción/humidificación de los invernaderos leen InfluxDB 2.x **solo del lado del servidor** (`src/lib/influx.ts`, usado únicamente por las API routes). Necesita en `.env.local` las variables `INFLUX_URL`, `INFLUX_ORG`, `INFLUX_BUCKET` e `INFLUX_TOKEN` (ver `.env.example`). El token nunca se manda al cliente ni se loguea; los tests mockean `fetch`, no pegan a Influx real. Sin esas variables la API responde 503 `influx_no_configurado` y la UI lo muestra.

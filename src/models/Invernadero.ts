@@ -7,6 +7,13 @@ export interface Dispositivo {
   _id: Types.ObjectId;
   nombre: string;
   dominio: string;
+  // Tag `id` del equipo en InfluxDB (6 hex de la MAC) para leer sus
+  // registros; y rangos configurados para las lineas de referencia.
+  influxId?: string;
+  tempMin?: number;
+  tempMax?: number;
+  humMin?: number;
+  humMax?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +44,11 @@ const dispositivoSchema = new Schema<Dispositivo>(
   {
     nombre: { type: String, required: true, trim: true },
     dominio: { type: String, required: true, trim: true },
+    influxId: { type: String, lowercase: true, trim: true },
+    tempMin: { type: Number },
+    tempMax: { type: Number },
+    humMin: { type: Number },
+    humMax: { type: Number },
   },
   { timestamps: true }
 );

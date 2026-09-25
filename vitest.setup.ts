@@ -17,11 +17,13 @@ import FrascoLiquido from "@/models/FrascoLiquido";
 import Nota from "@/models/Nota";
 import Tarea from "@/models/Tarea";
 import User from "@/models/User";
+import Invernadero from "@/models/Invernadero";
 
 beforeEach(async () => {
   await dbConnect();
   await Promise.all([
     User.deleteMany({}),
+    Invernadero.deleteMany({}),
     Batch.deleteMany({}),
     Jar.deleteMany({}),
     Recipiente.deleteMany({}),

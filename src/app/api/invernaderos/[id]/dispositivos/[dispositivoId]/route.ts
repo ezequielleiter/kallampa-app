@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import Invernadero from "@/models/Invernadero";
-import { ok, handleApiError, notFound, conflict } from "@/lib/api-utils";
+import { ok, handleApiError, notFound, conflict, badRequest } from "@/lib/api-utils";
 import { requireAuth } from "@/lib/api-auth";
 import { updateDispositivoSchema } from "@/lib/validations/invernadero.schema";
 
@@ -36,7 +36,21 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       );
     }
 
-    Object.assign(dispositivo, parsed);
+    // `null` borra el campo opcional (influxId, minimas/maximas).
+    for (const [k, v] of Object.entries(parsed)) {
+      if (v === undefined) continue;
+      dispositivo.set(k, v === null ? undefined : v);
+    }
+    // El rango se valida sobre el estado resultante (el PATCH puede traer
+    // solo la minima o solo la maxima).
+    for (const [min, max] of [
+      [dispositivo.tempMin, dispositivo.tempMax],
+      [dispositivo.humMin, dispositivo.humMax],
+    ]) {
+      if (min != null && max != null && min >= max) {
+        throw badRequest("rango_min_max_invalido:La mínima tiene que ser menor que la máxima");
+      }
+    }
     await invernadero.save();
 
     return ok(invernadero);

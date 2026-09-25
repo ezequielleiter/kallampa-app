@@ -328,7 +328,9 @@
       "confirmDescription": "Se quita el vínculo con {invernadero}. El dispositivo no se toca; lo podés volver a agregar cuando quieras.",
       "confirmAction": "Quitar dispositivo",
       "quitadoMessage": "{nombre} quitado",
-      "quitarError": "No se pudo quitar el dispositivo"
+      "quitarError": "No se pudo quitar el dispositivo",
+      "colInflux": "InfluxDB",
+      "sinVincular": "sin vincular"
     }
   }
 }

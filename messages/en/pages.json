@@ -328,7 +328,9 @@
       "confirmDescription": "This removes the link to {invernadero}. The device itself isn't touched; you can add it again anytime.",
       "confirmAction": "Remove device",
       "quitadoMessage": "{nombre} removed",
-      "quitarError": "Couldn't remove the device"
+      "quitarError": "Couldn't remove the device",
+      "colInflux": "InfluxDB",
+      "sinVincular": "not linked"
     }
   }
 }

@@ -39,6 +39,7 @@ import { useBreadcrumbs } from "@/components/shared/Breadcrumbs";
 import { InvernaderoFormDialog } from "@/components/invernaderos/InvernaderoFormDialog";
 import { DispositivoFormDialog } from "@/components/invernaderos/DispositivoFormDialog";
 import { superficieM2, volumenM3 } from "@/components/invernaderos/medidas";
+import { MonitoreoPanel } from "@/components/monitoreo/MonitoreoPanel";
 import { apiFetch } from "@/lib/api-client";
 import type { Dispositivo, Invernadero } from "@/lib/types";
 
@@ -167,11 +168,12 @@ export default function InvernaderoDetallePage() {
         {dispositivos.length === 0 ? (
           <EmptyState>{t("emptyDispositivos")}</EmptyState>
         ) : (
-          <Table minWidth={480}>
+          <Table minWidth={560}>
             <TableHeader>
               <TableRow>
                 <TableHead>{t("colNombre")}</TableHead>
                 <TableHead>{t("colDominio")}</TableHead>
+                <TableHead>{t("colInflux")}</TableHead>
                 <TableHead className="w-[68px]">
                   <span className="sr-only">{tCommon("actions")}</span>
                 </TableHead>
@@ -192,6 +194,9 @@ export default function InvernaderoDetallePage() {
                       {d.dominio}
                       <ArrowSquareOutIcon className="size-3.5" />
                     </a>
+                  </TableCell>
+                  <TableCell className="tabular-nums">
+                    {d.influxId ?? <span className="text-text-subtle">{t("sinVincular")}</span>}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="inline-flex gap-0.5">
@@ -227,6 +232,10 @@ export default function InvernaderoDetallePage() {
           {t("wifiAviso")}
         </p>
       </SectionCard>
+
+      {dispositivos.some((d) => d.influxId) && (
+        <MonitoreoPanel invernadero={invernadero} number="02" />
+      )}
 
       {editOpen && (
         <InvernaderoFormDialog

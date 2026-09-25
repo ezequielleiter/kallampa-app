@@ -28,7 +28,9 @@ export async function POST(
       );
     }
 
-    invernadero.dispositivos.push(parsed);
+    // Los opcionales en null simplemente no se guardan.
+    const nuevo = Object.fromEntries(Object.entries(parsed).filter(([, v]) => v != null));
+    invernadero.dispositivos.push(nuevo);
     await invernadero.save();
 
     return ok(invernadero, 201);

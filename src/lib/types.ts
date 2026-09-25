@@ -62,6 +62,12 @@ export interface Dispositivo {
   _id: string;
   nombre: string;
   dominio: string;
+  /** Tag `id` del equipo en InfluxDB (6 hex); sin el no hay graficos. */
+  influxId?: string;
+  tempMin?: number;
+  tempMax?: number;
+  humMin?: number;
+  humMax?: number;
   createdAt?: string;
   updatedAt?: string;
 }
