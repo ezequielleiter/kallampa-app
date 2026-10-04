@@ -55,6 +55,8 @@
     "frasco_no_disponible_origen": "This jar isn't available as a source",
     "frasco_no_encontrado": "Jar not found",
     "frasco_no_encontrado_por_numero_guia": "No jar was found with that tracking number",
+    "frasco_usado_en_recipiente": "This jar was already used in a container and cannot be deleted",
+    "frasco_usado_en_clonacion": "This jar is the source of a cloning and cannot be deleted",
     "frasco_no_pertenece_lote": "This jar doesn't belong to the specified batch",
     "frasco_origen_no_admitido": "This path doesn't accept a source jar",
     "frasco_origen_no_existe": "The specified source jar doesn't exist",

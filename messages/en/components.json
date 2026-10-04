@@ -86,7 +86,20 @@
       "estado": "Status",
       "estadoDe": "Status of {codigo}",
       "acciones": "Actions",
-      "clonar": "Clone"
+      "clonar": "Clone",
+      "agregar": "Add jars",
+      "agregarTitle": "Add jars to the batch",
+      "agregarDescription": "New jars continue the numbering of {lote}.",
+      "cantidad": "Number of jars",
+      "errorCantidad": "Enter a whole number greater than 0.",
+      "agregadosMessage": "{count, plural, one {# jar added} other {# jars added}}",
+      "agregarErrorMessage": "Could not add the jars",
+      "eliminar": "Delete",
+      "eliminarDe": "Delete {codigo}",
+      "confirmEliminarTitle": "Delete jar {codigo}?",
+      "confirmEliminarDescription": "It is subtracted from the batch's jar count. The other jars keep their numbers.",
+      "eliminadoMessage": "{codigo} deleted",
+      "eliminarErrorMessage": "Could not delete the jar"
     },
     "nuevoRecipienteSheet": {
       "loadJarsError": "Could not load the jars",

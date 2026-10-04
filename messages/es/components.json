@@ -86,7 +86,20 @@
       "estado": "Estado",
       "estadoDe": "Estado de {codigo}",
       "acciones": "Acciones",
-      "clonar": "Clonar"
+      "clonar": "Clonar",
+      "agregar": "Agregar frascos",
+      "agregarTitle": "Agregar frascos al lote",
+      "agregarDescription": "Los frascos nuevos siguen la numeración de {lote}.",
+      "cantidad": "Cantidad de frascos",
+      "errorCantidad": "Ingresá un número entero mayor a 0.",
+      "agregadosMessage": "{count, plural, one {Se agregó # frasco} other {Se agregaron # frascos}}",
+      "agregarErrorMessage": "No se pudieron agregar los frascos",
+      "eliminar": "Eliminar",
+      "eliminarDe": "Eliminar {codigo}",
+      "confirmEliminarTitle": "¿Eliminar el frasco {codigo}?",
+      "confirmEliminarDescription": "Se descuenta de la cantidad de frascos del lote. Los demás frascos mantienen su número.",
+      "eliminadoMessage": "{codigo} eliminado",
+      "eliminarErrorMessage": "No se pudo eliminar el frasco"
     },
     "nuevoRecipienteSheet": {
       "loadJarsError": "No se pudieron cargar los frascos",

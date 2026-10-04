@@ -96,7 +96,12 @@ export default function BatchDetailPage() {
             count: batch.inoculacionGrano.cantidadFrascos,
           })}
         >
-          <JarsGrid jars={jars} onChanged={cargar} />
+          <JarsGrid
+            batchId={batch._id}
+            numeroLote={batch.numeroLote}
+            jars={jars}
+            onChanged={cargar}
+          />
         </SectionCard>
 
         <RecipientesTable
