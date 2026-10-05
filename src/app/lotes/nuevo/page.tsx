@@ -122,7 +122,7 @@ export default function NuevoLotePage() {
   }
 
   return (
-    <PageContainer className="max-w-3xl">
+    <PageContainer>
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
       <form
         className="flex flex-col gap-4 rounded-lg bg-surface-card px-5 py-[18px] shadow-sm"

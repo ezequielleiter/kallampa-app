@@ -85,6 +85,8 @@
     "nombre_requerido": "Name is required",
     "nota_no_encontrada": "Note not found",
     "numero_entero_requerido": "Must be a whole number",
+    "numero_no_negativo_requerido": "Can't be negative",
+    "base_receta_invalida": "Invalid recipe base",
     "numero_positivo_requerido": "Must be a positive number",
     "oleada_no_encontrada": "Flush not found",
     "origen_proceso_invalido": "Invalid process origin",

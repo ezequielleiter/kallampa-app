@@ -67,14 +67,14 @@ export default function NotaDetailPage() {
 
   if (loading || !nota) {
     return (
-      <PageContainer className="max-w-[880px]">
+      <PageContainer>
         <EmptyState>{loading ? t("loading") : t("notFound")}</EmptyState>
       </PageContainer>
     );
   }
 
   return (
-    <PageContainer className="max-w-[880px]">
+    <PageContainer>
       <PageHeader
         title={nota.titulo}
         subtitle={`${t("lastEdited")}: ${formatFechaCorta(nota.updatedAt)}`}

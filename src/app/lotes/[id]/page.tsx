@@ -11,6 +11,7 @@ import { RecipientesTable } from "@/components/batch/RecipientesTable";
 import { FructificacionSection } from "@/components/batch/FructificacionSection";
 import { CosechaSection } from "@/components/batch/CosechaSection";
 import { LoteComentarios } from "@/components/batch/LoteComentarios";
+import { LoteRecetaSustrato } from "@/components/batch/LoteRecetaSustrato";
 import { LotePendientes } from "@/components/batch/LotePendientes";
 import { LoteTrazabilidad } from "@/components/batch/LoteTrazabilidad";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -80,7 +81,7 @@ export default function BatchDetailPage() {
       : "—";
 
   return (
-    <div className="flex w-full max-w-(--content-max) flex-wrap items-start gap-5 px-4 pt-5 pb-12 sm:px-6">
+    <div className="flex w-full flex-wrap items-start gap-5 px-4 pt-5 pb-12 sm:px-6">
       <div className="flex min-w-0 flex-[999_1_620px] flex-col gap-3.5">
         <BatchHeader
           batch={batch}
@@ -155,6 +156,7 @@ export default function BatchDetailPage() {
             ]}
           />
         </div>
+        <LoteRecetaSustrato batch={batch} onChanged={cargar} />
         <LoteComentarios
           batchId={batch._id}
           comentarios={batch.comentarios ?? []}

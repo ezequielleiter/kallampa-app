@@ -482,6 +482,12 @@
         "desarrollado": "Desarrollado de forma intercooperativa por",
         "copyright": "© 2026 Kallampa"
       }
+    },
+    "herramientas": {
+      "title": "Herramientas",
+      "subtitle": "Calculadoras para el día a día del cultivo",
+      "calculadoraSustratoTitle": "Calculadora de sustrato",
+      "calculadoraSustratoDescription": "Ingresá cuántos kg de pellets o de grano colonizado tenés y te da cuánta agua, cal hidratada y grano (o pellets) usar."
     }
   }
 }

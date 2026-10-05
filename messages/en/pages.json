@@ -482,6 +482,12 @@
         "desarrollado": "Developed as an inter-cooperative project by",
         "copyright": "© 2026 Kallampa"
       }
+    },
+    "herramientas": {
+      "title": "Tools",
+      "subtitle": "Calculators for everyday growing",
+      "calculadoraSustratoTitle": "Substrate calculator",
+      "calculadoraSustratoDescription": "Enter how many kg of pellets or colonized grain you have and get how much water, hydrated lime and grain (or pellets) to use."
     }
   }
 }

@@ -42,7 +42,7 @@ export default function NuevaNotaPage() {
   }
 
   return (
-    <PageContainer className="max-w-[880px]">
+    <PageContainer>
       <PageHeader title={t("title")} />
       <NotaFormCard
         labels={{

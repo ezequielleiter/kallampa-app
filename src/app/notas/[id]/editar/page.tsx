@@ -67,14 +67,14 @@ export default function EditarNotaPage() {
 
   if (loading) {
     return (
-      <PageContainer className="max-w-[880px]">
+      <PageContainer>
         <EmptyState>{t("loading")}</EmptyState>
       </PageContainer>
     );
   }
 
   return (
-    <PageContainer className="max-w-[880px]">
+    <PageContainer>
       <PageHeader title={t("title")} />
       <NotaFormCard
         labels={{

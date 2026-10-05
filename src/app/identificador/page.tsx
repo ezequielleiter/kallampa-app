@@ -40,7 +40,7 @@ export default function FrascosPage() {
   const fungus = resultado?.batch?.fungusTypeId;
 
   return (
-    <PageContainer className="max-w-[640px]">
+    <PageContainer>
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
       <form onSubmit={handleSearch} className="flex items-center gap-2">
         <div className="relative flex-1">

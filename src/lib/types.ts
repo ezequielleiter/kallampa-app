@@ -162,6 +162,19 @@ export interface ComentarioLote {
   updatedAt: string;
 }
 
+export type BaseRecetaSustrato = "pellets" | "grano";
+export interface RecetaSustratoLote {
+  base: BaseRecetaSustrato;
+  pelletsKg: number;
+  aguaL: number;
+  calKg: number;
+  granoKg: number;
+  fecha: string;
+  notas?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Batch {
   _id: string;
   numeroLote: string;
@@ -172,6 +185,7 @@ export interface Batch {
   origenFrascoLiquidoId?: { _id: string; numeroGuia: string } | string;
   inoculacionGrano: InoculacionGrano;
   comentarios?: ComentarioLote[];
+  recetaSustrato?: RecetaSustratoLote | null;
   createdAt?: string;
   updatedAt?: string;
 }

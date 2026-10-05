@@ -27,6 +27,21 @@ export interface Comentario {
   updatedAt: Date;
 }
 
+// Receta de sustrato usada en el lote (una sola, opcional). Base pellets o
+// grano; las cantidades se guardan tal cual las cargo el usuario.
+export type BaseRecetaSustrato = "pellets" | "grano";
+export interface RecetaSustrato {
+  base: BaseRecetaSustrato;
+  pelletsKg: number;
+  aguaL: number;
+  calKg: number;
+  granoKg: number;
+  fecha: Date;
+  notas?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 export interface BatchDoc extends Document {
   userId: Types.ObjectId;
   numeroLote: string;
@@ -38,6 +53,7 @@ export interface BatchDoc extends Document {
   origenFrascoLiquidoId?: Types.ObjectId;
   inoculacionGrano: InoculacionGrano;
   comentarios: Types.DocumentArray<Comentario>;
+  recetaSustrato?: RecetaSustrato;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -59,6 +75,19 @@ const comentarioSchema = new Schema<Comentario>(
   { timestamps: true }
 );
 
+const recetaSustratoSchema = new Schema<RecetaSustrato>(
+  {
+    base: { type: String, enum: ["pellets", "grano"], required: true },
+    pelletsKg: { type: Number, required: true },
+    aguaL: { type: Number, required: true },
+    calKg: { type: Number, required: true },
+    granoKg: { type: Number, required: true },
+    fecha: { type: Date, required: true },
+    notas: { type: String, trim: true },
+  },
+  { _id: false, timestamps: true }
+);
+
 const batchSchema = new Schema<BatchDoc>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
@@ -75,6 +104,7 @@ const batchSchema = new Schema<BatchDoc>(
     },
     inoculacionGrano: { type: inoculacionGranoSchema, required: true },
     comentarios: { type: [comentarioSchema], default: [] },
+    recetaSustrato: { type: recetaSustratoSchema, default: undefined },
   },
   { timestamps: true }
 );

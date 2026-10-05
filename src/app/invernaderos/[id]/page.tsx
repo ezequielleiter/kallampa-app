@@ -116,7 +116,7 @@ export default function InvernaderoDetallePage() {
   const dispositivos = invernadero.dispositivos ?? [];
 
   return (
-    <PageContainer className="max-w-[960px]">
+    <PageContainer>
       <section className="rounded-lg bg-surface-card px-5 py-[18px] shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">

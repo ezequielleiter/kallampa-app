@@ -55,3 +55,26 @@ export const comentarioSchema = z.object({
     .max(2000, "texto_muy_largo:El texto es demasiado largo"),
 });
 export type ComentarioInput = z.infer<typeof comentarioSchema>;
+
+// Receta de sustrato del lote (una sola). pellets/grano > 0; agua y cal
+// pueden ser 0. notas vacia se toma como ausente.
+const positivo = () =>
+  z.number().positive("numero_positivo_requerido:Debe ser un número positivo");
+const noNegativo = () =>
+  z.number().min(0, "numero_no_negativo_requerido:No puede ser negativo");
+
+export const recetaSustratoSchema = z.object({
+  base: z.enum(["pellets", "grano"], "base_receta_invalida:Base de receta inválida"),
+  pelletsKg: positivo(),
+  aguaL: noNegativo(),
+  calKg: noNegativo(),
+  granoKg: positivo(),
+  fecha: z.coerce.date(),
+  notas: z
+    .string()
+    .trim()
+    .max(2000, "texto_muy_largo:El texto es demasiado largo")
+    .optional()
+    .transform((v) => (v ? v : undefined)),
+});
+export type RecetaSustratoInput = z.infer<typeof recetaSustratoSchema>;

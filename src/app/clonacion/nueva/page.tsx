@@ -337,7 +337,7 @@ function NuevaClonacionForm() {
   );
 
   return (
-    <PageContainer className="max-w-[720px]">
+    <PageContainer>
       <PageHeader title={t("title")} subtitle={t("subtitle")} />
       <form
         className="flex flex-col gap-4 rounded-lg bg-surface-card px-5 py-[18px] shadow-sm"

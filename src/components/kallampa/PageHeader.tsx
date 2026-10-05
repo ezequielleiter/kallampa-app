@@ -1,7 +1,7 @@
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
-/** Contenedor de pagina del panel: hasta 1360px, padding 20×24 y 48 abajo. */
+/** Contenedor de pagina del panel: ancho completo, padding 20×24 y 48 abajo. */
 export function PageContainer({
   className,
   children,
@@ -12,7 +12,7 @@ export function PageContainer({
   return (
     <div
       className={cn(
-        "flex w-full max-w-(--content-max) flex-col gap-4 px-4 pt-5 pb-12 sm:px-6",
+        "flex w-full flex-col gap-4 px-4 pt-5 pb-12 sm:px-6",
         className
       )}
     >
