@@ -9,6 +9,7 @@ import { JarsGrid } from "@/components/batch/JarsGrid";
 import { RecipientesTable } from "@/components/batch/RecipientesTable";
 import { FructificacionSection } from "@/components/batch/FructificacionSection";
 import { CosechaSection } from "@/components/batch/CosechaSection";
+import { ComentariosSection } from "@/components/batch/ComentariosSection";
 import { LotePendientes } from "@/components/batch/LotePendientes";
 import { SectionCard } from "@/components/kallampa/SectionCard";
 import { CostBreakdown } from "@/components/kallampa/CostBreakdown";
@@ -116,6 +117,12 @@ export default function BatchDetailPage() {
         <FructificacionSection recipientes={recipientes} />
 
         <CosechaSection recipientes={recipientes} onChanged={cargar} />
+
+        <ComentariosSection
+          batchId={batch._id}
+          comentarios={batch.comentarios ?? []}
+          onChanged={cargar}
+        />
       </div>
 
       <aside className="flex min-w-0 flex-[1_1_280px] flex-col gap-3.5 lg:sticky lg:top-[76px]">

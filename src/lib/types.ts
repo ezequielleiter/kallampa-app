@@ -154,6 +154,14 @@ export interface Recipiente {
 // v2: el batch ya no tiene `estado`/`descartado`/`motivoDescarte` ni los
 // subdocumentos de etapa (crecimientoSustrato, fructificacion, cosecha,
 // oleadas, historialEstados) — esos datos ahora viven en cada Recipiente.
+// Comentario del hilo de un lote (bitacora libre, ajena a las Notas).
+export interface ComentarioLote {
+  _id: string;
+  texto: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Batch {
   _id: string;
   numeroLote: string;
@@ -163,6 +171,7 @@ export interface Batch {
   // liviano (solo numeroGuia) para trazabilidad.
   origenFrascoLiquidoId?: { _id: string; numeroGuia: string } | string;
   inoculacionGrano: InoculacionGrano;
+  comentarios?: ComentarioLote[];
   createdAt?: string;
   updatedAt?: string;
 }

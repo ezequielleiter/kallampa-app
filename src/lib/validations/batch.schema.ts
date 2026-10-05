@@ -46,3 +46,12 @@ export const updateBatchSchema = z
     path: ["fungusTypeId"],
   });
 export type UpdateBatchInput = z.infer<typeof updateBatchSchema>;
+
+export const comentarioSchema = z.object({
+  texto: z
+    .string("texto_requerido:Escribí un comentario")
+    .trim()
+    .min(1, "texto_requerido:Escribí un comentario")
+    .max(2000, "texto_muy_largo:El texto es demasiado largo"),
+});
+export type ComentarioInput = z.infer<typeof comentarioSchema>;

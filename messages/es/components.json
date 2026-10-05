@@ -93,6 +93,24 @@
       "errorMessage": "No se pudo actualizar el lote",
       "loadHongosError": "No se pudieron cargar los tipos de hongo"
     },
+    "comentariosSection": {
+      "title": "Comentarios",
+      "meta": "{count, plural, =0 {sin comentarios} one {# comentario} other {# comentarios}}",
+      "emptyState": "Todavía no hay comentarios en este lote.",
+      "placeholder": "Escribí un comentario…",
+      "comentar": "Comentar",
+      "atajo": "Ctrl + Enter para enviar",
+      "editado": "editado",
+      "editar": "Editar",
+      "eliminar": "Eliminar",
+      "guardar": "Guardar",
+      "accionesDe": "Acciones del comentario del {fecha}",
+      "confirmEliminarTitle": "¿Eliminar este comentario?",
+      "createdMessage": "Comentario agregado",
+      "updatedMessage": "Comentario editado",
+      "deletedMessage": "Comentario eliminado",
+      "errorMessage": "No se pudo guardar el comentario"
+    },
     "jarsGrid": {
       "successMessage": "{codigo} marcado como {estado}",
       "errorMessage": "No se pudo actualizar el frasco",

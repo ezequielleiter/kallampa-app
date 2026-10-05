@@ -2,6 +2,8 @@
   "errors": {
     "invernadero_no_encontrado": "Greenhouse not found",
     "texto_muy_largo": "The text is too long",
+    "texto_requerido": "Write a comment",
+    "comentario_no_encontrado": "Comment not found",
     "registro_cerrado": "Creating new accounts is closed",
     "dispositivo_no_encontrado": "Device not found",
     "dispositivo_sin_influx": "The device doesn't have an InfluxDB ID",

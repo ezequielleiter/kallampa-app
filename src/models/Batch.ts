@@ -18,6 +18,15 @@ export interface InoculacionGrano {
   diasEsperados: number;
 }
 
+// Comentarios libres sobre el lote (bitacora), en un hilo cronologico
+// dentro del detalle. No tienen relacion con las Notas (wiki general).
+export interface Comentario {
+  _id: Types.ObjectId;
+  texto: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface BatchDoc extends Document {
   userId: Types.ObjectId;
   numeroLote: string;
@@ -28,6 +37,7 @@ export interface BatchDoc extends Document {
   // deriva del frasco cuando este campo esta presente).
   origenFrascoLiquidoId?: Types.ObjectId;
   inoculacionGrano: InoculacionGrano;
+  comentarios: Types.DocumentArray<Comentario>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,6 +52,11 @@ const inoculacionGranoSchema = new Schema<InoculacionGrano>(
     diasEsperados: { type: Number, required: true },
   },
   { _id: false }
+);
+
+const comentarioSchema = new Schema<Comentario>(
+  { texto: { type: String, required: true, trim: true } },
+  { timestamps: true }
 );
 
 const batchSchema = new Schema<BatchDoc>(
@@ -59,6 +74,7 @@ const batchSchema = new Schema<BatchDoc>(
       ref: "FrascoLiquido",
     },
     inoculacionGrano: { type: inoculacionGranoSchema, required: true },
+    comentarios: { type: [comentarioSchema], default: [] },
   },
   { timestamps: true }
 );
