@@ -8,6 +8,8 @@ import {
   fructificarRecipiente,
   makeUser,
   authHeaders,
+  makeLoteConCosecha,
+  makeVenta,
 } from "@/test-utils/api-test-helpers";
 
 let user: Awaited<ReturnType<typeof makeUser>>;
@@ -90,5 +92,42 @@ describe("GET /api/stats", () => {
     );
     expect(loteFinalizado.resumen.estadoDerivado).toBe("finalizado");
     expect(loteFinalizado.resumen.pesoTotalCosechado).toBe(3);
+  });
+});
+
+describe("GET /api/stats — KPIs comerciales", () => {
+  it("ingresos, margen (ingresos − costo de TODOS los lotes), kg vendidos, stock y saldo por cobrar", async () => {
+    // Cada lote cuesta 7000 (grano 10 × 500 + sustrato 20 × 100).
+    const { batch: a } = await makeLoteConCosecha({ userId: user._id, headers, cosechadoKg: 3 });
+    const { batch: b } = await makeLoteConCosecha({ userId: user._id, headers, cosechadoKg: 2 });
+    await makeVenta({ userId: user._id, headers, cobrada: true, items: [{ batchId: a._id, kg: 2, precioPorKg: 8000 }] });
+    await makeVenta({
+      userId: user._id,
+      headers,
+      items: [
+        { batchId: a._id, kg: 0.5, precioPorKg: 6000 },
+        { batchId: b._id, kg: 1, precioPorKg: 5000 },
+      ],
+    });
+
+    const { json } = await callRoute(GET, { headers });
+    expect(json.data.kpis).toMatchObject({
+      ingresosTotal: 24000,
+      margenTotal: 24000 - 14000,
+      kgVendidos: 3.5,
+      stockDisponibleKg: 1.5,
+      saldoPorCobrar: 8000,
+    });
+  });
+
+  it("todo en 0 sin ventas", async () => {
+    const { json } = await callRoute(GET, { headers });
+    expect(json.data.kpis).toMatchObject({
+      ingresosTotal: 0,
+      margenTotal: 0,
+      kgVendidos: 0,
+      stockDisponibleKg: 0,
+      saldoPorCobrar: 0,
+    });
   });
 });

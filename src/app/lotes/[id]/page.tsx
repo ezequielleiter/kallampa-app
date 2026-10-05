@@ -12,6 +12,7 @@ import { FructificacionSection } from "@/components/batch/FructificacionSection"
 import { CosechaSection } from "@/components/batch/CosechaSection";
 import { LoteComentarios } from "@/components/batch/LoteComentarios";
 import { LoteRecetaSustrato } from "@/components/batch/LoteRecetaSustrato";
+import { LoteVentas } from "@/components/batch/LoteVentas";
 import { LotePendientes } from "@/components/batch/LotePendientes";
 import { LoteTrazabilidad } from "@/components/batch/LoteTrazabilidad";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -156,6 +157,7 @@ export default function BatchDetailPage() {
             ]}
           />
         </div>
+        <LoteVentas batch={batch} onChanged={cargar} />
         <LoteRecetaSustrato batch={batch} onChanged={cargar} />
         <LoteComentarios
           batchId={batch._id}

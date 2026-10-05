@@ -8,6 +8,7 @@ import {
   BarcodeIcon,
   PackageIcon,
   ChartBarIcon,
+  StorefrontIcon,
   WrenchIcon,
   type Icon,
 } from "@phosphor-icons/react";
@@ -23,6 +24,7 @@ export const NAV_LINKS: { href: string; key: NavKey; icon: Icon }[] = [
   { href: "/notas", key: "notas", icon: NoteIcon },
   { href: "/identificador", key: "frascos", icon: BarcodeIcon },
   { href: "/inventario", key: "catalogos", icon: PackageIcon },
+  { href: "/ventas", key: "ventas", icon: StorefrontIcon },
   { href: "/estadisticas", key: "estadisticas", icon: ChartBarIcon },
   { href: "/herramientas", key: "herramientas", icon: WrenchIcon },
 ];
@@ -36,6 +38,7 @@ export type NavKey =
   | "notas"
   | "frascos"
   | "catalogos"
+  | "ventas"
   | "estadisticas"
   | "herramientas";
 

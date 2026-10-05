@@ -9,6 +9,9 @@ import Clonacion from "@/models/Clonacion";
 import { ok, handleApiError, notFound, conflict } from "@/lib/api-utils";
 import { requireAuth } from "@/lib/api-auth";
 import { updateBatchSchema } from "@/lib/validations/batch.schema";
+import { resumenLote, type LeanBatch, type LeanJar, type LeanRecipiente } from "@/lib/metrics";
+import { resumenComercialLote } from "@/lib/ventas";
+import { disponiblePorLote } from "@/lib/ventas-server";
 
 // numeroLote = [<iniciales del hongo>-]L-<anio>-<seq>. La parte L-... sale
 // del Counter y no cambia nunca; las iniciales siguen al hongo.
@@ -39,7 +42,18 @@ export async function GET(
         .lean(),
     ]);
 
-    return ok({ ...batch, jars, recipientes });
+    // Resumen comercial: stock (cosechado − vendido − merma), ingresos y
+    // margen = ingresos − costoTotal (grano + sustrato, mismo costo que
+    // resumenLote/estadisticas).
+    const stock = (await disponiblePorLote(userId, [id])).get(id)!;
+    const { costoTotal } = resumenLote(
+      batch as unknown as LeanBatch,
+      jars as unknown as LeanJar[],
+      recipientes as unknown as LeanRecipiente[]
+    ).costoProduccion;
+    const comercial = resumenComercialLote({ ...stock, costoTotal });
+
+    return ok({ ...batch, jars, recipientes, comercial });
   } catch (err) {
     return handleApiError(err);
   }

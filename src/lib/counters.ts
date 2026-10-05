@@ -48,3 +48,22 @@ export async function getNextNumeroClonacion(
 
   return `C-${year}-${padded}`;
 }
+
+/**
+ * Analoga a getNextNumeroLote, pero para Venta: genera V-<anio>-<seq>,
+ * scopeada por usuario y anio en su propio contador (`venta:<userId>:<anio>`).
+ */
+export async function getNextNumeroVenta(
+  userId: string,
+  year: number = new Date().getFullYear()
+): Promise<string> {
+  const scopeId = `venta:${userId}:${year}`;
+
+  const counter = await Counter.findOneAndUpdate(
+    { _id: scopeId },
+    { $inc: { seq: 1 } },
+    { upsert: true, new: true }
+  );
+
+  return `V-${year}-${String(counter.seq).padStart(3, "0")}`;
+}

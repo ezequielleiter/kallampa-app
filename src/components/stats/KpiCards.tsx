@@ -27,6 +27,25 @@ export function KpiCards({ kpis }: KpiCardsProps) {
     { label: t("eficienciaBiologicaPromedio"), value: fmt.pct(kpis.eficienciaBiologicaPromedio) },
     { label: t("costoPorKgPromedio"), value: fmt.money(kpis.costoPorKgPromedio) },
     { label: t("pesoTotalProducido"), value: fmt.kg(kpis.pesoTotalProducidoKg, 1) },
+    { label: t("ingresosTotal"), value: fmt.money(kpis.ingresosTotal) },
+    {
+      label: t("margenTotal"),
+      value: (
+        <span className={kpis.margenTotal < 0 ? "text-danger-text" : undefined}>
+          {fmt.money(kpis.margenTotal)}
+        </span>
+      ),
+    },
+    { label: t("kgVendidos"), value: fmt.kg(kpis.kgVendidos, 1) },
+    { label: t("stockDisponible"), value: fmt.kg(kpis.stockDisponibleKg, 1) },
+    {
+      label: t("saldoPorCobrar"),
+      value: (
+        <span className={kpis.saldoPorCobrar > 0 ? "text-danger-text" : undefined}>
+          {fmt.money(kpis.saldoPorCobrar)}
+        </span>
+      ),
+    },
   ];
 
   return (

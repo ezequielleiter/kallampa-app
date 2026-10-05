@@ -107,6 +107,18 @@
     "tipo_hongo_lote_no_existe": "The batch's fungus type no longer exists",
     "tipo_hongo_no_encontrado": "Fungus type not found",
     "tipo_hongo_no_existe": "The specified fungus type doesn't exist",
-    "titulo_requerido": "Title is required"
+    "titulo_requerido": "Title is required",
+    "cliente_nombre_en_uso": "A customer with that name already exists",
+    "cliente_no_encontrado": "Customer not found",
+    "venta_no_encontrada": "Sale not found",
+    "merma_no_encontrada": "Loss record not found",
+    "stock_insuficiente": "Not enough stock in that batch",
+    "lote_repetido_en_venta": "The same batch can't appear twice in a sale",
+    "venta_sin_items": "Add at least one batch",
+    "kg_invalido": "Kg must be greater than 0",
+    "precio_invalido": "The price can't be negative",
+    "fecha_invalida": "Invalid date",
+    "medio_pago_invalido": "Invalid payment method",
+    "motivo_merma_invalido": "Invalid reason"
   }
 }

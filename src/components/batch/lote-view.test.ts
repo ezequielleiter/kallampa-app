@@ -38,6 +38,15 @@ function batch(overrides: Partial<BatchDetail> = {}): BatchDetail {
     },
     jars: [jar("F01", "colonizado"), jar("F02", "contaminado"), jar("F03", "colonizado")],
     recipientes: [],
+    comercial: {
+      cosechadoKg: 0,
+      vendidoKg: 0,
+      mermaKg: 0,
+      disponibleKg: 0,
+      ingresos: 0,
+      margen: 0,
+      precioPromedioKg: null,
+    },
     ...overrides,
   };
 }

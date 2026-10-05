@@ -194,6 +194,7 @@ export interface Batch {
 export interface BatchDetail extends Batch {
   jars: Jar[];
   recipientes: Recipiente[];
+  comercial: ResumenComercialLote;
 }
 
 // --- /api/batches (lista) -------------------------------------------------
@@ -219,6 +220,12 @@ export interface StatsKpis {
   pesoTotalProducidoKg: number;
   eficienciaBiologicaPromedio: number | null;
   costoPorKgPromedio: number | null;
+  ingresosTotal: number;
+  // ingresosTotal − Σ costoTotal de TODOS los lotes (ver /api/stats).
+  margenTotal: number;
+  kgVendidos: number;
+  stockDisponibleKg: number;
+  saldoPorCobrar: number;
 }
 
 export interface StatsLote {
@@ -413,4 +420,79 @@ export interface LotePill {
 export interface CalendarioResponse {
   tareas: Tarea[];
   lotePills: LotePill[];
+}
+
+// --- Ventas / stock de producto -------------------------------------------
+
+export type MedioPago = "efectivo" | "transferencia" | "mercadopago" | "otro";
+export type MotivoMerma = "vencido" | "regalado" | "consumo_propio" | "otro";
+
+export interface Cliente {
+  _id: string;
+  nombre: string;
+  contacto?: string;
+  notas?: string;
+  activo: boolean;
+  totalComprado: number;
+  cantidadVentas: number;
+  saldoPendiente: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface VentaItem {
+  batchId: string | { _id: string; numeroLote: string };
+  kg: number;
+  precioPorKg: number;
+}
+
+export interface Venta {
+  _id: string;
+  numeroVenta: string;
+  fecha: string;
+  clienteId?: string | { _id: string; nombre: string } | null;
+  items: VentaItem[];
+  medioPago: MedioPago;
+  cobrada: boolean;
+  fechaCobro?: string;
+  notas?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface VentaListItem extends Omit<Venta, "clienteId" | "items"> {
+  clienteId: { _id: string; nombre: string } | null;
+  items: { batchId: { _id: string; numeroLote: string }; kg: number; precioPorKg: number }[];
+  total: number;
+}
+
+export interface Merma {
+  _id: string;
+  batchId: string;
+  fecha: string;
+  kg: number;
+  motivo: MotivoMerma;
+  notas?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface StockLote {
+  batchId: string;
+  numeroLote: string;
+  hongo: string;
+  cosechadoKg: number;
+  vendidoKg: number;
+  mermaKg: number;
+  disponibleKg: number;
+}
+
+export interface ResumenComercialLote {
+  cosechadoKg: number;
+  vendidoKg: number;
+  mermaKg: number;
+  disponibleKg: number;
+  ingresos: number;
+  margen: number;
+  precioPromedioKg: number | null;
 }

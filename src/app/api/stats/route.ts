@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import type { Types } from "mongoose";
+import { Types } from "mongoose";
 import dbConnect from "@/lib/mongodb";
 import Batch from "@/models/Batch";
 import Jar from "@/models/Jar";
@@ -14,6 +14,9 @@ import {
   type LeanRecipiente,
   type LoteConDatos,
 } from "@/lib/metrics";
+import { disponiblePorLote } from "@/lib/ventas-server";
+import Venta from "@/models/Venta";
+import { redondearKg } from "@/lib/ventas";
 
 // GET /api/stats
 // Trae todos los batches + sus jars/recipientes (por batchId), calcula
@@ -100,6 +103,32 @@ export async function GET(req: NextRequest) {
 
     const lotesDemorados = lotes.filter((l) => l.resumen.alertas > 0);
 
+    // --- Comercial ---
+    // margenTotal = ingresosTotal − Σ costoTotal de TODOS los lotes (no solo
+    // los que vendieron): simple y explicable, "lo que entro menos lo que
+    // costo producir todo". saldoPorCobrar incluye ventas sin cliente.
+    const [stockPorLote, saldoRows] = await Promise.all([
+      disponiblePorLote(userId, undefined),
+      Venta.aggregate<{ saldo: number }>([
+        { $match: { userId: new Types.ObjectId(userId), cobrada: false } },
+        { $unwind: "$items" },
+        { $group: { _id: null, saldo: { $sum: { $multiply: ["$items.kg", "$items.precioPorKg"] } } } },
+      ]),
+    ]);
+    let ingresosTotal = 0;
+    let kgVendidos = 0;
+    let stockDisponibleKg = 0;
+    for (const s of stockPorLote.values()) {
+      ingresosTotal += s.ingresos;
+      kgVendidos += s.vendidoKg;
+      stockDisponibleKg += Math.max(0, s.disponibleKg);
+    }
+    const costoTotalLotes = lotes.reduce(
+      (acc, l) => acc + l.resumen.costoProduccion.costoTotal,
+      0
+    );
+    const plata = (v: number) => Math.round(v * 100) / 100;
+
     const kpis = {
       totalLotes: batches.length,
       lotesActivos: activos.length,
@@ -115,6 +144,11 @@ export async function GET(req: NextRequest) {
         costosPorKg.length > 0
           ? costosPorKg.reduce((a, b) => a + b, 0) / costosPorKg.length
           : null,
+      ingresosTotal: plata(ingresosTotal),
+      margenTotal: plata(ingresosTotal - costoTotalLotes),
+      kgVendidos: redondearKg(kgVendidos),
+      stockDisponibleKg: redondearKg(stockDisponibleKg),
+      saldoPorCobrar: plata(saldoRows[0]?.saldo ?? 0),
     };
 
     // v2: el batch ya no tiene un "estado" propio (ver estadoLote() en

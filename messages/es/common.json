@@ -21,7 +21,8 @@
     "estadisticas": "Estadísticas",
     "herramientas": "Herramientas",
     "settings": "Configuraciones",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "ventas": "Ventas"
   },
   "auth": {
     "login": {
@@ -98,6 +99,22 @@
       "incubacion": "Incubación",
       "fructificacion": "Fructificación",
       "placas": "Placas"
+    },
+    "medioPago": {
+      "efectivo": "Efectivo",
+      "transferencia": "Transferencia",
+      "mercadopago": "Mercado Pago",
+      "otro": "Otro"
+    },
+    "motivoMerma": {
+      "vencido": "Vencido",
+      "regalado": "Regalado",
+      "consumo_propio": "Consumo propio",
+      "otro": "Otro"
+    },
+    "cobro": {
+      "cobrada": "Cobrada",
+      "pendiente": "Pendiente"
     }
   }
 }

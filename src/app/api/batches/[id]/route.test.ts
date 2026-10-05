@@ -16,6 +16,8 @@ import {
   makeFrascoLiquido,
   makeUser,
   authHeaders,
+  makeLoteConCosecha,
+  makeVenta,
 } from "@/test-utils/api-test-helpers";
 
 const NONEXISTENT_ID = "507f1f77bcf86cd799439011";
@@ -198,5 +200,47 @@ describe("PATCH /api/batches/[id]", () => {
     const otro = await makeUser();
     const { status } = await patch(batch._id, { fechaInicio: "2026-09-30" }, authHeaders(otro));
     expect(status).toBe(404);
+  });
+});
+
+describe("GET /api/batches/[id] — comercial", () => {
+  it("sin cosecha ni ventas: todo en 0 y margen = −costo", async () => {
+    const batch = await makeBatch({ userId: user._id, headers, pesoGranoKg: 10, precioPorKg: 500 });
+    const { json } = await callRoute(GET, { headers, params: { id: batch._id } });
+    expect(json.data.comercial).toEqual({
+      cosechadoKg: 0,
+      vendidoKg: 0,
+      mermaKg: 0,
+      disponibleKg: 0,
+      ingresos: 0,
+      margen: -5000,
+      precioPromedioKg: null,
+    });
+  });
+
+  it("refleja lo vendido: ingresos, margen = ingresos − costoTotal y precio promedio", async () => {
+    // Costo: grano 10 × 500 + sustrato 20 × 100 = 7000.
+    const { batch } = await makeLoteConCosecha({ userId: user._id, headers, cosechadoKg: 3 });
+    const { batch: otro } = await makeLoteConCosecha({ userId: user._id, headers, cosechadoKg: 3 });
+    await makeVenta({
+      userId: user._id,
+      headers,
+      items: [
+        { batchId: batch._id, kg: 2, precioPorKg: 8000 },
+        { batchId: otro._id, kg: 1, precioPorKg: 1 },
+      ],
+    });
+    await makeVenta({ userId: user._id, headers, items: [{ batchId: batch._id, kg: 0.5, precioPorKg: 6000 }] });
+
+    const { json } = await callRoute(GET, { headers, params: { id: batch._id } });
+    expect(json.data.comercial).toEqual({
+      cosechadoKg: 3,
+      vendidoKg: 2.5,
+      mermaKg: 0,
+      disponibleKg: 0.5,
+      ingresos: 19000,
+      margen: 12000,
+      precioPromedioKg: 7600,
+    });
   });
 });

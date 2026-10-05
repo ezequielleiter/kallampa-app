@@ -21,7 +21,8 @@
     "estadisticas": "Statistics",
     "herramientas": "Tools",
     "settings": "Settings",
-    "logout": "Log out"
+    "logout": "Log out",
+    "ventas": "Sales"
   },
   "auth": {
     "login": {
@@ -98,6 +99,22 @@
       "incubacion": "Incubation",
       "fructificacion": "Fruiting",
       "placas": "Plates"
+    },
+    "medioPago": {
+      "efectivo": "Cash",
+      "transferencia": "Bank transfer",
+      "mercadopago": "Mercado Pago",
+      "otro": "Other"
+    },
+    "motivoMerma": {
+      "vencido": "Expired",
+      "regalado": "Given away",
+      "consumo_propio": "Own consumption",
+      "otro": "Other"
+    },
+    "cobro": {
+      "cobrada": "Paid",
+      "pendiente": "Pending"
     }
   }
 }

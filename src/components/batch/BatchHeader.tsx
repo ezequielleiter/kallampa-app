@@ -131,6 +131,19 @@ export function BatchHeader({
             label: t("costoPorKgProducido"),
             value: fmt.money(costoProduccion.costoPorKgProducido),
           },
+          ...(batch.comercial
+            ? [
+                {
+                  label: t("margen"),
+                  value: (
+                    <span className={batch.comercial.margen < 0 ? "text-danger-text" : undefined}>
+                      {fmt.money(batch.comercial.margen)}
+                    </span>
+                  ),
+                  note: t("margenNote"),
+                },
+              ]
+            : []),
         ]}
       />
 

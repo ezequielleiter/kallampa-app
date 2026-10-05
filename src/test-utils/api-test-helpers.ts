@@ -461,3 +461,70 @@ export async function makeInvernadero(opts: AuthOpts & Record<string, unknown>) 
     activo: boolean;
   };
 }
+
+/** Agrega una oleada (cosecha) a un recipiente que ya esta fructificando. */
+export async function addOleada(recipienteId: string, pesoKg: number, opts: AuthOpts) {
+  const { POST } = await import("@/app/api/recipientes/[id]/oleadas/route");
+  const { status, json } = await callRoute(POST, {
+    method: "POST",
+    headers: opts.headers,
+    params: { id: recipienteId },
+    body: { fecha: new Date().toISOString(), pesoKg },
+  });
+  if (status !== 201 && status !== 200) {
+    throw new Error(`No se pudo agregar la oleada de fixture: ${JSON.stringify(json)}`);
+  }
+  return json.data;
+}
+
+/**
+ * Lote con un recipiente fructificado y una oleada de `cosechadoKg` (stock
+ * disponible para vender). Costo por default: grano 10 kg × 500 + sustrato
+ * 20 kg × 100 = 7000.
+ */
+export async function makeLoteConCosecha(opts: MakeBatchOpts & { cosechadoKg?: number }) {
+  const { userId, headers } = opts;
+  const { batch, recipiente } = await makeBatchConRecipiente(opts);
+  await fructificarRecipiente(recipiente._id, { userId, headers });
+  await addOleada(recipiente._id, opts.cosechadoKg ?? 3, { userId, headers });
+  return { batch, recipiente };
+}
+
+export async function makeCliente(opts: AuthOpts & Record<string, unknown>) {
+  const { headers, userId: _userId, ...rest } = opts;
+  void _userId;
+  const { POST } = await import("@/app/api/clientes/route");
+  const { status, json } = await callRoute(POST, {
+    method: "POST",
+    headers,
+    body: { nombre: `Cliente Test ${Math.random().toString(36).slice(2)}`, ...rest },
+  });
+  if (status !== 201) {
+    throw new Error(`No se pudo crear cliente de fixture: ${JSON.stringify(json)}`);
+  }
+  return json.data as { _id: string; nombre: string };
+}
+
+export interface MakeVentaOpts extends AuthOpts {
+  items: { batchId: string; kg: number; precioPorKg: number }[];
+  fecha?: string;
+  clienteId?: string;
+  medioPago?: string;
+  cobrada?: boolean;
+  notas?: string;
+}
+
+export async function makeVenta(opts: MakeVentaOpts) {
+  const { headers, userId: _userId, ...rest } = opts;
+  void _userId;
+  const { POST } = await import("@/app/api/ventas/route");
+  const { status, json } = await callRoute(POST, {
+    method: "POST",
+    headers,
+    body: { fecha: new Date().toISOString().slice(0, 10), medioPago: "efectivo", cobrada: false, ...rest },
+  });
+  if (status !== 201) {
+    throw new Error(`No se pudo crear venta de fixture: ${JSON.stringify(json)}`);
+  }
+  return json.data;
+}
