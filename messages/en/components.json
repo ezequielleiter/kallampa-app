@@ -474,6 +474,33 @@
       "consumoPotenciaNota": "{kw} kW heater",
       "consumoSinPotencia": "Set the heater power on the device to estimate consumption in kWh and its cost.",
       "colConsumo": "Consumption"
+    },
+    "loteTrazabilidad": {
+      "title": "Traceability",
+      "summary": "{completas} of {total} stages complete · {peso} harvested",
+      "etapa": {
+        "origen": "Origin",
+        "inoculacion": "Grain inoculation",
+        "incubacion": "Incubation",
+        "fructificacion": "Fruiting",
+        "cosecha": "Harvest"
+      },
+      "enCurso": "In progress",
+      "pendiente": "Pending",
+      "origenFrasco": "{hongo}, from liquid culture jar",
+      "sinOrigen": "{hongo}, no origin recorded.",
+      "verArbol": "View traceability tree",
+      "inoculacionDetalle": "{grano} · {peso} · {frascos, plural, one {# jar} other {# jars}}{contaminados, plural, =0 {} other { · # contaminated}}.",
+      "desde": "since {fecha}",
+      "incubacionDetalle": "{count, plural, one {# container} other {# containers}}{activos, plural, =0 {} other { · # incubating}}.",
+      "incubacionVacia": "No jar has moved to incubation yet.",
+      "incubacionFila": "from {frascos} · {sustrato} {peso}",
+      "diaDe": "day {dia} of {total}",
+      "dias": "{count, plural, one {# day} other {# days}}",
+      "fructificacionDetalle": "{count, plural, one {# container} other {# containers}}{activos, plural, =0 {} other { · # fruiting}}.",
+      "fructificacionVacia": "No container has moved to fruiting yet.",
+      "cosechaDetalle": "{count, plural, one {# flush} other {# flushes}} · {peso} total.",
+      "cosechaVacia": "No flushes recorded yet."
     }
   }
 }

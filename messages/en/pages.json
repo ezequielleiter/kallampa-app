@@ -149,7 +149,9 @@
       "frascos": "Jars",
       "incubacionTitle": "2. Incubation",
       "fructificacionTitle": "3. Fruiting",
-      "cosechaTitle": "4. Harvest"
+      "cosechaTitle": "4. Harvest",
+      "tabProduccion": "Production",
+      "tabTrazabilidad": "Traceability"
     },
     "loteNuevo": {
       "createdSuccess": "Batch {numeroLote} created",

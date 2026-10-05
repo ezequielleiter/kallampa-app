@@ -474,6 +474,33 @@
       "consumoPotenciaNota": "calefactor de {kw} kW",
       "consumoSinPotencia": "Cargá la potencia del calefactor en el dispositivo para estimar el consumo en kWh y su costo.",
       "colConsumo": "Consumo"
+    },
+    "loteTrazabilidad": {
+      "title": "Trazabilidad",
+      "summary": "{completas} de {total} etapas completas · {peso} cosechados",
+      "etapa": {
+        "origen": "Origen",
+        "inoculacion": "Inoculación en grano",
+        "incubacion": "Incubación",
+        "fructificacion": "Fructificación",
+        "cosecha": "Cosecha"
+      },
+      "enCurso": "En curso",
+      "pendiente": "Pendiente",
+      "origenFrasco": "{hongo}, desde el frasco de micelio líquido",
+      "sinOrigen": "{hongo}, sin origen registrado.",
+      "verArbol": "Ver árbol de trazabilidad",
+      "inoculacionDetalle": "{grano} · {peso} · {frascos, plural, one {# frasco} other {# frascos}}{contaminados, plural, =0 {} one { · # contaminado} other { · # contaminados}}.",
+      "desde": "desde {fecha}",
+      "incubacionDetalle": "{count, plural, one {# recipiente} other {# recipientes}}{activos, plural, =0 {} other { · # incubando}}.",
+      "incubacionVacia": "Ningún frasco pasó a incubación todavía.",
+      "incubacionFila": "de {frascos} · {sustrato} {peso}",
+      "diaDe": "día {dia} de {total}",
+      "dias": "{count, plural, one {# día} other {# días}}",
+      "fructificacionDetalle": "{count, plural, one {# recipiente} other {# recipientes}}{activos, plural, =0 {} other { · # fructificando}}.",
+      "fructificacionVacia": "Ningún recipiente pasó a fructificación todavía.",
+      "cosechaDetalle": "{count, plural, one {# oleada} other {# oleadas}} · {peso} en total.",
+      "cosechaVacia": "Todavía no se registraron oleadas."
     }
   }
 }

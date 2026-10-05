@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { PathIcon, StackIcon } from "@phosphor-icons/react";
 import { BatchHeader } from "@/components/batch/BatchHeader";
 import { JarsGrid } from "@/components/batch/JarsGrid";
 import { RecipientesTable } from "@/components/batch/RecipientesTable";
@@ -11,6 +12,8 @@ import { FructificacionSection } from "@/components/batch/FructificacionSection"
 import { CosechaSection } from "@/components/batch/CosechaSection";
 import { LoteComentarios } from "@/components/batch/LoteComentarios";
 import { LotePendientes } from "@/components/batch/LotePendientes";
+import { LoteTrazabilidad } from "@/components/batch/LoteTrazabilidad";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SectionCard } from "@/components/kallampa/SectionCard";
 import { CostBreakdown } from "@/components/kallampa/CostBreakdown";
 import { EmptyState } from "@/components/kallampa/PageHeader";
@@ -34,6 +37,7 @@ export default function BatchDetailPage() {
   const fmt = useFormat();
   const [batch, setBatch] = useState<BatchDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<"prod" | "traz">("prod");
 
   useBreadcrumbs([
     { label: tNav("produccion"), href: "/lotes" },
@@ -88,35 +92,55 @@ export default function BatchDetailPage() {
           onChanged={cargar}
         />
 
-        <SectionCard
-          number="01"
-          title={t("inoculacionGranoTitle")}
-          meta={t("inoculacionGranoMeta", {
-            grano: nombreGrano,
-            peso: fmt.kg(batch.inoculacionGrano.pesoGranoKg),
-            precio: fmt.money(batch.inoculacionGrano.precioPorKg),
-            count: batch.inoculacionGrano.cantidadFrascos,
-          })}
-        >
-          <JarsGrid
-            batchId={batch._id}
-            numeroLote={batch.numeroLote}
-            jars={jars}
-            onChanged={cargar}
-          />
-        </SectionCard>
+        <Tabs value={tab} onValueChange={(v) => setTab(v as "prod" | "traz")}>
+          <TabsList
+            variant="line"
+            className="w-full justify-start overflow-visible border-b border-divider pb-1"
+          >
+            <TabsTrigger value="prod" className="flex-none">
+              <StackIcon /> {t("tabProduccion")}
+            </TabsTrigger>
+            <TabsTrigger value="traz" className="flex-none">
+              <PathIcon /> {t("tabTrazabilidad")}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-        <RecipientesTable
-          batchId={batch._id}
-          fungusType={batch.fungusTypeId}
-          jars={jars}
-          recipientes={recipientes}
-          onChanged={cargar}
-        />
+        {tab === "traz" ? (
+          <LoteTrazabilidad batch={batch} />
+        ) : (
+          <>
+            <SectionCard
+              number="01"
+              title={t("inoculacionGranoTitle")}
+              meta={t("inoculacionGranoMeta", {
+                grano: nombreGrano,
+                peso: fmt.kg(batch.inoculacionGrano.pesoGranoKg),
+                precio: fmt.money(batch.inoculacionGrano.precioPorKg),
+                count: batch.inoculacionGrano.cantidadFrascos,
+              })}
+            >
+              <JarsGrid
+                batchId={batch._id}
+                numeroLote={batch.numeroLote}
+                jars={jars}
+                onChanged={cargar}
+              />
+            </SectionCard>
 
-        <FructificacionSection recipientes={recipientes} />
+            <RecipientesTable
+              batchId={batch._id}
+              fungusType={batch.fungusTypeId}
+              jars={jars}
+              recipientes={recipientes}
+              onChanged={cargar}
+            />
 
-        <CosechaSection recipientes={recipientes} onChanged={cargar} />
+            <FructificacionSection recipientes={recipientes} />
+
+            <CosechaSection recipientes={recipientes} onChanged={cargar} />
+          </>
+        )}
       </div>
 
       <aside className="flex min-w-0 flex-[1_1_280px] flex-col gap-3.5 lg:sticky lg:top-[76px]">

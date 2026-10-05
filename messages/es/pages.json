@@ -149,7 +149,9 @@
       "frascos": "Frascos",
       "incubacionTitle": "2. Incubación",
       "fructificacionTitle": "3. Fructificación",
-      "cosechaTitle": "4. Cosecha"
+      "cosechaTitle": "4. Cosecha",
+      "tabProduccion": "Producción",
+      "tabTrazabilidad": "Trazabilidad"
     },
     "loteNuevo": {
       "createdSuccess": "Lote {numeroLote} creado",

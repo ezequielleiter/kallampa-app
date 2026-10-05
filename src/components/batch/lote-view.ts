@@ -3,7 +3,7 @@
 // src/lib/recipiente-utils.ts porque son exclusivas de esta vista.
 import { differenceInCalendarDays } from "date-fns";
 import type { StepState } from "@/components/kallampa/Stepper";
-import type { Jar, Recipiente } from "@/lib/types";
+import type { BatchDetail, Jar, Oleada, Recipiente } from "@/lib/types";
 import { pesoTotalCosechado } from "@/lib/recipiente-utils";
 
 export interface EtapasLote {
@@ -56,4 +56,53 @@ export function nombreSustrato(r: Recipiente): string {
 export function codigoCorto(codigo: string): string {
   const parts = codigo.split("-");
   return parts[parts.length - 1] || codigo;
+}
+
+export type EtapaTrazaKey = "origen" | "inoculacion" | "incubacion" | "fructificacion" | "cosecha";
+
+/**
+ * Datos de la pestaña Trazabilidad del lote: el estado de cada etapa y lo
+ * que paso en ella. Sin textos — el componente los traduce y formatea.
+ */
+export interface TrazabilidadLote {
+  etapas: Record<EtapaTrazaKey, StepState>;
+  /** Cantidad de etapas en "done". */
+  completas: number;
+  origen: { _id: string; numeroGuia: string } | null;
+  contaminados: number;
+  /** Recipientes por fecha de inicio de incubacion. */
+  incubacion: Recipiente[];
+  /** Recipientes que llegaron a fructificar, por fecha de inicio. */
+  fructificacion: Recipiente[];
+  /** Todas las oleadas del lote, de la mas vieja a la mas nueva. */
+  oleadas: { recipiente: Recipiente; oleada: Oleada }[];
+  pesoTotal: number;
+}
+
+const porFecha = <T>(fecha: (x: T) => string) => (a: T, b: T) =>
+  new Date(fecha(a)).getTime() - new Date(fecha(b)).getTime();
+
+export function trazabilidadLote(batch: BatchDetail): TrazabilidadLote {
+  const { jars, recipientes } = batch;
+  const etapas: Record<EtapaTrazaKey, StepState> = {
+    origen: "done",
+    ...etapasLote(jars, recipientes),
+  };
+  const origen =
+    typeof batch.origenFrascoLiquidoId === "object" ? batch.origenFrascoLiquidoId : null;
+
+  return {
+    etapas,
+    completas: Object.values(etapas).filter((e) => e === "done").length,
+    origen,
+    contaminados: jars.filter((j) => j.estado === "contaminado").length,
+    incubacion: [...recipientes].sort(porFecha((r) => r.fechaInicioIncubacion)),
+    fructificacion: recipientes
+      .filter((r) => !!r.fechaInicioFructificacion)
+      .sort(porFecha((r) => r.fechaInicioFructificacion!)),
+    oleadas: recipientes
+      .flatMap((recipiente) => recipiente.oleadas.map((oleada) => ({ recipiente, oleada })))
+      .sort(porFecha((x) => x.oleada.fecha)),
+    pesoTotal: pesoTotalCosechado(recipientes),
+  };
 }
