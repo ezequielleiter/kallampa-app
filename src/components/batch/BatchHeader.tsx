@@ -1,8 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { TreeStructureIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import { PencilSimpleIcon, TreeStructureIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { StatusTag } from "@/components/kallampa/StatusTag";
@@ -12,6 +13,7 @@ import { useFormat } from "@/components/kallampa/useFormat";
 import type { EstadoDerivado } from "@/lib/constants";
 import type { BatchDetail } from "@/lib/types";
 import type { CostoProduccionBatch } from "@/lib/recipiente-utils";
+import { EditarLoteDialog } from "./EditarLoteDialog";
 import { etapasLote } from "./lote-view";
 
 interface BatchHeaderProps {
@@ -21,6 +23,7 @@ interface BatchHeaderProps {
   pesoTotalCosechado: number;
   eficienciaBiologica: number | null;
   costoProduccion: CostoProduccionBatch;
+  onChanged: () => void;
 }
 
 export function BatchHeader({
@@ -30,9 +33,11 @@ export function BatchHeader({
   pesoTotalCosechado,
   eficienciaBiologica,
   costoProduccion,
+  onChanged,
 }: BatchHeaderProps) {
   const t = useTranslations("components.batchHeader");
   const fmt = useFormat();
+  const [editarOpen, setEditarOpen] = useState(false);
   const { jars, recipientes } = batch;
   const etapas = etapasLote(jars, recipientes);
   const fructificando = recipientes.filter((r) => r.estado === "fructificando").length;
@@ -73,9 +78,14 @@ export function BatchHeader({
             )}
           </p>
         </div>
-        <Button variant="outline" size="sm" render={<Link href="/trazabilidad" />}>
-          <TreeStructureIcon /> {t("verTrazabilidad")}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={() => setEditarOpen(true)}>
+            <PencilSimpleIcon /> {t("editar")}
+          </Button>
+          <Button variant="outline" size="sm" render={<Link href="/trazabilidad" />}>
+            <TreeStructureIcon /> {t("verTrazabilidad")}
+          </Button>
+        </div>
       </div>
 
       <div className="mt-5">
@@ -122,6 +132,13 @@ export function BatchHeader({
             value: fmt.money(costoProduccion.costoPorKgProducido),
           },
         ]}
+      />
+
+      <EditarLoteDialog
+        open={editarOpen}
+        onOpenChange={setEditarOpen}
+        batch={batch}
+        onSuccess={onChanged}
       />
     </section>
   );

@@ -33,3 +33,16 @@ export const createBatchSchema = z
     path: ["fungusTypeId"],
   });
 export type CreateBatchInput = z.infer<typeof createBatchSchema>;
+
+// Correccion de datos cargados mal al crear el lote: el tipo de hongo y la
+// fecha de inoculacion. Al menos uno de los dos.
+export const updateBatchSchema = z
+  .object({
+    fungusTypeId: objectIdString.optional(),
+    fechaInicio: z.coerce.date().optional(),
+  })
+  .refine((data) => !!data.fungusTypeId || !!data.fechaInicio, {
+    message: "nada_para_actualizar:No hay cambios para guardar",
+    path: ["fungusTypeId"],
+  });
+export type UpdateBatchInput = z.infer<typeof updateBatchSchema>;

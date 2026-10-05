@@ -84,6 +84,7 @@ export default function BatchDetailPage() {
           pesoTotalCosechado={pesoTotal}
           eficienciaBiologica={eficienciaBiologica}
           costoProduccion={costoProduccion}
+          onChanged={cargar}
         />
 
         <SectionCard

@@ -4,6 +4,7 @@
       "title": "Configuraciones de cuenta"
     },
     "batchHeader": {
+      "editar": "Editar",
       "inoculadoEl": "Inoculado el",
       "frascos": "{count, plural, one {# frasco} other {# frascos}}",
       "desdeMicelioLiquido": "desde micelio líquido",
@@ -77,6 +78,20 @@
       "confirmar": "Pasar a fructificación",
       "successMessage": "{codigo} pasó a fructificación",
       "errorMessage": "No se pudo pasar a fructificación"
+    },
+    "editarLoteDialog": {
+      "title": "Editar lote",
+      "tipoHongo": "Tipo de hongo",
+      "elegirHongo": "Elegí un hongo",
+      "hongoDesdeFrascoLiquido": "El hongo viene del frasco de micelio líquido de origen y no se puede cambiar.",
+      "renombreWarning": "El lote pasa a llamarse {numeroLote}, y se renombran sus frascos y recipientes.",
+      "fechaInoculacion": "Fecha de inoculación",
+      "guardar": "Guardar cambios",
+      "errorHongo": "Elegí un tipo de hongo.",
+      "errorFecha": "Ingresá una fecha válida.",
+      "successMessage": "Lote {numeroLote} actualizado",
+      "errorMessage": "No se pudo actualizar el lote",
+      "loadHongosError": "No se pudieron cargar los tipos de hongo"
     },
     "jarsGrid": {
       "successMessage": "{codigo} marcado como {estado}",

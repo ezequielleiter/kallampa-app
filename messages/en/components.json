@@ -4,6 +4,7 @@
       "title": "Account settings"
     },
     "batchHeader": {
+      "editar": "Edit",
       "inoculadoEl": "Inoculated on",
       "frascos": "{count, plural, one {# jar} other {# jars}}",
       "desdeMicelioLiquido": "from liquid mycelium",
@@ -77,6 +78,20 @@
       "confirmar": "Move to fruiting",
       "successMessage": "{codigo} moved to fruiting",
       "errorMessage": "Could not move to fruiting"
+    },
+    "editarLoteDialog": {
+      "title": "Edit batch",
+      "tipoHongo": "Mushroom type",
+      "elegirHongo": "Choose a mushroom",
+      "hongoDesdeFrascoLiquido": "The mushroom comes from the source liquid culture jar and cannot be changed.",
+      "renombreWarning": "The batch will be renamed to {numeroLote}, along with its jars and containers.",
+      "fechaInoculacion": "Inoculation date",
+      "guardar": "Save changes",
+      "errorHongo": "Choose a mushroom type.",
+      "errorFecha": "Enter a valid date.",
+      "successMessage": "Batch {numeroLote} updated",
+      "errorMessage": "Could not update the batch",
+      "loadHongosError": "Could not load the mushroom types"
     },
     "jarsGrid": {
       "successMessage": "{codigo} marked as {estado}",

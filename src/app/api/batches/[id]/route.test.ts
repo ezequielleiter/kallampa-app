@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { GET } from "./route";
+import { GET, PATCH } from "./route";
+import Batch from "@/models/Batch";
+import Jar from "@/models/Jar";
+import Recipiente from "@/models/Recipiente";
 import {
   callRoute,
   makeBatch,
@@ -91,5 +94,109 @@ describe("GET /api/batches/[id]", () => {
 
     expect(status).toBe(404);
     expect(json.error).toMatch(/no encontrado/i);
+  });
+});
+
+describe("PATCH /api/batches/[id]", () => {
+  const patch = (id: string, body: unknown, h = headers) =>
+    callRoute(PATCH, { method: "PATCH", headers: h, params: { id }, body });
+
+  it("cambia el hongo y renombra lote, frascos y recipientes con las iniciales nuevas", async () => {
+    const girgola = await makeFungusType({ userId: user._id, headers, iniciales: "GI" });
+    const shiitake = await makeFungusType({ userId: user._id, headers, iniciales: "SH" });
+    const batch = await makeBatch({ userId: user._id, headers, fungusTypeId: girgola._id, cantidadFrascos: 2 });
+    const [jarId] = await colonizarJars([batch.jars[0]], { userId: user._id, headers });
+    await makeRecipiente({ userId: user._id, headers, batchId: batch._id, origenFrascoIds: [jarId] });
+    const base = batch.numeroLote.replace(/^GI-/, "");
+
+    const { status, json } = await patch(batch._id, { fungusTypeId: shiitake._id });
+
+    expect(status).toBe(200);
+    expect(json.data.numeroLote).toBe(`SH-${base}`);
+    expect(String(json.data.fungusTypeId)).toBe(shiitake._id);
+    const jars = await Jar.find({ batchId: batch._id }).sort({ numeroGuia: 1 }).lean();
+    expect(jars.map((j) => j.numeroGuia)).toEqual([`SH-${base}-F01`, `SH-${base}-F02`]);
+    const recipientes = await Recipiente.find({ batchId: batch._id }).lean();
+    expect(recipientes.map((r) => r.numeroSeguimiento)).toEqual([`SH-${base}-R01`]);
+  });
+
+  it("si el hongo nuevo no tiene iniciales, el lote queda sin prefijo", async () => {
+    const girgola = await makeFungusType({ userId: user._id, headers, iniciales: "GI" });
+    const sinIniciales = await makeFungusType({ userId: user._id, headers });
+    const batch = await makeBatch({ userId: user._id, headers, fungusTypeId: girgola._id, cantidadFrascos: 1 });
+
+    const { json } = await patch(batch._id, { fungusTypeId: sinIniciales._id });
+
+    expect(json.data.numeroLote).toBe(batch.numeroLote.replace(/^GI-/, ""));
+  });
+
+  it("los dias esperados siguen al hongo nuevo solo si eran el default del anterior", async () => {
+    const a = await makeFungusType({
+      userId: user._id,
+      headers,
+      diasEsperadosDefault: { inoculacionGrano: 14, incubacion: 20, fructificacion: 10 },
+    });
+    const b = await makeFungusType({
+      userId: user._id,
+      headers,
+      diasEsperadosDefault: { inoculacionGrano: 21, incubacion: 20, fructificacion: 10 },
+    });
+    const conDefault = await makeBatch({ userId: user._id, headers, fungusTypeId: a._id, cantidadFrascos: 1 });
+    const editado = await makeBatch({ userId: user._id, headers, fungusTypeId: a._id, cantidadFrascos: 1, diasEsperados: 30 });
+
+    await patch(conDefault._id, { fungusTypeId: b._id });
+    await patch(editado._id, { fungusTypeId: b._id });
+
+    expect((await Batch.findById(conDefault._id).lean())!.inoculacionGrano.diasEsperados).toBe(21);
+    expect((await Batch.findById(editado._id).lean())!.inoculacionGrano.diasEsperados).toBe(30);
+  });
+
+  it("cambia la fecha de inoculacion sin tocar el numero de lote", async () => {
+    const batch = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1, fechaInicio: "2026-10-01" });
+
+    const { status, json } = await patch(batch._id, { fechaInicio: "2026-09-28" });
+
+    expect(status).toBe(200);
+    expect(json.data.inoculacionGrano.fechaInicio).toBe("2026-09-28T00:00:00.000Z");
+    expect(json.data.numeroLote).toBe(batch.numeroLote);
+  });
+
+  it("409 al cambiar el hongo de un lote iniciado desde micelio liquido", async () => {
+    const clonacion = await makeClonacion({ userId: user._id, headers, cantidadPlacas: 1 });
+    const [placaId] = await colonizarPlacas([clonacion.placas[0]], { userId: user._id, headers });
+    const frasco = await makeFrascoLiquido({ userId: user._id, headers, origenPlacaId: placaId });
+    await colonizarFrascosLiquidos([frasco], { userId: user._id, headers });
+    const batch = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1, origenFrascoLiquidoId: frasco._id });
+    const otro = await makeFungusType({ userId: user._id, headers });
+
+    const { status, json } = await patch(batch._id, { fungusTypeId: otro._id });
+
+    expect(status).toBe(409);
+    expect(json.code).toBe("lote_hongo_derivado_de_frasco_liquido");
+    // La fecha si se puede corregir igual.
+    const res = await patch(batch._id, { fechaInicio: "2026-09-30" });
+    expect(res.status).toBe(200);
+  });
+
+  it("409 al cambiar el hongo si ya hay clonaciones hechas desde el lote", async () => {
+    const batch = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1 });
+    const [jarId] = await colonizarJars(batch.jars, { userId: user._id, headers });
+    await makeClonacionDirecta({ userId: user._id, headers, origenProceso: "frascoGrano", origenJarId: jarId });
+    const otro = await makeFungusType({ userId: user._id, headers });
+
+    const { status, json } = await patch(batch._id, { fungusTypeId: otro._id });
+
+    expect(status).toBe(409);
+    expect(json.code).toBe("lote_con_clonaciones");
+  });
+
+  it("400 sin cambios y 404 en un lote de otro usuario", async () => {
+    const batch = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1 });
+
+    expect((await patch(batch._id, {})).status).toBe(400);
+
+    const otro = await makeUser();
+    const { status } = await patch(batch._id, { fechaInicio: "2026-09-30" }, authHeaders(otro));
+    expect(status).toBe(404);
   });
 });
