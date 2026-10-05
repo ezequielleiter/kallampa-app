@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { DotsThreeIcon, PencilSimpleIcon, TrashIcon } from "@phosphor-icons/react";
@@ -22,12 +22,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { SectionCard } from "@/components/kallampa/SectionCard";
 import { useAppLocale } from "@/components/shared/LocaleProvider";
 import { apiFetch } from "@/lib/api-client";
 import type { ComentarioLote } from "@/lib/types";
 
-interface ComentariosSectionProps {
+interface LoteComentariosProps {
   batchId: string;
   comentarios: ComentarioLote[];
   onChanged: () => void;
@@ -38,8 +37,14 @@ function esEnviar(e: React.KeyboardEvent) {
   return e.key === "Enter" && (e.ctrlKey || e.metaKey);
 }
 
-export function ComentariosSection({ batchId, comentarios, onChanged }: ComentariosSectionProps) {
-  const t = useTranslations("components.comentariosSection");
+/**
+ * Comentarios del lote: card en la columna derecha del detalle (debajo de
+ * Costos), con el hilo cronologico y la caja para escribir al pie. El hilo
+ * tiene alto maximo con scroll propio para que la columna (sticky) no crezca
+ * sin limite.
+ */
+export function LoteComentarios({ batchId, comentarios, onChanged }: LoteComentariosProps) {
+  const t = useTranslations("components.loteComentarios");
   const tCommon = useTranslations("common");
   const { locale } = useAppLocale();
   const [nuevo, setNuevo] = useState("");
@@ -48,6 +53,13 @@ export function ComentariosSection({ batchId, comentarios, onChanged }: Comentar
   const [guardando, setGuardando] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ComentarioLote | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const hiloRef = useRef<HTMLUListElement>(null);
+
+  // Al cargar y al sumar un comentario, el hilo queda scrolleado al ultimo.
+  useEffect(() => {
+    const hilo = hiloRef.current;
+    if (hilo) hilo.scrollTop = hilo.scrollHeight;
+  }, [comentarios.length]);
 
   const base = `/api/batches/${batchId}/comentarios`;
   const fechaHora = (iso: string) =>
@@ -105,12 +117,21 @@ export function ComentariosSection({ batchId, comentarios, onChanged }: Comentar
   }
 
   return (
-    <SectionCard number="05" title={t("title")} meta={t("meta", { count: comentarios.length })}>
-      <div className="flex flex-col gap-3">
+    <div className="rounded-lg bg-surface-card p-4 shadow-sm">
+      <div className="flex items-baseline justify-between">
+        <h2 className="m-0 text-sm font-medium">{t("title")}</h2>
+        <span className="text-[12.5px] text-text-subtle tabular-nums">
+          {t("meta", { count: comentarios.length })}
+        </span>
+      </div>
+      <div className="mt-3 flex flex-col gap-3">
         {comentarios.length === 0 ? (
           <p className="m-0 text-[13px] text-text-subtle">{t("emptyState")}</p>
         ) : (
-          <ul className="m-0 flex list-none flex-col divide-y divide-divider p-0">
+          <ul
+            ref={hiloRef}
+            className="m-0 flex max-h-[min(22rem,30vh)] list-none flex-col divide-y divide-divider overflow-y-auto p-0"
+          >
             {comentarios.map((c) => (
               <li key={c._id} className="py-2.5 first:pt-0">
                 <div className="flex items-center justify-between gap-2">
@@ -217,6 +238,6 @@ export function ComentariosSection({ batchId, comentarios, onChanged }: Comentar
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </SectionCard>
+    </div>
   );
 }
