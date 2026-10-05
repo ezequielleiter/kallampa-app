@@ -93,7 +93,7 @@
       "errorMessage": "Could not update the batch",
       "loadHongosError": "Could not load the mushroom types"
     },
-    "comentariosSection": {
+    "loteComentarios": {
       "title": "Comments",
       "meta": "{count, plural, =0 {no comments} one {# comment} other {# comments}}",
       "emptyState": "There are no comments on this batch yet.",
