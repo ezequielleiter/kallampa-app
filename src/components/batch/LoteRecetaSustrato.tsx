@@ -34,11 +34,14 @@ import { useAppLocale } from "@/components/shared/LocaleProvider";
 import { CalculadoraSustrato, numeroAInput } from "@/components/herramientas/CalculadoraSustrato";
 import { apiFetch } from "@/lib/api-client";
 import {
+  DENSIDAD_MEZCLA_DEFAULT,
   calcularReceta,
+  calcularRecetaPorTachos,
   parseDecimal,
   resumenReceta,
   type BaseCalculo,
   type CantidadesSustrato,
+  type ConfigTachos,
 } from "@/lib/calculadora-sustrato";
 import type { BatchDetail, RecetaSustratoLote } from "@/lib/types";
 
@@ -56,6 +59,7 @@ export function LoteRecetaSustrato({ batch, onChanged }: LoteRecetaSustratoProps
   const t = useTranslations("components.loteRecetaSustrato");
   const tCommon = useTranslations("common");
   const fmt = useFormat();
+  const { locale } = useAppLocale();
   const receta = batch.recetaSustrato ?? null;
   const [open, setOpen] = useState(false);
   // Se incrementa en cada apertura para remontar el formulario con valores frescos.
@@ -104,6 +108,15 @@ export function LoteRecetaSustrato({ batch, onChanged }: LoteRecetaSustratoProps
         </div>
       ) : (
         <div className="mt-3 flex flex-col gap-3">
+          {receta.base === "tachos" && receta.tachos && (
+            <p className="m-0 text-[13px] text-text-muted">
+              {t("tachosResumen", {
+                cantidad: receta.tachos.cantidad,
+                capacidad: numeroAInput(receta.tachos.capacidad, locale, 2),
+                unidad: receta.tachos.unidad,
+              })}
+            </p>
+          )}
           <ul className="m-0 flex list-none flex-col divide-y divide-divider p-0 text-[13px]">
             <FilaCantidad
               label={t("pellets")}
@@ -223,6 +236,10 @@ function RecetaForm({
 
   const pesoGrano = batch.inoculacionGrano.pesoGranoKg;
   const initialBase: BaseCalculo = receta?.base ?? "grano";
+  const initialTachos: ConfigTachos | undefined =
+    receta?.base === "tachos" && receta.tachos
+      ? { ...receta.tachos, densidadKgL: receta.tachos.densidadKgL ?? DENSIDAD_MEZCLA_DEFAULT }
+      : undefined;
   const initialValor: number | undefined = receta
     ? receta.base === "pellets"
       ? receta.pelletsKg
@@ -232,8 +249,15 @@ function RecetaForm({
       : undefined;
 
   const [base, setBase] = useState<BaseCalculo>(initialBase);
+  const [tachos, setTachos] = useState<ConfigTachos | undefined>(initialTachos);
   const [calculadas, setCalculadas] = useState<CantidadesSustrato | null>(() =>
-    initialValor != null ? calcularReceta(initialBase, initialValor) : null
+    initialBase === "tachos"
+      ? initialTachos
+        ? calcularRecetaPorTachos(initialTachos)
+        : null
+      : initialValor != null
+        ? calcularReceta(initialBase, initialValor)
+        : null
   );
   // Las cantidades reales siguen a la calculadora hasta que se edita alguna a mano.
   const [sincronizado, setSincronizado] = useState(() =>
@@ -255,8 +279,14 @@ function RecetaForm({
   );
   const [guardando, setGuardando] = useState(false);
 
-  function onCalculo(nuevaBase: BaseCalculo, _valor: number, c: CantidadesSustrato | null) {
+  function onCalculo(
+    nuevaBase: BaseCalculo,
+    _valor: number,
+    c: CantidadesSustrato | null,
+    nuevosTachos?: ConfigTachos
+  ) {
     setBase(nuevaBase);
+    setTachos(nuevosTachos);
     setCalculadas(c);
     if (sincronizado && c) setReales(realesDesde(c, locale));
   }
@@ -289,6 +319,10 @@ function RecetaForm({
     if (!fecha) nuevosErrores.fecha = t("errorFecha");
     setErrores(nuevosErrores);
     if (Object.keys(nuevosErrores).length > 0) return;
+    if (base === "tachos" && (!tachos || !calcularRecetaPorTachos(tachos))) {
+      toast.error(t("errorTachos"));
+      return;
+    }
 
     setGuardando(true);
     try {
@@ -296,6 +330,16 @@ function RecetaForm({
         method: "PUT",
         body: JSON.stringify({
           base,
+          ...(base === "tachos" && tachos
+            ? {
+                tachos: {
+                  cantidad: tachos.cantidad,
+                  capacidad: tachos.capacidad,
+                  unidad: tachos.unidad,
+                  ...(tachos.unidad === "L" ? { densidadKgL: tachos.densidadKgL } : {}),
+                },
+              }
+            : {}),
           ...n,
           fecha,
           ...(notas.trim() ? { notas: notas.trim() } : {}),
@@ -327,6 +371,7 @@ function RecetaForm({
       <CalculadoraSustrato
         initialBase={initialBase}
         initialValor={initialValor}
+        initialTachos={initialTachos}
         onChange={onCalculo}
       />
 

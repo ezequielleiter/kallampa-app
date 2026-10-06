@@ -77,6 +77,46 @@ describe("PUT /api/batches/[id]/receta-sustrato", () => {
     expect(json.data.recetaSustrato.notas).toBeUndefined();
   });
 
+  it("guarda la receta por tachos con su configuracion", async () => {
+    const batch = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1 });
+    const tachos = { cantidad: 3, capacidad: 10, unidad: "L", densidadKgL: 0.6 };
+
+    const res = await guardar(batch._id, { ...receta, base: "tachos", tachos });
+
+    expect(res.status).toBe(200);
+    expect(res.json.data).toMatchObject({ base: "tachos", tachos });
+    const { json } = await detalle(batch._id);
+    expect(json.data.recetaSustrato.tachos).toMatchObject(tachos);
+  });
+
+  it("descarta los tachos si la base no es tachos", async () => {
+    const batch = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1 });
+
+    const res = await guardar(batch._id, {
+      ...receta,
+      tachos: { cantidad: 2, capacidad: 10, unidad: "kg" },
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.json.data.tachos).toBeUndefined();
+  });
+
+  it("400 con base tachos y tachos faltantes o invalidos", async () => {
+    const batch = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1 });
+
+    for (const tachos of [
+      undefined,
+      { cantidad: 0, capacidad: 10, unidad: "kg" },
+      { cantidad: 1.5, capacidad: 10, unidad: "kg" },
+      { cantidad: 2, capacidad: 0, unidad: "kg" },
+      { cantidad: 2, capacidad: 10, unidad: "m3" },
+      { cantidad: 2, capacidad: 10, unidad: "L" },
+    ]) {
+      const res = await guardar(batch._id, { ...receta, base: "tachos", tachos });
+      expect(res.status).toBe(400);
+    }
+  });
+
   it("400 con datos invalidos", async () => {
     const batch = await makeBatch({ userId: user._id, headers, cantidadFrascos: 1 });
     const { pelletsKg: _omit, ...sinPellets } = receta;

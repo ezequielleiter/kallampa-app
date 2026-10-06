@@ -63,18 +63,48 @@ const positivo = () =>
 const noNegativo = () =>
   z.number().min(0, "numero_no_negativo_requerido:No puede ser negativo");
 
-export const recetaSustratoSchema = z.object({
-  base: z.enum(["pellets", "grano"], "base_receta_invalida:Base de receta inválida"),
-  pelletsKg: positivo(),
-  aguaL: noNegativo(),
-  calKg: noNegativo(),
-  granoKg: positivo(),
-  fecha: z.coerce.date(),
-  notas: z
-    .string()
-    .trim()
-    .max(2000, "texto_muy_largo:El texto es demasiado largo")
-    .optional()
-    .transform((v) => (v ? v : undefined)),
+const tachosRecetaSchema = z.object({
+  cantidad: z
+    .number()
+    .int("numero_entero_requerido:Debe ser un número entero")
+    .min(1, "numero_positivo_requerido:Debe ser un número positivo"),
+  capacidad: positivo(),
+  unidad: z.enum(["kg", "L"], "unidad_tacho_invalida:Unidad de tacho inválida"),
+  densidadKgL: positivo().optional(),
 });
+
+export const recetaSustratoSchema = z
+  .object({
+    base: z.enum(["pellets", "grano", "tachos"], "base_receta_invalida:Base de receta inválida"),
+    tachos: tachosRecetaSchema.optional(),
+    pelletsKg: positivo(),
+    aguaL: noNegativo(),
+    calKg: noNegativo(),
+    granoKg: positivo(),
+    fecha: z.coerce.date(),
+    notas: z
+      .string()
+      .trim()
+      .max(2000, "texto_muy_largo:El texto es demasiado largo")
+      .optional()
+      .transform((v) => (v ? v : undefined)),
+  })
+  .superRefine((v, ctx) => {
+    if (v.base === "tachos" && !v.tachos) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["tachos"],
+        message: "tachos_requeridos:Faltan los datos de los tachos",
+      });
+    }
+    if (v.base === "tachos" && v.tachos?.unidad === "L" && v.tachos.densidadKgL == null) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["tachos", "densidadKgL"],
+        message: "numero_positivo_requerido:Debe ser un número positivo",
+      });
+    }
+  })
+  // Los tachos solo tienen sentido con base "tachos".
+  .transform((v) => (v.base === "tachos" ? v : { ...v, tachos: undefined }));
 export type RecetaSustratoInput = z.infer<typeof recetaSustratoSchema>;

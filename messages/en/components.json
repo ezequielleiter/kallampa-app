@@ -523,7 +523,18 @@
       "grano": "Colonized grain",
       "totalHumedo": "Total wet substrate",
       "tasaInoculacion": "Inoculation rate",
-      "recetaBase": "Base recipe: {pellets} pellets · {agua} water · {cal} hydrated lime · {grano} grain"
+      "recetaBase": "Base recipe: {pellets} pellets · {agua} water · {cal} hydrated lime · {grano} grain",
+      "baseTachos": "Buckets",
+      "cantidadTachos": "Number of buckets",
+      "tamanoTacho": "Size of each bucket",
+      "unidadTacho": "Bucket unit",
+      "unidadKg": "Kilograms",
+      "unidadLitros": "Liters",
+      "densidad": "Mix density",
+      "densidadHint": "Wet pellet mix weighs ≈ 0.6 kg per liter. Weigh a full bucket to fine-tune it.",
+      "mezclaTachos": "Total mix to fill them: ≈ {kg} (wet substrate + grain)",
+      "tachosInvalido": "Enter a whole number of buckets and a size greater than 0",
+      "porTacho": "Per bucket: {pellets} pellets · {agua} water · {cal} lime · {grano} grain"
     },
     "loteRecetaSustrato": {
       "title": "Substrate recipe",
@@ -555,7 +566,9 @@
       "errorMessage": "Couldn't save the recipe",
       "errorPositivo": "Must be greater than 0",
       "errorNoNegativo": "Can't be negative",
-      "errorFecha": "Pick a date"
+      "errorFecha": "Pick a date",
+      "tachosResumen": "{cantidad, plural, one {# bucket} other {# buckets}} of {capacidad} {unidad}",
+      "errorTachos": "Check the bucket details"
     },
     "ventaFormDialog": {
       "newTitle": "New sale",
