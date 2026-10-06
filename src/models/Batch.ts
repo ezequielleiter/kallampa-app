@@ -27,19 +27,11 @@ export interface Comentario {
   updatedAt: Date;
 }
 
-// Receta de sustrato usada en el lote (una sola, opcional). Base pellets,
-// grano o tachos; las cantidades se guardan tal cual las cargo el usuario.
-export type BaseRecetaSustrato = "pellets" | "grano" | "tachos";
-export interface TachosReceta {
-  cantidad: number;
-  capacidad: number;
-  unidad: "kg" | "L";
-  densidadKgL?: number;
-}
+// Receta de sustrato usada en el lote (una sola, opcional). Base pellets o
+// grano; las cantidades se guardan tal cual las cargo el usuario.
+export type BaseRecetaSustrato = "pellets" | "grano";
 export interface RecetaSustrato {
   base: BaseRecetaSustrato;
-  // Solo con base "tachos": los tachos que se llenaron.
-  tachos?: TachosReceta;
   pelletsKg: number;
   aguaL: number;
   calKg: number;
@@ -83,20 +75,9 @@ const comentarioSchema = new Schema<Comentario>(
   { timestamps: true }
 );
 
-const tachosRecetaSchema = new Schema<TachosReceta>(
-  {
-    cantidad: { type: Number, required: true },
-    capacidad: { type: Number, required: true },
-    unidad: { type: String, enum: ["kg", "L"], required: true },
-    densidadKgL: { type: Number },
-  },
-  { _id: false }
-);
-
 const recetaSustratoSchema = new Schema<RecetaSustrato>(
   {
-    base: { type: String, enum: ["pellets", "grano", "tachos"], required: true },
-    tachos: { type: tachosRecetaSchema, default: undefined },
+    base: { type: String, enum: ["pellets", "grano"], required: true },
     pelletsKg: { type: Number, required: true },
     aguaL: { type: Number, required: true },
     calKg: { type: Number, required: true },

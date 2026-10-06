@@ -1,10 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   RECETA_BASE,
-  TOTAL_MEZCLA_BASE_KG,
   calcularReceta,
-  calcularRecetaPorTachos,
-  kgMezclaTachos,
   parseDecimal,
   resumenReceta,
 } from "./calculadora-sustrato";
@@ -42,44 +39,6 @@ describe("calcularReceta", () => {
     expect(calcularReceta("grano", -1)).toBeNull();
     expect(calcularReceta("pellets", NaN)).toBeNull();
     expect(calcularReceta("grano", Infinity)).toBeNull();
-  });
-});
-
-describe("calcularRecetaPorTachos", () => {
-  const suma = (r: { pelletsKg: number; aguaL: number; calKg: number; granoKg: number }) =>
-    r.pelletsKg + r.aguaL + r.calKg + r.granoKg;
-
-  it("un tacho del peso de la mezcla de base devuelve la receta de base", () => {
-    const r = calcularRecetaPorTachos({
-      cantidad: 1,
-      capacidad: TOTAL_MEZCLA_BASE_KG,
-      unidad: "kg",
-      densidadKgL: 0.6,
-    });
-    expect(r).not.toBeNull();
-    expect(r!.pelletsKg).toBeCloseTo(RECETA_BASE.pelletsKg, 6);
-    expect(r!.aguaL).toBeCloseTo(RECETA_BASE.aguaL, 6);
-    expect(r!.calKg).toBeCloseTo(RECETA_BASE.calKg, 6);
-    expect(r!.granoKg).toBeCloseTo(RECETA_BASE.granoKg, 6);
-  });
-
-  it("3 tachos de 10 kg suman 30 kg de mezcla", () => {
-    const r = calcularRecetaPorTachos({ cantidad: 3, capacidad: 10, unidad: "kg", densidadKgL: 0.6 });
-    expect(r).not.toBeNull();
-    expect(suma(r!)).toBeCloseTo(30, 6);
-  });
-
-  it("en litros usa la densidad (la ignora en kg)", () => {
-    expect(kgMezclaTachos({ cantidad: 1, capacidad: 10, unidad: "L", densidadKgL: 0.6 })).toBeCloseTo(6, 6);
-    expect(kgMezclaTachos({ cantidad: 3, capacidad: 10, unidad: "L", densidadKgL: 0.6 })).toBeCloseTo(18, 6);
-    expect(kgMezclaTachos({ cantidad: 2, capacidad: 10, unidad: "kg", densidadKgL: NaN })).toBe(20);
-  });
-
-  it("devuelve null con datos invalidos", () => {
-    expect(calcularRecetaPorTachos({ cantidad: 0, capacidad: 10, unidad: "kg", densidadKgL: 0.6 })).toBeNull();
-    expect(calcularRecetaPorTachos({ cantidad: 1.5, capacidad: 10, unidad: "kg", densidadKgL: 0.6 })).toBeNull();
-    expect(calcularRecetaPorTachos({ cantidad: 2, capacidad: NaN, unidad: "kg", densidadKgL: 0.6 })).toBeNull();
-    expect(calcularRecetaPorTachos({ cantidad: 2, capacidad: 10, unidad: "L", densidadKgL: 0 })).toBeNull();
   });
 });
 

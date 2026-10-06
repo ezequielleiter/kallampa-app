@@ -523,18 +523,7 @@
       "grano": "Grano colonizado",
       "totalHumedo": "Sustrato húmedo total",
       "tasaInoculacion": "Tasa de inoculación",
-      "recetaBase": "Receta de base: {pellets} pellets · {agua} agua · {cal} cal hidratada · {grano} grano",
-      "baseTachos": "Tachos",
-      "cantidadTachos": "Cantidad de tachos",
-      "tamanoTacho": "Tamaño de cada tacho",
-      "unidadTacho": "Unidad del tacho",
-      "unidadKg": "Kilos",
-      "unidadLitros": "Litros",
-      "densidad": "Densidad de la mezcla",
-      "densidadHint": "La mezcla húmeda de pellets pesa ≈ 0,6 kg por litro. Pesá un tacho lleno para ajustarla.",
-      "mezclaTachos": "Mezcla total para llenarlos: ≈ {kg} (sustrato húmedo + grano)",
-      "tachosInvalido": "Ingresá una cantidad entera de tachos y un tamaño mayor a 0",
-      "porTacho": "Por tacho: {pellets} pellets · {agua} agua · {cal} cal · {grano} grano"
+      "recetaBase": "Receta de base: {pellets} pellets · {agua} agua · {cal} cal hidratada · {grano} grano"
     },
     "loteRecetaSustrato": {
       "title": "Receta de sustrato",
@@ -566,9 +555,7 @@
       "errorMessage": "No se pudo guardar la receta",
       "errorPositivo": "Tiene que ser mayor a 0",
       "errorNoNegativo": "No puede ser negativo",
-      "errorFecha": "Elegí una fecha",
-      "tachosResumen": "{cantidad, plural, one {# tacho} other {# tachos}} de {capacidad} {unidad}",
-      "errorTachos": "Revisá los datos de los tachos"
+      "errorFecha": "Elegí una fecha"
     },
     "ventaFormDialog": {
       "newTitle": "Nueva venta",

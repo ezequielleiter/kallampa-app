@@ -162,16 +162,9 @@ export interface ComentarioLote {
   updatedAt: string;
 }
 
-export type BaseRecetaSustrato = "pellets" | "grano" | "tachos";
-export interface TachosRecetaLote {
-  cantidad: number;
-  capacidad: number;
-  unidad: "kg" | "L";
-  densidadKgL?: number;
-}
+export type BaseRecetaSustrato = "pellets" | "grano";
 export interface RecetaSustratoLote {
   base: BaseRecetaSustrato;
-  tachos?: TachosRecetaLote;
   pelletsKg: number;
   aguaL: number;
   calKg: number;

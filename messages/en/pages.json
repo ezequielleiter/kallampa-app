@@ -487,7 +487,7 @@
       "title": "Tools",
       "subtitle": "Calculators for everyday growing",
       "calculadoraSustratoTitle": "Substrate calculator",
-      "calculadoraSustratoDescription": "Enter how many kg of pellets or colonized grain you have, or how many buckets you want to fill and their size, and get how much pellets, water, hydrated lime and grain to use."
+      "calculadoraSustratoDescription": "Enter how many kg of pellets or colonized grain you have and get how much water, hydrated lime and grain (or pellets) to use."
     },
     "ventas": {
       "subtitle": "What you sold, each batch's stock and your customers",

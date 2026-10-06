@@ -87,8 +87,6 @@
     "numero_entero_requerido": "Must be a whole number",
     "numero_no_negativo_requerido": "Can't be negative",
     "base_receta_invalida": "Invalid recipe base",
-    "tachos_requeridos": "Bucket details are missing",
-    "unidad_tacho_invalida": "Invalid bucket unit",
     "numero_positivo_requerido": "Must be a positive number",
     "oleada_no_encontrada": "Flush not found",
     "origen_proceso_invalido": "Invalid process origin",
