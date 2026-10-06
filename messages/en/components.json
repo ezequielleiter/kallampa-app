@@ -654,6 +654,23 @@
       "pendiente": "Pending",
       "registrarVenta": "Record sale",
       "sinStockHint": "No stock available to sell."
+    },
+    "calculadoraTachos": {
+      "totalLabel": "Inoculated substrate",
+      "totalHint": "Comes from the substrate calculator total (wet substrate + grain). You can change it.",
+      "totalEditado": "Edited by hand: no longer follows the substrate calculator.",
+      "usarCalculado": "Use the calculator total",
+      "tamanoTacho": "Size of each bucket",
+      "unidadTacho": "Bucket unit",
+      "unidadKg": "Kilograms",
+      "unidadLitros": "Liters",
+      "densidad": "Mix density",
+      "densidadHint": "The wet mix weighs ≈ 0.6 kg per liter. Weigh a full bucket to fine-tune it.",
+      "necesitas": "You need",
+      "resultado": "{cantidad, plural, one {# bucket} other {# buckets}}",
+      "kgPorTacho": "≈ {kg} per bucket",
+      "ultimoTacho": "the last one gets {kg}",
+      "valorInvalido": "Enter a substrate amount and a bucket size greater than 0"
     }
   }
 }

@@ -654,6 +654,23 @@
       "pendiente": "Pendiente",
       "registrarVenta": "Registrar venta",
       "sinStockHint": "No hay stock disponible para vender."
+    },
+    "calculadoraTachos": {
+      "totalLabel": "Sustrato con micelio",
+      "totalHint": "Viene del total de la calculadora de sustrato (sustrato húmedo + grano). Podés cambiarlo.",
+      "totalEditado": "Editado a mano: ya no sigue a la calculadora de sustrato.",
+      "usarCalculado": "Usar el total de la calculadora",
+      "tamanoTacho": "Tamaño de cada tacho",
+      "unidadTacho": "Unidad del tacho",
+      "unidadKg": "Kilos",
+      "unidadLitros": "Litros",
+      "densidad": "Densidad de la mezcla",
+      "densidadHint": "La mezcla húmeda pesa ≈ 0,6 kg por litro. Pesá un tacho lleno para ajustarla.",
+      "necesitas": "Necesitás",
+      "resultado": "{cantidad, plural, one {# tacho} other {# tachos}}",
+      "kgPorTacho": "≈ {kg} por tacho",
+      "ultimoTacho": "el último queda con {kg}",
+      "valorInvalido": "Ingresá una cantidad de sustrato y un tamaño de tacho mayores a 0"
     }
   }
 }

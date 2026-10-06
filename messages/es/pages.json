@@ -487,7 +487,9 @@
       "title": "Herramientas",
       "subtitle": "Calculadoras para el día a día del cultivo",
       "calculadoraSustratoTitle": "Calculadora de sustrato",
-      "calculadoraSustratoDescription": "Ingresá cuántos kg de pellets o de grano colonizado tenés y te da cuánta agua, cal hidratada y grano (o pellets) usar."
+      "calculadoraSustratoDescription": "Ingresá cuántos kg de pellets o de grano colonizado tenés y te da cuánta agua, cal hidratada y grano (o pellets) usar.",
+      "calculadoraTachosTitle": "Calculadora de tachos",
+      "calculadoraTachosDescription": "Poné el tamaño de tus tachos (en kilos o en litros) y te dice cuántos necesitás para el sustrato con micelio que tenés."
     },
     "ventas": {
       "subtitle": "Lo que vendiste, el stock de cada lote y tus clientes",
