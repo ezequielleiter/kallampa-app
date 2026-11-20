@@ -571,6 +571,71 @@
       "reactivarCliente": "Reactivate {nombre}",
       "clienteDesactivado": "{nombre} deactivated",
       "clienteReactivado": "{nombre} reactivated"
+    },
+    "monitoreo": {
+      "title": "Monitoring view",
+      "actualizado": "Updated {tiempo} ago",
+      "cargando": "Loading…",
+      "errorGenerico": "Could not load the data.",
+      "equipos": "Devices",
+      "sinInvernaderos": "There are no active greenhouses yet.",
+      "irInvernaderos": "Go to greenhouses",
+      "sinEquipos": "This greenhouse has no devices yet.",
+      "verInvernadero": "View greenhouse",
+      "equiposCount": "{count, plural, one {# device} other {# devices}}",
+      "tiempo": {
+        "segundos": "a few seconds",
+        "minutos": "{n} min",
+        "horas": "{n} h",
+        "dias": "{n, plural, one {# day} other {# days}}"
+      },
+      "conexion": {
+        "conectado": "Connected",
+        "desconectado": "Disconnected",
+        "desconectadoHace": "Disconnected {tiempo} ago",
+        "sin_datos": "No data",
+        "sin_influx": "No InfluxDB"
+      },
+      "sinInfluxAyuda": "Add its InfluxDB ID in the greenhouse to see the climate.",
+      "temperatura": "Temperature",
+      "humedad": "Humidity",
+      "alta": "High",
+      "baja": "Low",
+      "sinRango": "No target range",
+      "aparatos": {
+        "humidificador": "Humidifier",
+        "calefaccion": "Heating",
+        "extractor": "Extractor fan"
+      },
+      "prendido": "On",
+      "apagado": "Off",
+      "sinDato": "No reading",
+      "aprendiendo": "Learning",
+      "alarmas": {
+        "agua_vacia": "Water tank empty",
+        "sensor_falla": "Sensor not reading",
+        "wifi_debil": "Weak WiFi signal ({rssi} dBm)"
+      },
+      "vaciandoCola": "Flushing queue: sending data that was pending.",
+      "ultimas24h": "Last 24 h",
+      "stats": "min {min} · max {max} · avg {prom}",
+      "enRango": "{pct} in range",
+      "uso": "% usage",
+      "reinicios": "{count, plural, one {# restart} other {# restarts}}",
+      "ultimoReset": "last: {reset}",
+      "firmware": "Firmware {fw}",
+      "gestion": "Live inventory",
+      "frascosColonizando": "Jars colonizing",
+      "frascosColonizados": "Jars colonized",
+      "recipientesIncubando": "Containers incubating",
+      "recipientesFructificando": "Containers fruiting",
+      "contaminados30d": "Contaminated in the last 30 days: {frascos, plural, one {# jar} other {# jars}} · {recipientes, plural, one {# container} other {# containers}}",
+      "lotesActivos": "Active batches",
+      "sinLotesActivos": "No batches in progress.",
+      "frascosActivos": "{count, plural, one {# active jar} other {# active jars}}",
+      "incubando": "{count} incubating",
+      "fructificando": "{count} fruiting",
+      "alertas": "{count, plural, one {# alert} other {# alerts}}"
     }
   }
 }

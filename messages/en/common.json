@@ -29,7 +29,8 @@
       "cultivo": "Growing",
       "seguimiento": "Tracking",
       "recursos": "Resources"
-    }
+    },
+    "monitoreo": "Monitoring view"
   },
   "auth": {
     "login": {

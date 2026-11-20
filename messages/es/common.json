@@ -29,7 +29,8 @@
       "cultivo": "Cultivo",
       "seguimiento": "Seguimiento",
       "recursos": "Recursos"
-    }
+    },
+    "monitoreo": "Vista de monitoreo"
   },
   "auth": {
     "login": {

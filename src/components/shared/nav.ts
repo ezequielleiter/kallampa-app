@@ -10,6 +10,7 @@ import {
   ChartBarIcon,
   StorefrontIcon,
   WrenchIcon,
+  GaugeIcon,
   type Icon,
 } from "@phosphor-icons/react";
 
@@ -31,6 +32,7 @@ export const NAV_GROUPS: { key: "cultivo" | "seguimiento" | "recursos"; links: N
   {
     key: "seguimiento",
     links: [
+      { href: "/monitoreo", key: "monitoreo", icon: GaugeIcon },
       { href: "/trazabilidad", key: "trazabilidad", icon: TreeStructureIcon },
       { href: "/estadisticas", key: "estadisticas", icon: ChartBarIcon },
       { href: "/ventas", key: "ventas", icon: StorefrontIcon },
@@ -64,7 +66,8 @@ export type NavKey =
   | "catalogos"
   | "ventas"
   | "estadisticas"
-  | "herramientas";
+  | "herramientas"
+  | "monitoreo";
 
 export function navLinkForPath(pathname: string | null) {
   if (!pathname) return undefined;

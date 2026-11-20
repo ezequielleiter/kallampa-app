@@ -571,6 +571,71 @@
       "reactivarCliente": "Reactivar {nombre}",
       "clienteDesactivado": "{nombre} desactivado",
       "clienteReactivado": "{nombre} reactivado"
+    },
+    "monitoreo": {
+      "title": "Vista de monitoreo",
+      "actualizado": "Actualizado hace {tiempo}",
+      "cargando": "Cargando…",
+      "errorGenerico": "No se pudieron cargar los datos.",
+      "equipos": "Equipos",
+      "sinInvernaderos": "Todavía no hay invernaderos activos.",
+      "irInvernaderos": "Ir a invernaderos",
+      "sinEquipos": "Este invernadero no tiene equipos cargados.",
+      "verInvernadero": "Ver invernadero",
+      "equiposCount": "{count, plural, one {# equipo} other {# equipos}}",
+      "tiempo": {
+        "segundos": "unos segundos",
+        "minutos": "{n} min",
+        "horas": "{n} h",
+        "dias": "{n, plural, one {# día} other {# días}}"
+      },
+      "conexion": {
+        "conectado": "Conectado",
+        "desconectado": "Desconectado",
+        "desconectadoHace": "Desconectado hace {tiempo}",
+        "sin_datos": "Sin datos",
+        "sin_influx": "Sin InfluxDB"
+      },
+      "sinInfluxAyuda": "Cargá su ID de InfluxDB en el invernadero para ver el clima.",
+      "temperatura": "Temperatura",
+      "humedad": "Humedad",
+      "alta": "Alta",
+      "baja": "Baja",
+      "sinRango": "Sin rango objetivo",
+      "aparatos": {
+        "humidificador": "Humidificador",
+        "calefaccion": "Calefacción",
+        "extractor": "Extractor"
+      },
+      "prendido": "Prendido",
+      "apagado": "Apagado",
+      "sinDato": "Sin dato",
+      "aprendiendo": "Aprendiendo",
+      "alarmas": {
+        "agua_vacia": "Tanque de agua vacío",
+        "sensor_falla": "Sensor sin lectura",
+        "wifi_debil": "Señal WiFi débil ({rssi} dBm)"
+      },
+      "vaciandoCola": "Vaciando cola: enviando datos que quedaron pendientes.",
+      "ultimas24h": "Últimas 24 h",
+      "stats": "mín {min} · máx {max} · prom {prom}",
+      "enRango": "{pct} en rango",
+      "uso": "% de uso",
+      "reinicios": "{count, plural, one {# reinicio} other {# reinicios}}",
+      "ultimoReset": "último: {reset}",
+      "firmware": "Firmware {fw}",
+      "gestion": "Inventario vivo",
+      "frascosColonizando": "Frascos colonizando",
+      "frascosColonizados": "Frascos colonizados",
+      "recipientesIncubando": "Recipientes incubando",
+      "recipientesFructificando": "Recipientes fructificando",
+      "contaminados30d": "Contaminados en los últimos 30 días: {frascos, plural, one {# frasco} other {# frascos}} · {recipientes, plural, one {# recipiente} other {# recipientes}}",
+      "lotesActivos": "Lotes activos",
+      "sinLotesActivos": "No hay lotes en curso.",
+      "frascosActivos": "{count, plural, one {# frasco activo} other {# frascos activos}}",
+      "incubando": "{count} incubando",
+      "fructificando": "{count} fructificando",
+      "alertas": "{count, plural, one {# alerta} other {# alertas}}"
     }
   }
 }
