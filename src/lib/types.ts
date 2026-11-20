@@ -496,3 +496,17 @@ export interface ResumenComercialLote {
   margen: number;
   precioPromedioKg: number | null;
 }
+
+export interface GestionResumen {
+  frascos: { colonizando: number; colonizado: number; contaminados30d: number };
+  recipientes: { incubando: number; fructificando: number; contaminados30d: number };
+  lotesActivos: {
+    _id: string;
+    numeroLote: string;
+    hongo: string;
+    frascosActivos: number;
+    incubando: number;
+    fructificando: number;
+    alertas: number;
+  }[];
+}
