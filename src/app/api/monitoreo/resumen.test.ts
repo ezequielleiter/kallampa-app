@@ -56,6 +56,7 @@ describe("resumen de monitoreo", () => {
     const { status, json } = await callRoute(GET, { headers });
     expect(status).toBe(200);
     const eq = json.data.invernaderos[0].equipos[0];
+    expect(eq.dominio).toBe("kallampa-0c2cc8.local");
     expect(eq.influxId).toBe("0c2cc8");
     expect(eq.dia.reinicios).toBe(2);
     expect(eq.dia.usoPct.humidificador).toBe(1);

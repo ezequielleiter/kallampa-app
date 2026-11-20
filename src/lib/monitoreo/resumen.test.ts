@@ -5,7 +5,7 @@ import {
 } from "./flux";
 
 const now = Date.parse("2026-11-20T12:00:00Z");
-const dispositivo = { _id: "d1", nombre: "Carpa 1", influxId: "0c2cc8", tempMin: 18, tempMax: 24, humMin: 80, humMax: 90 };
+const dispositivo = { _id: "d1", nombre: "Carpa 1", dominio: "carpa1.local", influxId: "0c2cc8", tempMin: 18, tempMax: 24, humMin: 80, humMax: 90 };
 const base = { dispositivo, estado: null, ambiente: null, ventanas: [], actuadores: null, reinicios: 0, now };
 type F = Record<string, string | null>;
 const est = (o: F): F => ({ _time: "2026-11-20T11:58:30Z", intervalo_min: "1", ...o });
@@ -86,7 +86,7 @@ describe("resumirEquipo", () => {
   });
 
   it("sin_influx", () => {
-    const r = resumirEquipo({ ...base, dispositivo: { _id: "d1", nombre: "x" } });
+    const r = resumirEquipo({ ...base, dispositivo: { _id: "d1", nombre: "x", dominio: "x.local" } });
     expect(r.conexion).toBe("sin_influx");
     expect(r.ahora.temperatura).toBeNull();
   });

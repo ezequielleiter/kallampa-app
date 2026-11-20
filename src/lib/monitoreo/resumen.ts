@@ -38,7 +38,7 @@ export function filasPorId(filas: Fila[]): Map<string, Fila> {
   return out;
 }
 
-function fuera(v: number | null, r: RangoObjetivo): "alta" | "baja" | null {
+export function fuera(v: number | null, r: RangoObjetivo): "alta" | "baja" | null {
   if (v == null) return null;
   if (r.max != null && v > r.max) return "alta";
   if (r.min != null && v < r.min) return "baja";
@@ -80,7 +80,7 @@ function tendencia(ventanas: Fila[], now: number): EquipoResumen["tendencia"] {
 
 export function resumirEquipo(input: {
   dispositivo: {
-    _id: string; nombre: string; influxId?: string | null;
+    _id: string; nombre: string; dominio: string; influxId?: string | null;
     tempMin?: number; tempMax?: number; humMin?: number; humMax?: number;
   };
   estado: Fila | null; ambiente: Fila | null; ventanas: Fila[];
@@ -126,7 +126,7 @@ export function resumirEquipo(input: {
   const uso = (k: string) => r1(((num(actuadores?.[k]) ?? 0) / 86400) * 100);
 
   return {
-    dispositivoId: d._id, nombre: d.nombre, influxId, conexion, ultimoEstado,
+    dispositivoId: d._id, nombre: d.nombre, dominio: d.dominio, influxId, conexion, ultimoEstado,
     vaciandoCola: (num(e.pendientes) ?? 0) > 1, // 1 = la muestra en vuelo de cada latido; cola real si hay mas
     ahora: { t: influxId ? ms(ambiente?._time) : null, temperatura, humedad },
     rangoTemp, rangoHum,

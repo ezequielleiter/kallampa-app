@@ -67,6 +67,7 @@ export async function GET(req: NextRequest) {
             dispositivo: {
               _id: String(d._id),
               nombre: d.nombre,
+              dominio: d.dominio,
               influxId: id,
               tempMin: d.tempMin,
               tempMax: d.tempMax,
