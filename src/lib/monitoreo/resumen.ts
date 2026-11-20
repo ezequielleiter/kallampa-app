@@ -55,6 +55,29 @@ function enRango(vals: number[], r: RangoObjetivo): number | null {
   return r1((vals.filter((v) => v >= r.min! && v <= r.max!).length / vals.length) * 100);
 }
 
+const TRAMOS = 48;
+const TRAMO_MS = 30 * 60_000;
+
+/** Promedio por tramo de 30 min de las ventanas de las ultimas 24 h (para las mini graficas). */
+function tendencia(ventanas: Fila[], now: number): EquipoResumen["tendencia"] {
+  const desde = now - TRAMOS * TRAMO_MS;
+  const acc = (k: string) => {
+    const suma = new Array<number>(TRAMOS).fill(0);
+    const n = new Array<number>(TRAMOS).fill(0);
+    for (const v of ventanas) {
+      const t = ms(v._time);
+      const x = num(v[k]);
+      if (t == null || x == null) continue;
+      const i = Math.floor((t - desde) / TRAMO_MS);
+      if (i < 0 || i >= TRAMOS) continue;
+      suma[i] += x;
+      n[i]++;
+    }
+    return suma.map((s, i) => (n[i] ? r1(s / n[i]) : null));
+  };
+  return { temp: acc("temperatura"), hum: acc("humedad") };
+}
+
 export function resumirEquipo(input: {
   dispositivo: {
     _id: string; nombre: string; influxId?: string | null;
@@ -110,6 +133,7 @@ export function resumirEquipo(input: {
     fueraTemp: fuera(temperatura, rangoTemp), fueraHum: fuera(humedad, rangoHum),
     aparatos: { humidificador: aparato("hum", true), calefaccion: aparato("calef", true), extractor: aparato("ext", false) },
     alarmas,
+    tendencia: tendencia(ventanas, now),
     dia: {
       temp: stats(temps), hum: stats(hums),
       enRangoPct: { temp: enRango(temps, rangoTemp), hum: enRango(hums, rangoHum) },

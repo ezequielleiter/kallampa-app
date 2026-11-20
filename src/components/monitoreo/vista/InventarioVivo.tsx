@@ -1,28 +1,32 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { KpiGrid } from "@/components/kallampa/Kpi";
 import { useFormat } from "@/components/kallampa/useFormat";
 import type { GestionResumen } from "@/lib/types";
 
-/** Frascos y recipientes por estado, mas los contaminados de los ultimos 30 dias. */
+/** Frascos y recipientes por estado (2 × 2 cifras grandes) mas los contaminados de los ultimos 30 dias. */
 export function InventarioVivo({ data }: { data: GestionResumen }) {
   const t = useTranslations("pages.monitoreo");
   const fmt = useFormat();
   const { frascos, recipientes } = data;
   const contaminados = frascos.contaminados30d + recipientes.contaminados30d;
+  const cifras = [
+    { label: t("frascosColonizando"), value: frascos.colonizando },
+    { label: t("frascosColonizados"), value: frascos.colonizado },
+    { label: t("recipientesIncubando"), value: recipientes.incubando },
+    { label: t("recipientesFructificando"), value: recipientes.fructificando },
+  ];
   return (
     <div className="flex flex-col gap-3">
-      <KpiGrid
-        min={140}
-        items={[
-          { label: t("frascosColonizando"), value: fmt.number(frascos.colonizando) },
-          { label: t("frascosColonizados"), value: fmt.number(frascos.colonizado) },
-          { label: t("recipientesIncubando"), value: fmt.number(recipientes.incubando) },
-          { label: t("recipientesFructificando"), value: fmt.number(recipientes.fructificando) },
-        ]}
-      />
-      <p className={contaminados > 0 ? "m-0 text-[13px] text-danger-text tabular-nums" : "m-0 text-[13px] text-text-subtle tabular-nums"}>
+      <dl className="m-0 grid grid-cols-2 gap-2">
+        {cifras.map((c) => (
+          <div key={c.label} className="flex flex-col-reverse gap-1 rounded-md bg-surface-inset px-3 py-2">
+            <dt className="text-xs text-text-subtle">{c.label}</dt>
+            <dd className="m-0 font-tele text-2xl leading-none font-medium text-text-strong tabular-nums">{fmt.number(c.value)}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className={contaminados > 0 ? "m-0 text-xs text-danger-text tabular-nums" : "m-0 text-xs text-text-subtle tabular-nums"}>
         {t("contaminados30d", { frascos: frascos.contaminados30d, recipientes: recipientes.contaminados30d })}
       </p>
     </div>

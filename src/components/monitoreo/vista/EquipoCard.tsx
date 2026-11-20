@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { DropIcon, FanIcon, FlameIcon, WarningCircleIcon, type Icon } from "@phosphor-icons/react";
-import { Badge } from "@/components/ui/badge";
 import { useFormat } from "@/components/kallampa/useFormat";
 import { cn } from "@/lib/utils";
-import type { Aparato, EquipoResumen, RangoObjetivo, Stats } from "@/lib/monitoreo/tipos";
+import type { Aparato, EquipoResumen, RangoObjetivo } from "@/lib/monitoreo/tipos";
+import { RangoBarra, Sparkline, dominio } from "./Instrumentos";
 import { useHace } from "./useHace";
 
 const APARATOS: { key: keyof EquipoResumen["aparatos"]; icon: Icon }[] = [
@@ -15,104 +15,117 @@ const APARATOS: { key: keyof EquipoResumen["aparatos"]; icon: Icon }[] = [
   { key: "extractor", icon: FanIcon },
 ];
 
-/**
- * Tarjeta de un equipo (ESP32): conexion, clima ahora contra el rango
- * objetivo, aparatos, alarmas y resumen de las ultimas 24 h.
- * `ahora` (epoch ms) es el reloj de la pagina, para "Desconectado hace …".
- */
-export function EquipoCard({
-  equipo,
-  invernaderoId,
-  ahora,
-}: {
-  equipo: EquipoResumen;
-  invernaderoId: string;
-  ahora: number;
-}) {
+/** Formatea un rango objetivo ("27–28 °C"). */
+export function useRango() {
   const t = useTranslations("pages.monitoreo");
   const fmt = useFormat();
-  const hace = useHace();
-  const { conexion, dia } = equipo;
-
-  const conexionTexto =
-    conexion === "desconectado" && equipo.ultimoEstado != null
-      ? t("conexion.desconectadoHace", { tiempo: hace(ahora - equipo.ultimoEstado) })
-      : t(`conexion.${conexion}`);
-  const ultimoDato = equipo.ultimoEstado ?? equipo.ahora.t;
-
-  const rango = (r: RangoObjetivo, unidad: string) => {
+  return (r: RangoObjetivo, unidad: string) => {
     const n = (v: number) => fmt.number(v, v % 1 ? 1 : 0);
     if (r.min != null && r.max != null) return `${n(r.min)}–${n(r.max)} ${unidad}`;
     if (r.min != null) return `≥ ${n(r.min)} ${unidad}`;
     if (r.max != null) return `≤ ${n(r.max)} ${unidad}`;
     return t("sinRango");
   };
+}
 
-  const stats = (s: Stats, unidad: string) =>
-    t("stats", {
-      min: fmt.number(s.min, 1),
-      max: fmt.number(s.max, 1),
-      prom: `${fmt.number(s.prom, 1)} ${unidad}`,
-    });
+/**
+ * Panel de telemetria de un equipo (ESP32): conexion, clima ahora contra el
+ * rango (barra + grafica de 24 h), aparatos como luces y pie con datos tecnicos.
+ * `ahora` (epoch ms) es el reloj de la pagina.
+ */
+export function EquipoCard({
+  equipo,
+  invernadero,
+  ahora,
+}: {
+  equipo: EquipoResumen;
+  invernadero: { _id: string; nombre: string };
+  ahora: number;
+}) {
+  const t = useTranslations("pages.monitoreo");
+  const fmt = useFormat();
+  const hace = useHace();
+  const { conexion, dia } = equipo;
+  const ultimoDato = equipo.ultimoEstado ?? equipo.ahora.t;
+  const offline = conexion === "desconectado";
 
   return (
-    <article className="flex min-w-0 flex-col gap-3 rounded-md bg-surface-inset p-3.5">
-      <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-        <h3 className="m-0 min-w-0 text-sm font-medium break-words">{equipo.nombre}</h3>
-        <span className="flex flex-wrap items-center gap-x-1.5 text-xs text-text-muted">
+    <article
+      className={cn(
+        "flex min-h-0 min-w-0 flex-col rounded-lg border bg-surface-card",
+        offline || equipo.alarmas.length ? "border-danger/60" : "border-divider"
+      )}
+    >
+      <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-divider px-4 py-2.5">
+        <div className="min-w-0">
+          <div className="truncate text-xs tracking-[0.08em] text-text-subtle uppercase">{invernadero.nombre}</div>
+          <h2 className="m-0 truncate text-[15px] font-medium">{equipo.nombre}</h2>
+        </div>
+        <div className="flex items-center gap-2 text-xs tabular-nums">
           <span
             aria-hidden="true"
             className={cn(
-              "inline-block size-2 shrink-0 rounded-full",
-              conexion === "conectado" && "bg-accent",
-              conexion === "desconectado" && "bg-danger",
+              "inline-block size-2.5 shrink-0 rounded-full",
+              conexion === "conectado" && "bg-accent shadow-[0_0_8px_var(--color-accent)]",
+              offline && "bg-danger",
               (conexion === "sin_datos" || conexion === "sin_influx") && "bg-neutral-500"
             )}
           />
-          <span className={cn(conexion === "desconectado" && "text-danger-text")}>{conexionTexto}</span>
-          {/* Desconectado ya dice hace cuanto */}
-          {ultimoDato != null && conexion !== "desconectado" && conexion !== "sin_influx" && (
-            <span className="text-text-subtle tabular-nums">
-              · {t("conexion.ultimoDato", { tiempo: hace(ahora - ultimoDato) })}
+          <span className={cn("font-medium tracking-[0.06em] uppercase", offline ? "text-danger-text" : "text-text-body")}>
+            {t(`conexion.${conexion}`)}
+          </span>
+          {ultimoDato != null && conexion !== "sin_influx" && (
+            <span className={offline ? "text-danger-text" : "text-text-subtle"}>
+              {t("sala.hace", { tiempo: hace(ahora - ultimoDato) })}
             </span>
           )}
-        </span>
+        </div>
       </header>
 
       {conexion === "sin_influx" ? (
-        <p className="m-0 text-[13px] text-text-subtle">
+        <p className="m-0 p-4 text-[13px] text-text-subtle">
           {t("sinInfluxAyuda")}{" "}
-          <Link href={`/invernaderos/${invernaderoId}`} className="text-text-accent underline-offset-4 hover:underline">
+          <Link href={`/invernaderos/${invernadero._id}`} className="text-text-accent underline-offset-4 hover:underline">
             {t("verInvernadero")}
           </Link>
         </p>
       ) : (
-        <>
-          <div className="grid grid-cols-2 gap-3">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
+          <div className="grid min-h-0 flex-1 grid-cols-2 gap-x-5 gap-y-4">
             <Lectura
               label={t("temperatura")}
               valor={equipo.ahora.temperatura}
               unidad="°C"
               fuera={equipo.fueraTemp}
-              rango={rango(equipo.rangoTemp, "°C")}
+              rango={equipo.rangoTemp}
+              serie={equipo.tendencia.temp}
+              enRango={dia.enRangoPct.temp}
             />
             <Lectura
               label={t("humedad")}
               valor={equipo.ahora.humedad}
               unidad="%"
               fuera={equipo.fueraHum}
-              rango={rango(equipo.rangoHum, "%")}
+              rango={equipo.rangoHum}
+              serie={equipo.tendencia.hum}
+              enRango={dia.enRangoPct.hum}
             />
           </div>
 
-          <ul className="m-0 flex list-none flex-col gap-1.5 p-0 text-[13px]">
+          <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0">
             {APARATOS.map(({ key, icon }) => (
-              <AparatoFila key={key} icon={icon} label={t(`aparatos.${key}`)} aparato={equipo.aparatos[key]} />
+              <AparatoLuz
+                key={key}
+                icon={icon}
+                label={t(`aparatos.${key}`)}
+                aparato={equipo.aparatos[key]}
+                uso={dia.usoPct[key]}
+              />
             ))}
           </ul>
 
           {equipo.alarmas.length > 0 && (
-            <ul className="m-0 flex list-none flex-col gap-1 p-0 text-[13px] text-danger-text">
+            <ul className="m-0 flex list-none flex-col gap-1 p-0 text-[13px] font-medium text-danger-text">
               {equipo.alarmas.map((a) => (
                 <li key={a} className="flex items-center gap-1.5">
                   <WarningCircleIcon aria-hidden="true" className="size-4 shrink-0" />
@@ -121,34 +134,18 @@ export function EquipoCard({
               ))}
             </ul>
           )}
+        </div>
+      )}
 
-          {equipo.vaciandoCola && <p className="m-0 text-xs text-text-subtle">{t("vaciandoCola")}</p>}
-
-          <div className="flex flex-col gap-1 border-t border-divider pt-2.5 text-xs text-text-muted tabular-nums">
-            <div className="font-medium text-text-body">{t("ultimas24h")}</div>
-            {dia.temp && (
-              <div>
-                {t("temperatura")}: {stats(dia.temp, "°C")}
-                {dia.enRangoPct.temp != null && ` · ${t("enRango", { pct: fmt.pct(dia.enRangoPct.temp, 0) })}`}
-              </div>
-            )}
-            {dia.hum && (
-              <div>
-                {t("humedad")}: {stats(dia.hum, "%")}
-                {dia.enRangoPct.hum != null && ` · ${t("enRango", { pct: fmt.pct(dia.enRangoPct.hum, 0) })}`}
-              </div>
-            )}
-            <div>
-              {t("uso")}:{" "}
-              {APARATOS.map(({ key }) => `${t(`aparatos.${key}`)} ${fmt.pct(dia.usoPct[key], 0)}`).join(" · ")}
-            </div>
-            <div className="text-text-subtle">
-              {t("reinicios", { count: dia.reinicios })}
-              {dia.ultimoReset && ` · ${t("ultimoReset", { reset: dia.ultimoReset })}`}
-            </div>
-            {dia.fw && <div className="text-text-subtle">{t("firmware", { fw: dia.fw })}</div>}
-          </div>
-        </>
+      {conexion !== "sin_influx" && (
+        <footer className="flex flex-wrap gap-x-3 gap-y-0.5 border-t border-divider px-4 py-2 font-tele text-xs text-text-subtle tabular-nums">
+          {dia.temp && <span>{t("sala.t24", { min: fmt.number(dia.temp.min, 1), max: fmt.number(dia.temp.max, 1) })}</span>}
+          {dia.hum && <span>{t("sala.h24", { min: fmt.number(dia.hum.min, 1), max: fmt.number(dia.hum.max, 1) })}</span>}
+          <span>{t("reinicios", { count: dia.reinicios })}</span>
+          {dia.rssi != null && <span>{t("sala.rssi", { rssi: dia.rssi })}</span>}
+          {dia.fw && <span>{t("sala.fw", { fw: dia.fw.split(" ")[0] })}</span>}
+          {equipo.vaciandoCola && <span>{t("sala.cola")}</span>}
+        </footer>
       )}
     </article>
   );
@@ -160,46 +157,91 @@ function Lectura({
   unidad,
   fuera,
   rango,
+  serie,
+  enRango,
 }: {
   label: string;
   valor: number | null;
   unidad: string;
   fuera: "alta" | "baja" | null;
-  rango: string;
+  rango: RangoObjetivo;
+  serie: (number | null)[];
+  enRango: number | null;
 }) {
   const t = useTranslations("pages.monitoreo");
   const fmt = useFormat();
+  const formatoRango = useRango();
+  const dom = dominio([...serie, valor], rango, unidad === "%" ? 10 : 3);
   return (
-    <div className="min-w-0">
-      <div className="text-xs text-text-subtle">{label}</div>
-      <div className={cn("mt-0.5 flex flex-wrap items-baseline gap-x-1.5", fuera && "text-danger-text")}>
-        <span className="text-3xl font-medium tracking-[-0.01em] tabular-nums">
-          {valor == null ? fmt.number(null) : `${fmt.number(valor, 1)} ${unidad}`}
-        </span>
-        {fuera && <span className="text-xs font-medium">{t(fuera)}</span>}
+    <div className="flex min-h-0 min-w-0 flex-col gap-2">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-2 text-xs">
+        <span className="tracking-[0.08em] text-text-subtle uppercase">{label}</span>
+        <span className="text-text-subtle tabular-nums">{t("sala.objetivo", { rango: formatoRango(rango, unidad) })}</span>
       </div>
-      <div className="mt-0.5 text-xs text-text-subtle tabular-nums">{rango}</div>
+      <div className={cn("flex flex-wrap items-baseline gap-x-2", fuera ? "text-danger-text" : "text-text-strong")}>
+        <span className="font-tele text-[clamp(2rem,3.2vw,3.25rem)] leading-none font-medium tabular-nums">
+          {valor == null ? "—" : fmt.number(valor, 1)}
+        </span>
+        <span className="text-lg text-text-muted">{unidad}</span>
+        {fuera && (
+          <span className="text-xs font-medium tracking-[0.06em] uppercase">
+            {fuera === "alta" ? "▲" : "▼"} {t(fuera)}
+          </span>
+        )}
+      </div>
+      <RangoBarra valor={valor} rango={rango} dom={dom} fuera={fuera != null} />
+      <div className="min-h-12 flex-1 lg:min-h-16">
+        <Sparkline valores={serie} rango={rango} dom={dom} fuera={fuera != null} />
+      </div>
+      <div className="flex justify-between gap-2 text-xs whitespace-nowrap text-text-subtle tabular-nums">
+        <span className="max-sm:hidden">{t("sala.hace24h")}</span>
+        {enRango != null && <span>{t("sala.enRango24", { pct: fmt.pct(enRango, 0) })}</span>}
+        <span className="max-sm:hidden">{t("sala.ahora")}</span>
+      </div>
     </div>
   );
 }
 
-function AparatoFila({ icon: IconC, label, aparato }: { icon: Icon; label: string; aparato: Aparato }) {
+function AparatoLuz({
+  icon: IconC,
+  label,
+  aparato,
+  uso,
+}: {
+  icon: Icon;
+  label: string;
+  aparato: Aparato;
+  uso: number;
+}) {
   const t = useTranslations("pages.monitoreo");
   const fmt = useFormat();
-  const estado = aparato.on == null ? t("sinDato") : aparato.on ? t("prendido") : t("apagado");
+  const on = aparato.on === true;
   return (
-    <li className="flex flex-wrap items-center gap-x-2 gap-y-1">
-      <IconC aria-hidden="true" className={cn("size-4 shrink-0", aparato.on ? "text-accent" : "text-text-subtle")} />
-      <span className="text-text-muted">{label}</span>
-      <span className={cn("ml-auto tabular-nums", aparato.on ? "text-text-body" : "text-text-subtle")}>
-        {estado}
-        {aparato.potencia != null && ` · ${fmt.pct(aparato.potencia, 0)}`}
-      </span>
-      {aparato.aprendiendo && (
-        <Badge variant="secondary" className="text-xs">
-          {t("aprendiendo")}
-        </Badge>
+    <li
+      className={cn(
+        "flex min-w-0 flex-col gap-1.5 rounded-md border px-2.5 py-2",
+        on ? "border-accent/50 bg-accent/10" : "border-divider bg-surface-inset"
       )}
+    >
+      <div className="flex items-center gap-1.5 text-xs">
+        <IconC aria-hidden="true" className={cn("size-4 shrink-0", on ? "text-accent-300" : "text-text-subtle")} />
+        <span className="truncate text-text-muted">{label}</span>
+      </div>
+      <div className="flex flex-wrap items-baseline gap-x-1.5">
+        <span className={cn("font-tele text-sm font-medium tracking-[0.06em] uppercase", on ? "text-text-strong" : "text-text-subtle")}>
+          {aparato.on == null ? t("sinDato") : on ? t("sala.on") : t("sala.off")}
+        </span>
+        {aparato.potencia != null && (
+          <span className="font-tele text-xs whitespace-nowrap text-text-muted tabular-nums">{fmt.pct(aparato.potencia, 0)}</span>
+        )}
+      </div>
+      <div aria-hidden="true" className="h-1 overflow-hidden rounded-full bg-neutral-800">
+        <div className="h-full rounded-full bg-accent/70" style={{ width: `${Math.min(100, uso)}%` }} />
+      </div>
+      <div className="text-xs whitespace-nowrap text-text-subtle tabular-nums">
+        {t("sala.uso24", { pct: fmt.pct(uso, 0) })}
+        {aparato.aprendiendo && ` · ${t("aprendiendo")}`}
+      </div>
     </li>
   );
 }

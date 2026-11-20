@@ -68,6 +68,8 @@ export interface EquipoResumen {
   fueraTemp: "alta" | "baja" | null; fueraHum: "alta" | "baja" | null;
   aparatos: { humidificador: Aparato; calefaccion: Aparato; extractor: Aparato };
   alarmas: Alarma[];
+  /** Ultimas 24 h en 48 tramos de 30 min (el ultimo termina ahora); null = sin lecturas en el tramo. */
+  tendencia: { temp: (number | null)[]; hum: (number | null)[] };
   dia: {
     temp: Stats | null; hum: Stats | null;
     enRangoPct: { temp: number | null; hum: number | null };

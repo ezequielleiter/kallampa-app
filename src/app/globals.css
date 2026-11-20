@@ -22,6 +22,7 @@
 @theme inline {
   --font-sans: var(--font-brand);
   --font-heading: var(--font-brand);
+  --font-tele: var(--font-mono-tele, ui-monospace), ui-monospace, monospace;
 
   /* Primitivos del DS */
   --color-bg: var(--color-bg);

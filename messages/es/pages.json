@@ -639,7 +639,32 @@
       "alertas": "{count, plural, one {# alerta} other {# alertas}}",
       "pantallaCompleta": "Pantalla completa",
       "salirPantallaCompleta": "Salir de pantalla completa",
-      "volverPanel": "Volver al panel"
+      "volverPanel": "Volver al panel",
+      "sala": {
+        "titulo": "Monitoreo",
+        "enLinea": "Equipos en línea",
+        "alertas": "Alertas",
+        "sinAlertas": "Todo en rango. Sin alertas.",
+        "hace": "hace {tiempo}",
+        "objetivo": "obj. {rango}",
+        "hace24h": "−24 h",
+        "ahora": "ahora",
+        "enRango24": "{pct} en rango",
+        "on": "Prendido",
+        "off": "Apagado",
+        "uso24": "24 h: {pct}",
+        "t24": "T 24 h {min}–{max} °C",
+        "h24": "H 24 h {min}–{max} %",
+        "rssi": "WiFi {rssi} dBm",
+        "fw": "fw {fw}",
+        "cola": "vaciando cola",
+        "alertaDesconectado": "{equipo}: desconectado hace {tiempo}",
+        "alertaFuera": "{equipo}: {magnitud} {dir}, {valor} (obj. {rango})",
+        "alertaLote": "{lote}: {count, plural, one {# recipiente demorado} other {# recipientes demorados}}",
+        "gestion": "Gestión",
+        "lotes": "Lotes activos",
+        "actualizado": "act. hace {tiempo}"
+      }
     }
   }
 }

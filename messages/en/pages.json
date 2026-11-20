@@ -639,7 +639,32 @@
       "alertas": "{count, plural, one {# alert} other {# alerts}}",
       "pantallaCompleta": "Full screen",
       "salirPantallaCompleta": "Exit full screen",
-      "volverPanel": "Back to the panel"
+      "volverPanel": "Back to the panel",
+      "sala": {
+        "titulo": "Monitoring",
+        "enLinea": "Devices online",
+        "alertas": "Alerts",
+        "sinAlertas": "All in range. No alerts.",
+        "hace": "{tiempo} ago",
+        "objetivo": "target {rango}",
+        "hace24h": "−24 h",
+        "ahora": "now",
+        "enRango24": "{pct} in range",
+        "on": "On",
+        "off": "Off",
+        "uso24": "24 h: {pct}",
+        "t24": "T 24 h {min}–{max} °C",
+        "h24": "H 24 h {min}–{max} %",
+        "rssi": "WiFi {rssi} dBm",
+        "fw": "fw {fw}",
+        "cola": "flushing queue",
+        "alertaDesconectado": "{equipo}: offline for {tiempo}",
+        "alertaFuera": "{equipo}: {magnitud} {dir}, {valor} (target {rango})",
+        "alertaLote": "{lote}: {count, plural, one {# container overdue} other {# containers overdue}}",
+        "gestion": "Management",
+        "lotes": "Active batches",
+        "actualizado": "updated {tiempo} ago"
+      }
     }
   }
 }

@@ -67,6 +67,24 @@ describe("resumirEquipo", () => {
     expect(resumirEquipo({ ...base, estado: est({ pendientes: "3" }) }).vaciandoCola).toBe(true);
     expect(resumirEquipo({ ...base, estado: est({ pendientes: "1" }) }).vaciandoCola).toBe(false);
   });
+  it("tendencia: 48 tramos de 30 min, promedio por tramo y null sin datos", () => {
+    const iso = (msAtras: number) => new Date(now - msAtras).toISOString();
+    const r = resumirEquipo({
+      ...base,
+      ventanas: [
+        { _time: iso(10 * 60_000), temperatura: "20", humedad: "80" },
+        { _time: iso(20 * 60_000), temperatura: "22", humedad: null },
+        { _time: iso(23.8 * 3600_000), temperatura: "18", humedad: "90" },
+        { _time: iso(25 * 3600_000), temperatura: "99", humedad: "99" },
+      ],
+    });
+    expect(r.tendencia.temp).toHaveLength(48);
+    expect(r.tendencia.temp[47]).toBe(21);
+    expect(r.tendencia.hum[47]).toBe(80);
+    expect(r.tendencia.temp[0]).toBe(18);
+    expect(r.tendencia.temp[20]).toBeNull();
+  });
+
   it("sin_influx", () => {
     const r = resumirEquipo({ ...base, dispositivo: { _id: "d1", nombre: "x" } });
     expect(r.conexion).toBe("sin_influx");
