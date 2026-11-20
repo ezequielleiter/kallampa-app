@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { CaretDownIcon, CaretUpIcon, DropIcon, FanIcon, FlameIcon, WarningCircleIcon, type Icon } from "@phosphor-icons/react";
 import { useFormat } from "@/components/kallampa/useFormat";
@@ -8,6 +9,7 @@ import { cn } from "@/lib/utils";
 import type { Aparato, EquipoResumen, RangoObjetivo } from "@/lib/monitoreo/tipos";
 import { RangoBarra, Sparkline, dominio } from "./Instrumentos";
 import { useHace } from "./useHace";
+import type { Vivo } from "./useEnVivo";
 
 const APARATOS: { key: keyof EquipoResumen["aparatos"]; icon: Icon }[] = [
   { key: "humidificador", icon: DropIcon },
@@ -37,17 +39,31 @@ export function EquipoCard({
   equipo,
   invernadero,
   ahora,
+  vivo,
 }: {
   equipo: EquipoResumen;
   invernadero: { _id: string; nombre: string };
   ahora: number;
+  /** Sondeo local del equipo; null = no se esta sondeando (se ve solo Influx). */
+  vivo: Vivo | null;
 }) {
   const t = useTranslations("pages.monitoreo");
   const fmt = useFormat();
   const hace = useHace();
   const { conexion, dia } = equipo;
   const ultimoDato = equipo.ultimoEstado ?? equipo.ahora.t;
-  const offline = conexion === "desconectado";
+  const s = vivo?.sensors ?? null;
+  const sinLocal = vivo != null && s == null;
+  const offline = s == null && conexion === "desconectado";
+  const detalleExtractor = !s
+    ? undefined
+    : s.extractorPaused
+      ? t("vivo.extPausa")
+      : s.extractorWaitingHum
+        ? t("vivo.extEsperando")
+        : s.extractorRemaining != null
+          ? t("vivo.extCambia", { t: mmss(s.extractorRemaining) })
+          : undefined;
 
   return (
     <article
@@ -66,23 +82,26 @@ export function EquipoCard({
             aria-hidden="true"
             className={cn(
               "inline-block size-2.5 shrink-0 rounded-full",
-              conexion === "conectado" && "bg-accent",
-              offline && "bg-danger",
-              (conexion === "sin_datos" || conexion === "sin_influx") && "bg-neutral-500"
+              s ? "bg-accent motion-safe:animate-pulse" : offline ? "bg-danger" : conexion === "conectado" && !sinLocal ? "bg-accent" : "bg-neutral-500"
             )}
           />
           <span className={cn("font-medium tracking-[0.06em] uppercase", offline ? "text-danger-text" : "text-text-body")}>
-            {t(`conexion.${conexion}`)}
+            {s ? t("vivo.enVivo") : sinLocal ? t("vivo.sinLocal") : t(`conexion.${conexion}`)}
           </span>
-          {ultimoDato != null && conexion !== "sin_influx" && (
-            <span className={offline ? "text-danger-text" : "text-text-subtle"}>
-              {t("sala.hace", { tiempo: hace(ahora - ultimoDato) })}
-            </span>
+          {s ? (
+            <HaceSeg at={vivo?.at ?? null} />
+          ) : (
+            ultimoDato != null &&
+            conexion !== "sin_influx" && (
+              <span className={offline ? "text-danger-text" : "text-text-subtle"}>
+                {t("sala.hace", { tiempo: hace(ahora - ultimoDato) })}
+              </span>
+            )
           )}
         </div>
       </header>
 
-      {conexion === "sin_influx" ? (
+      {conexion === "sin_influx" && !s ? (
         <p className="m-0 p-4 text-[13px] text-text-subtle">
           {t("sinInfluxAyuda")}{" "}
           <Link href={`/invernaderos/${invernadero._id}`} className="text-text-accent underline-offset-4 hover:underline">
@@ -120,6 +139,7 @@ export function EquipoCard({
                 label={t(`aparatos.${key}`)}
                 aparato={equipo.aparatos[key]}
                 uso={dia.usoPct[key]}
+                detalle={key === "extractor" ? detalleExtractor : undefined}
               />
             ))}
           </ul>
@@ -207,20 +227,28 @@ function AparatoFila({
   label,
   aparato,
   uso,
+  detalle,
 }: {
   icon: Icon;
   label: string;
   aparato: Aparato;
   uso: number;
+  detalle?: string;
 }) {
   const t = useTranslations("pages.monitoreo");
   const fmt = useFormat();
   const on = aparato.on === true;
   return (
-    <li className="flex items-center gap-2 text-xs tabular-nums">
+    <li className="flex min-h-6 items-center gap-2 text-xs tabular-nums">
       <IconC aria-hidden="true" className={cn("size-4 shrink-0", on ? "text-accent-300" : "text-text-subtle")} />
-      <span className="min-w-0 truncate text-text-muted">{label}</span>
-      {aparato.aprendiendo && <span className="text-text-subtle">· {t("aprendiendo")}</span>}
+      <span className="flex min-w-0 flex-col">
+        <span className="truncate text-text-muted">{label}</span>
+        {(aparato.aprendiendo || detalle) && (
+          <span className="truncate text-[11px] leading-tight text-text-subtle">
+            {[aparato.aprendiendo && t("aprendiendo"), detalle].filter(Boolean).join(" · ")}
+          </span>
+        )}
+      </span>
       <span className="ml-auto whitespace-nowrap text-text-subtle">{t("sala.uso24", { pct: fmt.pct(uso, 0) })}</span>
       <span
         className={cn(
@@ -233,4 +261,20 @@ function AparatoFila({
       </span>
     </li>
   );
+}
+
+const mmss = (seg: number) => `${Math.floor(seg / 60)}:${String(Math.floor(seg % 60)).padStart(2, "0")}`;
+
+/** "hace N s" desde la ultima respuesta del equipo, con reloj propio de 1 s. */
+function HaceSeg({ at }: { at: number | null }) {
+  const t = useTranslations("pages.monitoreo");
+  const [ahora, setAhora] = useState<number | null>(null);
+  useEffect(() => {
+    const tick = () => setAhora(Date.now());
+    void Promise.resolve().then(tick);
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+  if (at == null || ahora == null) return null;
+  return <span className="text-text-subtle">{t("vivo.haceSeg", { n: Math.max(0, Math.round((ahora - at) / 1000)) })}</span>;
 }

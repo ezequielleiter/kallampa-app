@@ -63,6 +63,8 @@ export function aplicarVivo(e: EquipoResumen, s: SensorsVivo): EquipoResumen {
   if (aguaVacia(s.water)) alarmas.unshift("agua_vacia");
   return {
     ...e,
+    // Responder es el latido instantaneo; "sin_influx" se conserva (no hay historial que mostrar).
+    conexion: e.conexion === "sin_influx" ? "sin_influx" : "conectado",
     ahora: { t: e.ahora.t, temperatura: s.temperature, humedad: s.humidity },
     fueraTemp: fuera(s.temperature, e.rangoTemp),
     fueraHum: fuera(s.humidity, e.rangoHum),

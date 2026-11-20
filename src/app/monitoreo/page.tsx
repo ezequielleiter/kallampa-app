@@ -3,17 +3,19 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowLeftIcon, CornersInIcon, CornersOutIcon } from "@phosphor-icons/react";
+import { ArrowLeftIcon, CornersInIcon, CornersOutIcon, WifiHighIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/kallampa/Logo";
 import { AlertasPanel } from "@/components/monitoreo/vista/AlertasPanel";
 import { EquipoCard } from "@/components/monitoreo/vista/EquipoCard";
 import { InventarioVivo } from "@/components/monitoreo/vista/InventarioVivo";
 import { LotesActivos } from "@/components/monitoreo/vista/LotesActivos";
+import { useEnVivo } from "@/components/monitoreo/vista/useEnVivo";
 import { useHace } from "@/components/monitoreo/vista/useHace";
+import { aplicarVivo } from "@/lib/monitoreo/vivo";
 import { apiFetch } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
-import type { ResumenMonitoreo } from "@/lib/monitoreo/tipos";
+import type { EquipoResumen, ResumenMonitoreo } from "@/lib/monitoreo/tipos";
 import type { GestionResumen } from "@/lib/types";
 
 const REFRESCO_MS = 60_000;
@@ -92,11 +94,25 @@ export default function MonitoreoPage() {
 
   // El encabezado sigue a los equipos; gestion solo si el resumen nunca cargo.
   const actualizado = resumen.at ?? gestion.at ?? null;
-  const equipos = (resumen.data?.invernaderos ?? []).flatMap((inv) =>
+  const base = (resumen.data?.invernaderos ?? []).flatMap((inv) =>
     inv.equipos.map((e) => ({ equipo: e, invernadero: { _id: inv._id, nombre: inv.nombre } }))
   );
-  const conInflux = equipos.filter((x) => x.equipo.conexion !== "sin_influx");
-  const enLinea = conInflux.filter((x) => x.equipo.conexion === "conectado").length;
+  const { permiso, activo, conectar, vivo } = useEnVivo(
+    base.map(({ equipo }) => ({ dispositivoId: equipo.dispositivoId, dominio: equipo.dominio }))
+  );
+  // Lo que responde el equipo en vivo pisa lo "ahora" de Influx; si no responde, queda Influx.
+  const mezclar = (e: EquipoResumen) => {
+    const s = vivo[e.dispositivoId]?.sensors;
+    return s ? aplicarVivo(e, s) : e;
+  };
+  const equipos = base.map((x) => ({ ...x, equipo: mezclar(x.equipo) }));
+  const resumenVivo: ResumenMonitoreo | null = resumen.data && {
+    ...resumen.data,
+    invernaderos: resumen.data.invernaderos.map((inv) => ({ ...inv, equipos: inv.equipos.map(mezclar) })),
+  };
+  const enVivo = (id: string) => vivo[id]?.sensors != null;
+  const conInflux = equipos.filter((x) => x.equipo.conexion !== "sin_influx" || enVivo(x.equipo.dispositivoId));
+  const enLinea = conInflux.filter((x) => x.equipo.conexion === "conectado" || enVivo(x.equipo.dispositivoId)).length;
 
   return (
     <div className="flex min-h-dvh flex-col gap-3 p-4">
@@ -119,6 +135,14 @@ export default function MonitoreoPage() {
             {actualizado != null && ahora != null ? t("sala.actualizado", { tiempo: hace(ahora - actualizado) }) : t("cargando")}
           </span>
         </div>
+
+        {!activo && permiso === "prompt" && equipos.length > 0 && (
+          <Button size="sm" onClick={conectar}>
+            <WifiHighIcon aria-hidden="true" />
+            {t("vivo.conectar")}
+          </Button>
+        )}
+        {permiso === "denied" && <p className="m-0 max-w-md text-xs text-danger-text">{t("vivo.denegado")}</p>}
 
         <div className="ml-auto flex items-center gap-3">
           <Reloj />
@@ -151,11 +175,17 @@ export default function MonitoreoPage() {
           <Aviso>{t("sinEquipos")}</Aviso>
         ) : (
           equipos.map(({ equipo, invernadero }) => (
-            <EquipoCard key={equipo.dispositivoId} equipo={equipo} invernadero={invernadero} ahora={ahora ?? 0} />
+            <EquipoCard
+              key={equipo.dispositivoId}
+              equipo={equipo}
+              invernadero={invernadero}
+              ahora={ahora ?? 0}
+              vivo={activo ? (vivo[equipo.dispositivoId] ?? null) : null}
+            />
           ))
         )}
 
-        <AlertasPanel resumen={resumen.data} gestion={gestion.data} ahora={ahora ?? 0} />
+        <AlertasPanel resumen={resumenVivo} gestion={gestion.data} ahora={ahora ?? 0} />
 
         <Panel titulo={t("gestion")}>
           {gestion.data ? (

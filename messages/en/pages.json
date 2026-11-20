@@ -664,6 +664,16 @@
         "gestion": "Management",
         "lotes": "Active batches",
         "actualizado": "updated {tiempo} ago"
+      },
+      "vivo": {
+        "enVivo": "Live",
+        "sinLocal": "No local connection",
+        "conectar": "Connect to devices",
+        "denegado": "Chrome blocked local network access. Allow it from the lock icon in the address bar → Local network.",
+        "haceSeg": "{n} s ago",
+        "extPausa": "paused",
+        "extEsperando": "waiting for humidity",
+        "extCambia": "changes in {t}"
       }
     }
   }

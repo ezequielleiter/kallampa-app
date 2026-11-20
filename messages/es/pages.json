@@ -664,6 +664,16 @@
         "gestion": "Gestión",
         "lotes": "Lotes activos",
         "actualizado": "act. hace {tiempo}"
+      },
+      "vivo": {
+        "enVivo": "En vivo",
+        "sinLocal": "Sin conexión local",
+        "conectar": "Conectar con los equipos",
+        "denegado": "Chrome bloqueó el acceso a la red local. Habilitalo en el candado de la barra de direcciones → Red local.",
+        "haceSeg": "hace {n} s",
+        "extPausa": "en pausa",
+        "extEsperando": "esperando humedad",
+        "extCambia": "cambia en {t}"
       }
     }
   }

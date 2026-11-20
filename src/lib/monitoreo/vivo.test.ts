@@ -83,6 +83,12 @@ describe("aplicarVivo", () => {
     const r = aplicarVivo(equipo({ alarmas: ["agua_vacia", "sensor_falla", "wifi_debil"] }), vivo({ retrying: true }));
     expect(r.alarmas.sort()).toEqual(["sensor_falla", "wifi_debil"]);
   });
+  it("si el equipo responde, cuenta como conectado (salvo sin_influx)", () => {
+    expect(aplicarVivo(equipo({ conexion: "desconectado" }), vivo()).conexion).toBe("conectado");
+    expect(aplicarVivo(equipo({ conexion: "sin_datos" }), vivo()).conexion).toBe("conectado");
+    expect(aplicarVivo(equipo({ conexion: "sin_influx" }), vivo()).conexion).toBe("sin_influx");
+  });
+
   it("sin influx ni rangos igual muestra la lectura", () => {
     const r = aplicarVivo(
       equipo({ influxId: null, conexion: "sin_influx", rangoTemp: { min: null, max: null }, rangoHum: { min: null, max: null } }),
