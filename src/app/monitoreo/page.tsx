@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { ArrowLeftIcon, CornersInIcon, CornersOutIcon } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/kallampa/Logo";
 import { SectionCard } from "@/components/kallampa/SectionCard";
-import { EmptyState, PageContainer, PageHeader } from "@/components/kallampa/PageHeader";
+import { EmptyState, PageContainer } from "@/components/kallampa/PageHeader";
 import { EquipoCard } from "@/components/monitoreo/vista/EquipoCard";
 import { InventarioVivo } from "@/components/monitoreo/vista/InventarioVivo";
 import { LotesActivos } from "@/components/monitoreo/vista/LotesActivos";
@@ -16,7 +19,7 @@ import type { GestionResumen } from "@/lib/types";
 const REFRESCO_MS = 60_000;
 
 /** Cada llamada tiene su propio estado: un error en una no borra la otra. Si un refresco falla se conservan los datos anteriores. */
-type Carga<T> = { data: T | null; error: string | null };
+type Carga<T> = { data: T | null; error: string | null; at?: number };
 
 const visible = () => document.visibilityState === "visible";
 
@@ -25,29 +28,43 @@ export default function MonitoreoPage() {
   const hace = useHace();
   const [resumen, setResumen] = useState<Carga<ResumenMonitoreo>>({ data: null, error: null });
   const [gestion, setGestion] = useState<Carga<GestionResumen>>({ data: null, error: null });
-  const [actualizado, setActualizado] = useState<number | null>(null);
   const [ahora, setAhora] = useState<number | null>(null);
+  const [fullscreenOk, setFullscreenOk] = useState(false);
+  const [pantallaCompleta, setPantallaCompleta] = useState(false);
+
+  useEffect(() => {
+    const sync = () => setPantallaCompleta(document.fullscreenElement != null);
+    void Promise.resolve().then(() => {
+      setFullscreenOk(document.fullscreenEnabled);
+      sync();
+    });
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
+
+  const alternarPantallaCompleta = () => {
+    // Puede rechazarse (p. ej. permisos del navegador): no hay nada que hacer.
+    const p = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+    p.catch(() => {});
+  };
 
   const cargar = useCallback(() => {
-    const ok = () => {
-      const n = Date.now();
-      setActualizado(n);
-      setAhora(n);
-    };
     const mensaje = (err: unknown) => (err instanceof Error ? err.message : t("errorGenerico"));
     apiFetch<ResumenMonitoreo>("/api/monitoreo/resumen").then(
       (data) => {
-        setResumen({ data, error: null });
-        ok();
+        const at = Date.now();
+        setResumen({ data, error: null, at });
+        setAhora(at);
       },
-      (err) => setResumen((p) => ({ data: p.data, error: mensaje(err) }))
+      (err) => setResumen((p) => ({ ...p, error: mensaje(err) }))
     );
     apiFetch<GestionResumen>("/api/monitoreo/gestion").then(
       (data) => {
-        setGestion({ data, error: null });
-        ok();
+        const at = Date.now();
+        setGestion({ data, error: null, at });
+        setAhora(at);
       },
-      (err) => setGestion((p) => ({ data: p.data, error: mensaje(err) }))
+      (err) => setGestion((p) => ({ ...p, error: mensaje(err) }))
     );
   }, [t]);
 
@@ -66,16 +83,36 @@ export default function MonitoreoPage() {
     };
   }, [cargar]);
 
+  // El encabezado sigue a los equipos; gestion solo si el resumen nunca cargo.
+  const actualizado = resumen.at ?? gestion.at ?? null;
+
   return (
     <PageContainer className="gap-3.5">
-      <PageHeader
-        title={t("title")}
-        subtitle={
-          actualizado != null && ahora != null
-            ? t("actualizado", { tiempo: hace(ahora - actualizado) })
-            : t("cargando")
-        }
-      />
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Logo size={28} wordmark={false} />
+          <div className="min-w-0">
+            <h1 className="m-0 text-[22px] leading-tight font-medium tracking-[-0.015em]">{t("title")}</h1>
+            <div className="mt-0.5 text-[13px] text-text-subtle tabular-nums">
+              {actualizado != null && ahora != null
+                ? t("actualizado", { tiempo: hace(ahora - actualizado) })
+                : t("cargando")}
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {fullscreenOk && (
+            <Button variant="outline" size="sm" onClick={alternarPantallaCompleta}>
+              {pantallaCompleta ? <CornersInIcon aria-hidden="true" /> : <CornersOutIcon aria-hidden="true" />}
+              {pantallaCompleta ? t("salirPantallaCompleta") : t("pantallaCompleta")}
+            </Button>
+          )}
+          <Button variant="outline" size="sm" render={<Link href="/lotes" />}>
+            <ArrowLeftIcon aria-hidden="true" />
+            {t("volverPanel")}
+          </Button>
+        </div>
+      </header>
 
       {resumen.data && ahora != null ? (
         <>

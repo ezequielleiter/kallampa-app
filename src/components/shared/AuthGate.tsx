@@ -9,6 +9,8 @@ import { getSession } from "@/lib/session";
 
 // "/" es la landing publica; el panel arranca en /lotes.
 const PUBLIC_ROUTES = ["/", "/login", "/registro"];
+// Con sesion pero sin sidebar ni topbar (pantalla de monitoreo para dejar a la vista).
+const SIN_MARCO = ["/monitoreo"];
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -33,6 +35,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (!autenticado) {
     return null;
+  }
+
+  if (pathname && SIN_MARCO.includes(pathname)) {
+    return <main className="flex min-h-dvh min-w-0 flex-col">{children}</main>;
   }
 
   // Desde md: sidebar fija de 208px + columna de contenido con topbar pegajosa.

@@ -38,6 +38,7 @@ export function EquipoCard({
     conexion === "desconectado" && equipo.ultimoEstado != null
       ? t("conexion.desconectadoHace", { tiempo: hace(ahora - equipo.ultimoEstado) })
       : t(`conexion.${conexion}`);
+  const ultimoDato = equipo.ultimoEstado ?? equipo.ahora.t;
 
   const rango = (r: RangoObjetivo, unidad: string) => {
     const n = (v: number) => fmt.number(v, v % 1 ? 1 : 0);
@@ -58,7 +59,7 @@ export function EquipoCard({
     <article className="flex min-w-0 flex-col gap-3 rounded-md bg-surface-inset p-3.5">
       <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <h3 className="m-0 min-w-0 text-sm font-medium break-words">{equipo.nombre}</h3>
-        <span className="flex items-center gap-1.5 text-xs text-text-muted">
+        <span className="flex flex-wrap items-center gap-x-1.5 text-xs text-text-muted">
           <span
             aria-hidden="true"
             className={cn(
@@ -69,6 +70,12 @@ export function EquipoCard({
             )}
           />
           <span className={cn(conexion === "desconectado" && "text-danger-text")}>{conexionTexto}</span>
+          {/* Desconectado ya dice hace cuanto */}
+          {ultimoDato != null && conexion !== "desconectado" && conexion !== "sin_influx" && (
+            <span className="text-text-subtle tabular-nums">
+              · {t("conexion.ultimoDato", { tiempo: hace(ahora - ultimoDato) })}
+            </span>
+          )}
         </span>
       </header>
 
@@ -166,7 +173,7 @@ function Lectura({
     <div className="min-w-0">
       <div className="text-xs text-text-subtle">{label}</div>
       <div className={cn("mt-0.5 flex flex-wrap items-baseline gap-x-1.5", fuera && "text-danger-text")}>
-        <span className="text-2xl font-medium tracking-[-0.01em] tabular-nums">
+        <span className="text-3xl font-medium tracking-[-0.01em] tabular-nums">
           {valor == null ? fmt.number(null) : `${fmt.number(valor, 1)} ${unidad}`}
         </span>
         {fuera && <span className="text-xs font-medium">{t(fuera)}</span>}

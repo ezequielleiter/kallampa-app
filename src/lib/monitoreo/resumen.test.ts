@@ -65,6 +65,7 @@ describe("resumirEquipo", () => {
   });
   it("vaciando cola", () => {
     expect(resumirEquipo({ ...base, estado: est({ pendientes: "3" }) }).vaciandoCola).toBe(true);
+    expect(resumirEquipo({ ...base, estado: est({ pendientes: "1" }) }).vaciandoCola).toBe(false);
   });
   it("sin_influx", () => {
     const r = resumirEquipo({ ...base, dispositivo: { _id: "d1", nombre: "x" } });

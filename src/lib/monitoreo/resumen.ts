@@ -104,7 +104,7 @@ export function resumirEquipo(input: {
 
   return {
     dispositivoId: d._id, nombre: d.nombre, influxId, conexion, ultimoEstado,
-    vaciandoCola: (num(e.pendientes) ?? 0) > 0,
+    vaciandoCola: (num(e.pendientes) ?? 0) > 1, // 1 = la muestra en vuelo de cada latido; cola real si hay mas
     ahora: { t: influxId ? ms(ambiente?._time) : null, temperatura, humedad },
     rangoTemp, rangoHum,
     fueraTemp: fuera(temperatura, rangoTemp), fueraHum: fuera(humedad, rangoHum),

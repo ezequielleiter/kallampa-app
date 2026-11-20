@@ -594,7 +594,8 @@
         "desconectado": "Desconectado",
         "desconectadoHace": "Desconectado hace {tiempo}",
         "sin_datos": "Sin datos",
-        "sin_influx": "Sin InfluxDB"
+        "sin_influx": "Sin InfluxDB",
+        "ultimoDato": "último dato hace {tiempo}"
       },
       "sinInfluxAyuda": "Cargá su ID de InfluxDB en el invernadero para ver el clima.",
       "temperatura": "Temperatura",
@@ -635,7 +636,10 @@
       "frascosActivos": "{count, plural, one {# frasco activo} other {# frascos activos}}",
       "incubando": "{count} incubando",
       "fructificando": "{count} fructificando",
-      "alertas": "{count, plural, one {# alerta} other {# alertas}}"
+      "alertas": "{count, plural, one {# alerta} other {# alertas}}",
+      "pantallaCompleta": "Pantalla completa",
+      "salirPantallaCompleta": "Salir de pantalla completa",
+      "volverPanel": "Volver al panel"
     }
   }
 }

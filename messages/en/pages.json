@@ -594,7 +594,8 @@
         "desconectado": "Disconnected",
         "desconectadoHace": "Disconnected {tiempo} ago",
         "sin_datos": "No data",
-        "sin_influx": "No InfluxDB"
+        "sin_influx": "No InfluxDB",
+        "ultimoDato": "last data {tiempo} ago"
       },
       "sinInfluxAyuda": "Add its InfluxDB ID in the greenhouse to see the climate.",
       "temperatura": "Temperature",
@@ -635,7 +636,10 @@
       "frascosActivos": "{count, plural, one {# active jar} other {# active jars}}",
       "incubando": "{count} incubating",
       "fructificando": "{count} fruiting",
-      "alertas": "{count, plural, one {# alert} other {# alerts}}"
+      "alertas": "{count, plural, one {# alert} other {# alerts}}",
+      "pantallaCompleta": "Full screen",
+      "salirPantallaCompleta": "Exit full screen",
+      "volverPanel": "Back to the panel"
     }
   }
 }
