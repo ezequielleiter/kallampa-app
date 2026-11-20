@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { filasPorId, resumirEquipo } from "./resumen";
-import { fluxUltimoEstado } from "./flux";
+import {
+  fluxUltimoEstado, fluxUltimoAmbiente, fluxAmbiente24h, fluxActuadores24h, fluxReinicios24h,
+} from "./flux";
 
 const now = Date.parse("2026-11-20T12:00:00Z");
 const dispositivo = { _id: "d1", nombre: "Carpa 1", influxId: "0c2cc8", tempMin: 18, tempMax: 24, humMin: 80, humMax: 90 };
@@ -89,5 +91,25 @@ describe("builders", () => {
     const q = fluxUltimoEstado("b", ["0c2cc8"]);
     expect(q).toContain('pivot(rowKey: ["_time"]');
     expect(q).not.toMatch(/group\(\)[\s\S]*pivot/);
+  });
+  it.each([
+    ["fluxUltimoEstado", fluxUltimoEstado],
+    ["fluxUltimoAmbiente", fluxUltimoAmbiente],
+    ["fluxAmbiente24h", fluxAmbiente24h],
+    ["fluxActuadores24h", fluxActuadores24h],
+    ["fluxReinicios24h", fluxReinicios24h],
+  ])("%s: valida entradas y filtra por id/rango", (_n, fn) => {
+    expect(() => fn("b", ['0c2cc8")'])).toThrow();
+    expect(() => fn("b", [])).toThrow();
+    expect(() => fn('b"', ["0c2cc8"])).toThrow();
+    const q = fn("b", ["0c2cc8"]);
+    expect(q).toContain('contains(value: r.id, set: ["0c2cc8"])');
+    expect(q).toContain("range(start: -24h)");
+  });
+  it("actuadores pivotea por _start y reinicios agrupa por id antes de difference", () => {
+    expect(fluxActuadores24h("b", ["0c2cc8"])).toContain('rowKey: ["_start"]');
+    const q = fluxReinicios24h("b", ["0c2cc8"]);
+    expect(q.indexOf('group(columns: ["id"])')).toBeGreaterThan(-1);
+    expect(q.indexOf('group(columns: ["id"])')).toBeLessThan(q.indexOf("difference()"));
   });
 });

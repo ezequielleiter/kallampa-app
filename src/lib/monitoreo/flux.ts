@@ -92,6 +92,7 @@ export function intervaloMuestreoSeg(tiemposMs: number[]): number | null {
 
 function baseMulti(bucket: string, ids: string[], medicion: string): string {
   if (/["\\\n]/.test(bucket)) throw new Error("bucket invalido");
+  if (!ids.length) throw new Error("sin ids");
   for (const id of ids) if (!INFLUX_ID_RE.test(id)) throw new Error("influx id invalido");
   const set = ids.map((id) => `"${id}"`).join(", ");
   return `from(bucket: "${bucket}")
@@ -111,11 +112,13 @@ export const fluxAmbiente24h = (bucket: string, ids: string[]) =>
   `${baseMulti(bucket, ids, "ambiente")}\n  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)\n  ${PIVOT}`;
 
 export const fluxActuadores24h = (bucket: string, ids: string[]) =>
-  `${baseMulti(bucket, ids, "actuadores")}\n  |> sum()\n  ${PIVOT}`;
+  `${baseMulti(bucket, ids, "actuadores")}\n  |> sum()\n  |> pivot(rowKey: ["_start"], columnKey: ["_field"], valueColumn: "_value")`; // sum() descarta _time
 
 export const fluxReinicios24h = (bucket: string, ids: string[]) =>
   `${baseMulti(bucket, ids, "estado")}
   |> filter(fn: (r) => r._field == "uptime_s")
+  |> group(columns: ["id"])
+  |> sort(columns: ["_time"])
   |> difference()
   |> filter(fn: (r) => r._value < 0)
   |> count()
