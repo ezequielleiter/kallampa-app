@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { DropIcon, FanIcon, FlameIcon, WarningCircleIcon, type Icon } from "@phosphor-icons/react";
+import { CaretDownIcon, CaretUpIcon, DropIcon, FanIcon, FlameIcon, WarningCircleIcon, type Icon } from "@phosphor-icons/react";
 import { useFormat } from "@/components/kallampa/useFormat";
 import { cn } from "@/lib/utils";
 import type { Aparato, EquipoResumen, RangoObjetivo } from "@/lib/monitoreo/tipos";
@@ -52,11 +52,11 @@ export function EquipoCard({
   return (
     <article
       className={cn(
-        "flex min-h-0 min-w-0 flex-col rounded-lg border bg-surface-card",
+        "flex min-w-0 flex-col rounded-lg border bg-surface-card",
         offline || equipo.alarmas.length ? "border-danger/60" : "border-divider"
       )}
     >
-      <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-divider px-4 py-2.5">
+      <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-divider px-4 py-2">
         <div className="min-w-0">
           <div className="truncate text-xs tracking-[0.08em] text-text-subtle uppercase">{invernadero.nombre}</div>
           <h2 className="m-0 truncate text-[15px] font-medium">{equipo.nombre}</h2>
@@ -66,7 +66,7 @@ export function EquipoCard({
             aria-hidden="true"
             className={cn(
               "inline-block size-2.5 shrink-0 rounded-full",
-              conexion === "conectado" && "bg-accent shadow-[0_0_8px_var(--color-accent)]",
+              conexion === "conectado" && "bg-accent",
               offline && "bg-danger",
               (conexion === "sin_datos" || conexion === "sin_influx") && "bg-neutral-500"
             )}
@@ -90,8 +90,8 @@ export function EquipoCard({
           </Link>
         </p>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
-          <div className="grid min-h-0 flex-1 grid-cols-2 gap-x-5 gap-y-4">
+        <div className="flex flex-col gap-3 px-4 py-3">
+          <div className="grid grid-cols-2 gap-x-5">
             <Lectura
               label={t("temperatura")}
               valor={equipo.ahora.temperatura}
@@ -112,9 +112,9 @@ export function EquipoCard({
             />
           </div>
 
-          <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0">
+          <ul className="m-0 flex list-none flex-col gap-1 border-t border-divider p-0 pt-3">
             {APARATOS.map(({ key, icon }) => (
-              <AparatoLuz
+              <AparatoFila
                 key={key}
                 icon={icon}
                 label={t(`aparatos.${key}`)}
@@ -172,37 +172,37 @@ function Lectura({
   const fmt = useFormat();
   const formatoRango = useRango();
   const dom = dominio([...serie, valor], rango, unidad === "%" ? 10 : 3);
+  const Flecha = fuera === "alta" ? CaretUpIcon : CaretDownIcon;
   return (
-    <div className="flex min-h-0 min-w-0 flex-col gap-2">
-      <div className="flex flex-wrap items-baseline justify-between gap-x-2 text-xs">
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <div className="flex items-baseline justify-between gap-2 text-xs">
         <span className="tracking-[0.08em] text-text-subtle uppercase">{label}</span>
-        <span className="text-text-subtle tabular-nums">{t("sala.objetivo", { rango: formatoRango(rango, unidad) })}</span>
-      </div>
-      <div className={cn("flex flex-wrap items-baseline gap-x-2", fuera ? "text-danger-text" : "text-text-strong")}>
-        <span className="font-tele text-[clamp(2rem,3.2vw,3.25rem)] leading-none font-medium tabular-nums">
-          {valor == null ? "—" : fmt.number(valor, 1)}
-        </span>
-        <span className="text-lg text-text-muted">{unidad}</span>
         {fuera && (
-          <span className="text-xs font-medium tracking-[0.06em] uppercase">
-            {fuera === "alta" ? "▲" : "▼"} {t(fuera)}
+          <span className="flex items-center gap-0.5 font-medium tracking-[0.06em] text-danger-text uppercase">
+            <Flecha aria-hidden="true" weight="fill" className="size-3" />
+            {t(fuera)}
           </span>
         )}
       </div>
+      <div className={cn("flex items-baseline gap-1", fuera ? "text-danger-text" : "text-text-strong")}>
+        <span className="font-tele text-[2rem] leading-none font-medium tabular-nums">
+          {valor == null ? "—" : fmt.number(valor, 1)}
+        </span>
+        <span className="text-sm text-text-muted">{unidad}</span>
+      </div>
       <RangoBarra valor={valor} rango={rango} dom={dom} fuera={fuera != null} />
-      <div className="min-h-12 flex-1 lg:min-h-16">
+      <div className="h-10">
         <Sparkline valores={serie} rango={rango} dom={dom} fuera={fuera != null} />
       </div>
-      <div className="flex justify-between gap-2 text-xs whitespace-nowrap text-text-subtle tabular-nums">
-        <span className="max-sm:hidden">{t("sala.hace24h")}</span>
+      <div className="flex flex-wrap justify-between gap-x-2 text-xs text-text-subtle tabular-nums [&>span]:whitespace-nowrap">
+        <span>{t("sala.objetivo", { rango: formatoRango(rango, unidad) })}</span>
         {enRango != null && <span>{t("sala.enRango24", { pct: fmt.pct(enRango, 0) })}</span>}
-        <span className="max-sm:hidden">{t("sala.ahora")}</span>
       </div>
     </div>
   );
 }
 
-function AparatoLuz({
+function AparatoFila({
   icon: IconC,
   label,
   aparato,
@@ -217,31 +217,20 @@ function AparatoLuz({
   const fmt = useFormat();
   const on = aparato.on === true;
   return (
-    <li
-      className={cn(
-        "flex min-w-0 flex-col gap-1.5 rounded-md border px-2.5 py-2",
-        on ? "border-accent/50 bg-accent/10" : "border-divider bg-surface-inset"
-      )}
-    >
-      <div className="flex items-center gap-1.5 text-xs">
-        <IconC aria-hidden="true" className={cn("size-4 shrink-0", on ? "text-accent-300" : "text-text-subtle")} />
-        <span className="truncate text-text-muted">{label}</span>
-      </div>
-      <div className="flex flex-wrap items-baseline gap-x-1.5">
-        <span className={cn("font-tele text-sm font-medium tracking-[0.06em] uppercase", on ? "text-text-strong" : "text-text-subtle")}>
-          {aparato.on == null ? t("sinDato") : on ? t("sala.on") : t("sala.off")}
-        </span>
-        {aparato.potencia != null && (
-          <span className="font-tele text-xs whitespace-nowrap text-text-muted tabular-nums">{fmt.pct(aparato.potencia, 0)}</span>
+    <li className="flex items-center gap-2 text-xs tabular-nums">
+      <IconC aria-hidden="true" className={cn("size-4 shrink-0", on ? "text-accent-300" : "text-text-subtle")} />
+      <span className="min-w-0 truncate text-text-muted">{label}</span>
+      {aparato.aprendiendo && <span className="text-text-subtle">· {t("aprendiendo")}</span>}
+      <span className="ml-auto whitespace-nowrap text-text-subtle">{t("sala.uso24", { pct: fmt.pct(uso, 0) })}</span>
+      <span
+        className={cn(
+          "w-[7.5rem] shrink-0 rounded-sm px-1.5 py-0.5 text-right font-tele font-medium tracking-[0.04em] uppercase",
+          on ? "bg-accent/15 text-text-strong" : "text-text-subtle"
         )}
-      </div>
-      <div aria-hidden="true" className="h-1 overflow-hidden rounded-full bg-neutral-800">
-        <div className="h-full rounded-full bg-accent/70" style={{ width: `${Math.min(100, uso)}%` }} />
-      </div>
-      <div className="text-xs whitespace-nowrap text-text-subtle tabular-nums">
-        {t("sala.uso24", { pct: fmt.pct(uso, 0) })}
-        {aparato.aprendiendo && ` · ${t("aprendiendo")}`}
-      </div>
+      >
+        {aparato.on == null ? t("sinDato") : on ? t("sala.on") : t("sala.off")}
+        {aparato.potencia != null && ` ${fmt.pct(aparato.potencia, 0)}`}
+      </span>
     </li>
   );
 }
