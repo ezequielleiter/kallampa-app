@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validations/zod";
 import { PLACA_ESTADOS } from "@/models/Placa";
 import { FRASCO_LIQUIDO_ESTADOS } from "@/models/FrascoLiquido";
 import { ORIGEN_PROCESO } from "@/models/Clonacion";

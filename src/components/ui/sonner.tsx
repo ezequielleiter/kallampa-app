@@ -45,6 +45,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast: "cn-toast !gap-2 !px-3.5 !py-2.5 !text-[13px] !shadow-[0_0_0_1px_var(--color-neutral-500),0_16px_40px_rgba(0,0,0,.65)]",
+          // "Deshacer" y similares: boton contorneado de acento, como el resto del DS.
+          actionButton:
+            "!h-9 !rounded-md !border !border-accent !bg-transparent !px-3 !text-[13px] !font-medium !text-accent hover:!bg-accent/12",
         },
       }}
       {...props}

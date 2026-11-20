@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validations/zod";
 import { LOCALES } from "@/i18n/messages";
 
 export const registerSchema = z.object({

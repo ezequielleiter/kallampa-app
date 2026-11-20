@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validations/zod";
 
 const medidaSchema = z
   .number("numero_positivo_requerido:Debe ser un número positivo")

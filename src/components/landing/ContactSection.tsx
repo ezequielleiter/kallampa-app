@@ -66,7 +66,6 @@ export function ContactSection() {
     <section id="contacto" className="landing-band scroll-mt-4 py-[clamp(56px,8vw,96px)]">
       <div className="landing-wrap grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] items-start gap-x-[clamp(32px,6vw,96px)] gap-y-10">
         <div>
-          <div className="landing-kicker text-text/64">{t("kicker")}</div>
           <h2 className="landing-h2 max-w-[18ch]">{t("titulo")}</h2>
           <p className="mt-4 mb-0 max-w-[46ch] text-[15.5px] leading-[26px] text-text/82">{t("texto")}</p>
           <ol className="m-0 mt-7 flex list-none flex-col gap-3.5 p-0">

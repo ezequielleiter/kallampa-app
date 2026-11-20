@@ -17,17 +17,37 @@ interface ApiErrorBody {
 // cual (ya viene en español desde el backend).
 export async function apiFetch<T>(input: string, init?: RequestInit): Promise<T> {
   const session = getSession();
-  const res = await fetch(input, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(session
-        ? { "x-api-key": session.apiKey, Authorization: `Bearer ${session.token}` }
-        : {}),
-      ...(init?.headers || {}),
-    },
-  });
-  const json: ApiErrorBody & { data?: unknown } = await res.json();
+  let res: Response;
+  try {
+    res = await fetch(input, {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        ...(session
+          ? { "x-api-key": session.apiKey, Authorization: `Bearer ${session.token}` }
+          : {}),
+        ...(init?.headers || {}),
+      },
+    });
+  } catch {
+    // Sin red o servidor caido: el TypeError del navegador ("Failed to fetch") no le sirve a nadie.
+    throw new Error(
+      translateErrorMessage(
+        "sin_conexion:No se pudo conectar con el servidor. Revisá la conexión y probá de nuevo."
+      )
+    );
+  }
+  let json: ApiErrorBody & { data?: unknown };
+  try {
+    json = await res.json();
+  } catch {
+    // Respuesta que no es JSON (p. ej. una pagina de error del proxy).
+    throw new Error(
+      translateErrorMessage(
+        "respuesta_invalida:El servidor no respondió como se esperaba. Probá de nuevo en un rato."
+      )
+    );
+  }
   if (!res.ok) {
     if (res.status === 401) {
       clearSession();

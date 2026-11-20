@@ -47,18 +47,37 @@ export function JarsGrid({ batchId, numeroLote, jars, onChanged }: JarsGridProps
   const [deleteTarget, setDeleteTarget] = useState<Jar | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  async function patchEstado(jar: Jar, estado: JarEstado) {
+    await apiFetch(`/api/jars/${jar._id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ estado }),
+    });
+  }
+
+  // El cambio se guarda al toque; el toast ofrece volver al estado anterior
+  // (un toque de mas en "Contaminado" en la carpa no tiene que costar nada).
   async function handleEstadoChange(jar: Jar, estado: JarEstado) {
+    const anterior = jar.estado;
+    const codigo = codigoCorto(jar.numeroGuia);
     try {
-      await apiFetch(`/api/jars/${jar._id}`, {
-        method: "PATCH",
-        body: JSON.stringify({ estado }),
+      await patchEstado(jar, estado);
+      toast.success(t("successMessage", { codigo, estado: tEstado(estado).toLowerCase() }), {
+        duration: 8000,
+        action: {
+          label: t("deshacer"),
+          onClick: async () => {
+            try {
+              await patchEstado(jar, anterior);
+              toast.success(
+                t("deshechoMessage", { codigo, estado: tEstado(anterior).toLowerCase() })
+              );
+              onChanged();
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : t("errorMessage"));
+            }
+          },
+        },
       });
-      toast.success(
-        t("successMessage", {
-          codigo: codigoCorto(jar.numeroGuia),
-          estado: tEstado(estado).toLowerCase(),
-        })
-      );
       onChanged();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("errorMessage"));
@@ -91,10 +110,10 @@ export function JarsGrid({ batchId, numeroLote, jars, onChanged }: JarsGridProps
       {jars.length === 0 ? (
         <EmptyState>{t("emptyState")}</EmptyState>
       ) : (
-        <Table minWidth={420}>
+        <Table minWidth={300}>
           <TableHeader>
             <TableRow>
-              <TableHead>{t("numeroGuia")}</TableHead>
+              <TableHead className="whitespace-normal md:whitespace-nowrap">{t("numeroGuia")}</TableHead>
               <TableHead>{t("estado")}</TableHead>
               <TableHead className="text-right">
                 <span className="sr-only">{t("acciones")}</span>
@@ -104,10 +123,15 @@ export function JarsGrid({ batchId, numeroLote, jars, onChanged }: JarsGridProps
           <TableBody>
             {jars.map((jar) => (
               <TableRow key={jar._id}>
-                <TableCell>{jar.numeroGuia}</TableCell>
+                <TableCell>
+                  {/* En el celular alcanza con "F01": el lote ya esta en la cabecera. */}
+                  <span className="md:hidden">{codigoCorto(jar.numeroGuia)}</span>
+                  <span className="hidden md:inline">{jar.numeroGuia}</span>
+                </TableCell>
                 <TableCell>
                   <StateSelect
                     label={t("estadoDe", { codigo: jar.numeroGuia })}
+                    width={128}
                     value={jar.estado}
                     options={JAR_ESTADOS.map((estado) => ({
                       value: estado,
@@ -121,9 +145,10 @@ export function JarsGrid({ batchId, numeroLote, jars, onChanged }: JarsGridProps
                     <Button
                       variant="ghost"
                       size="sm"
+                      aria-label={t("clonar")}
                       render={<Link href={`/clonacion/nueva?origenJarId=${jar._id}`} />}
                     >
-                      <GitBranchIcon /> {t("clonar")}
+                      <GitBranchIcon /> <span className="hidden sm:inline">{t("clonar")}</span>
                     </Button>
                   )}
                   <Button

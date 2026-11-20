@@ -35,10 +35,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  // Sidebar fija de 208px + columna de contenido con topbar pegajosa.
+  // Desde md: sidebar fija de 208px + columna de contenido con topbar pegajosa.
+  // En el celular, una sola columna y la navegacion en el menu del Header.
   return (
     <BreadcrumbsProvider>
-      <div className="grid min-h-dvh grid-cols-[var(--sidebar-width)_minmax(0,1fr)]">
+      <div className="grid min-h-dvh grid-cols-[minmax(0,1fr)] md:grid-cols-[var(--sidebar-width)_minmax(0,1fr)]">
         <Sidebar />
         <div className="flex min-w-0 flex-col">
           <Header />

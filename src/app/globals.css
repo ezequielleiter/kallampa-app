@@ -176,3 +176,12 @@
     ),
     var(--surface-page);
 }
+
+/* Pantallas tactiles (celular en la carpa): ningun boton por debajo de 40px
+   de lado, para que se pueda tocar sin errarle. */
+@media (pointer: coarse) {
+  [data-slot="button"] {
+    min-height: 40px;
+    min-width: 40px;
+  }
+}

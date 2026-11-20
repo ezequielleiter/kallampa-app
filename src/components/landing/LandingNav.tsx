@@ -71,6 +71,7 @@ export function LandingNav() {
         <a href="#modulos">{t("modulos")}</a>
         <a href="#trazabilidad">{t("trazabilidad")}</a>
         <a href="#invernaderos">{t("invernaderos")}</a>
+        <a href="#cooperativas">{t("cooperativas")}</a>
         <a href="#contacto">{t("contacto")}</a>
       </div>
       {conSesion ? (

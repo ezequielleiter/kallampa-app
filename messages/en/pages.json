@@ -345,15 +345,18 @@
         "contacto": "Contact",
         "login": "Log in",
         "panel": "Go to dashboard",
-        "menu": "Main navigation"
+        "menu": "Main navigation",
+        "cooperativas": "About us"
       },
       "hero": {
         "titulo1": "From mycelium to harvest.",
         "titulo2": "Every batch, under control.",
-        "bajada": "Kallampa is the management system for mushroom farms: production, contamination control, cloning, traceability, costs and your greenhouse climate, in one place."
+        "bajada": "Kallampa is the management system for mushroom farms: production, contamination control, cloning, traceability, costs and your greenhouse climate, in one place.",
+        "autoria": "Made by the Teo and Lawal worker cooperatives, grower to grower.",
+        "cta": "Request climate control"
       },
       "panel": {
-        "titulo": "Greenhouse 02",
+        "titulo": "Sample greenhouse",
         "sub": "Pink oyster · Fruiting · day 6",
         "automatico": "Automatic",
         "humedad": "Humidity",
@@ -365,12 +368,12 @@
         "extractor": "Exhaust fan",
         "calefactor": "Heater",
         "enEspera": "Standby",
-        "aria": "Sample greenhouse dashboard with live readings"
+        "aria": "Sample greenhouse dashboard with live readings",
+        "proximamente": "Coming soon"
       },
       "traz": {
-        "kicker": "Traceability",
         "titulo": "One batch, from strain to sale.",
-        "lote": "Batch OST-L-2026-007",
+        "lote": "Sample batch OST-L-2026-007",
         "especie": "Pleurotus djamor",
         "etapas": {
           "cepa": "Strain",
@@ -392,34 +395,34 @@
         }
       },
       "modulos": {
-        "kicker": "Modules",
         "titulo": "The whole growing cycle, connected.",
         "produccion": {
           "titulo": "Production",
-          "texto": "Plan batches by species and substrate, log every stage and forecast the week's harvests. Yield and biological efficiency are calculated for you."
+          "texto": "Log each batch by species, grain and substrate, follow its stages against the expected dates and record every flush. Yield and biological efficiency are calculated for you."
         },
         "contaminacion": {
           "titulo": "Contamination control",
-          "texto": "Flag contaminated bags or jars from your phone, identify the agent and trace it back to the substrate batch or the sterilization that failed.",
-          "alerta": "Bag 14 · Trichoderma",
-          "origen": "Autoclave #2 · 08:40"
+          "texto": "Flag contaminated jars and containers with the reason, and trace each one back to its batch and its source jar.",
+          "alerta": "R14 · Trichoderma",
+          "origen": "Source: jar F03",
+          "proximamente": "record the agent and the sterilization run, and see where it repeats."
         },
         "clonacion": {
-          "titulo": "Cloning and strains",
-          "texto": "A family tree per strain: from the mother plate to every generation of clones, with its real yield to decide which one to keep propagating.",
+          "titulo": "Cloning and mycelium",
+          "texto": "Clone from plates, bought mycelium or grain jars, make liquid culture and follow the batch → clone → batch tree of every crop.",
           "madre": "Mother",
           "placa": "plate 01",
-          "enPrueba": "testing"
+          "enPrueba": "testing",
+          "proximamente": "generations per strain with their yield, to decide which one to keep propagating."
         },
         "costos": {
-          "titulo": "Costs and pricing",
-          "texto": "Substrate, energy, labor and losses are assigned to each batch. Know your real cost per kilo and set prices with the margin you need.",
+          "titulo": "Costs and sales",
+          "texto": "Each batch’s grain and substrate add up to its total cost and cost per kilo. With sales and losses logged, you see the real margin.",
           "costoKg": "Cost per kg · OST-L-2026-007",
           "sustrato": "Substrate",
-          "energia": "Energy",
-          "manoDeObra": "Labor",
-          "mermas": "Losses",
-          "precioSugerido": "Suggested price (45 % margin)"
+          "proximamente": "energy, labor and supplies assigned to each batch.",
+          "grano": "Grain",
+          "precioVenta": "Average sale price"
         },
         "lotes": {
           "shiitake": "Shiitake",
@@ -428,19 +431,20 @@
           "incubacion": "Incubation",
           "fructificacion": "Fruiting",
           "inoculacion": "Inoculation"
-        }
+        },
+        "nota": "Samples use example data.",
+        "proximamente": "Coming soon"
       },
       "auto": {
-        "kicker": "Automation",
-        "titulo": "Your greenhouses adjust themselves.",
-        "texto": "Connect humidity, temperature and CO₂ sensors and set rules per stage. Kallampa turns misters, exhaust fans and heaters on, and alerts you when something goes out of range.",
+        "titulo": "Heating and humidity, under control.",
+        "texto": "We install our own ESP32 controllers that switch heating and humidification on within the configured ranges. In Kallampa you see temperature, humidity and how long each device ran, with its cycle table.",
         "tagHumedad": "Relative humidity",
         "tagTemperatura": "Temperature",
         "tagCo2": "CO₂",
         "tagAlertas": "Alerts",
         "si": "If",
         "activarRegla": "Enable rule: {regla}",
-        "reglasActivas": "{n, plural, one {# active rule} other {# active rules}} · last action 2 min ago",
+        "reglasActivas": "{n, plural, one {# active rule} other {# active rules}}",
         "reglas": {
           "hrAccion": "Mister 30 s",
           "hrMeta": "Fruiting · every 5 min",
@@ -450,15 +454,17 @@
           "tBajaMeta": "All stages",
           "tAltaAccion": "WhatsApp alert",
           "tAltaMeta": "Incubation"
-        }
+        },
+        "proximamente": "Coming soon",
+        "reglasTitulo": "Per-stage rules from the dashboard",
+        "reglasTexto": "This is how you’ll set them, with CO₂ sensors and WhatsApp alerts."
       },
       "contacto": {
-        "kicker": "Greenhouse automation",
         "titulo": "We install climate control in your greenhouse.",
-        "texto": "Automation needs sensors and controllers on site. Tell us about your farm and we'll get in touch to assess the installation.",
+        "texto": "Climate control needs controllers and sensors on site. Tell us about your farm and we’ll get in touch to assess the installation.",
         "paso1": "Site visit and space measurement",
-        "paso2": "Sensor and actuator installation",
-        "paso3": "Per-stage rules set up in your dashboard",
+        "paso2": "Installing the ESP32 controllers with their temperature and humidity sensors",
+        "paso3": "Setting the ranges and connecting your charts in Kallampa",
         "nombre": "Name",
         "nombrePh": "Your name",
         "correo": "Email",
@@ -466,14 +472,14 @@
         "telefono": "Phone",
         "telefonoPh": "+54 …",
         "invernaderos": "Greenhouses",
-        "invernaderosPh": "2",
+        "invernaderosPh": "E.g. 2",
         "superficie": "Approx. area",
-        "superficiePh": "120 m²",
+        "superficiePh": "E.g. 120 m²",
         "mensaje": "Message",
         "mensajePh": "Species, stage you want to automate, location…",
-        "enviar": "Contact us",
+        "enviar": "Send inquiry",
         "enviando": "Sending…",
-        "enviado": "Sent, we'll get in touch",
+        "enviado": "We got your inquiry and will get in touch.",
         "error": "Couldn't send it. Please try again in a while.",
         "nombreRequerido": "Enter your name.",
         "correoInvalido": "Enter a valid email."
@@ -481,6 +487,13 @@
       "footer": {
         "desarrollado": "Developed as an inter-cooperative project by",
         "copyright": "© 2026 Kallampa"
+      },
+      "coop": {
+        "titulo1": "Made by two",
+        "titulo2": "worker cooperatives.",
+        "texto": "Kallampa grew out of our own mushroom farm. We use it every day in the lab and in the greenhouse, and we build it together across both cooperatives.",
+        "texto2": "The climate controllers are our own too, and we install them ourselves.",
+        "tipo": "Worker cooperative"
       }
     },
     "herramientas": {

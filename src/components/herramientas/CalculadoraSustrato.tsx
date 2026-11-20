@@ -57,7 +57,7 @@ export function CalculadoraSustrato({
   const inputId = useId();
   const [base, setBase] = useState<BaseCalculo>(initialBase);
   const [texto, setTexto] = useState(() =>
-    numeroAInput(initialValor ?? valorBase(initialBase), locale),
+    numeroAInput(initialValor ?? valorBase(initialBase), locale, initialValor === undefined ? 2 : 4),
   );
 
   const valor = parseDecimal(texto);

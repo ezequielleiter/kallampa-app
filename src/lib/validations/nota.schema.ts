@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validations/zod";
 
 export const createNotaSchema = z.object({
   titulo: z.string().trim().min(1, "titulo_requerido:El título es requerido"),

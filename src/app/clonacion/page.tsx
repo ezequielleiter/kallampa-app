@@ -73,17 +73,13 @@ function frascosLiquidosResumenLabel(
 export default function ClonacionPage() {
   const router = useRouter();
   const t = useTranslations("pages.clonacion");
-  const tNav = useTranslations("nav");
   const tOrigen = useTranslations("estados.origenProceso");
   const fmt = useFormat();
   const [clonaciones, setClonaciones] = useState<ClonacionListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState<Filtro>("todas");
 
-  useBreadcrumbs([
-    { label: tNav("micelio"), href: "/clonacion" },
-    { label: t("title") },
-  ]);
+  useBreadcrumbs([{ label: t("title") }]);
 
   const cargar = useCallback(async () => {
     setLoading(true);

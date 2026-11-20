@@ -7,11 +7,12 @@
     "optional": "opcional",
     "breadcrumb": "Ruta",
     "actions": "Acciones",
-    "user": "Usuario"
+    "user": "Usuario",
+    "hechoPor": "Hecho por las cooperativas de trabajo Teo y Lawal"
   },
   "nav": {
-    "produccion": "Producción",
-    "micelio": "Micelio",
+    "produccion": "Lotes",
+    "micelio": "Clonaciones",
     "invernaderos": "Invernaderos",
     "calendario": "Calendario",
     "trazabilidad": "Trazabilidad",
@@ -22,7 +23,13 @@
     "herramientas": "Herramientas",
     "settings": "Configuraciones",
     "logout": "Cerrar sesión",
-    "ventas": "Ventas"
+    "ventas": "Ventas",
+    "openMenu": "Abrir menú",
+    "grupos": {
+      "cultivo": "Cultivo",
+      "seguimiento": "Seguimiento",
+      "recursos": "Recursos"
+    }
   },
   "auth": {
     "login": {

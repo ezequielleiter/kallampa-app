@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validations/zod";
 import { JAR_ESTADOS } from "@/models/Jar";
 
 export const updateJarStateSchema = z.object({

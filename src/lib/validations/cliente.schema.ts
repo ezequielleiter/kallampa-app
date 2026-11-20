@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validations/zod";
 
 const NOMBRE = "nombre_requerido:El nombre es requerido";
 const TEXTO_LARGO = "texto_muy_largo:El texto es demasiado largo";

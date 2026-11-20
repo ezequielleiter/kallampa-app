@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { z } from "@/lib/validations/zod";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { FlaskIcon, PackageIcon, PlantIcon } from "@phosphor-icons/react";
@@ -90,7 +90,6 @@ function NuevaClonacionForm() {
   const router = useRouter();
   const t = useTranslations("pages.clonacionNueva");
   const tOrigen = useTranslations("estados.origenProceso");
-  const tNav = useTranslations("nav");
   const tList = useTranslations("pages.clonacion");
   const searchParams = useSearchParams();
   const origenJarId = searchParams.get("origenJarId");
@@ -121,7 +120,6 @@ function NuevaClonacionForm() {
   });
 
   useBreadcrumbs([
-    { label: tNav("micelio"), href: "/clonacion" },
     { label: tList("title"), href: "/clonacion" },
     { label: t("title") },
   ]);

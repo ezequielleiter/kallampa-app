@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validations/zod";
 import { TAREA_ESTADOS } from "@/models/Tarea";
 
 export const createTareaSchema = z.object({

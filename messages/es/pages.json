@@ -345,15 +345,18 @@
         "contacto": "Contacto",
         "login": "Iniciar sesión",
         "panel": "Ir al panel",
-        "menu": "Navegación principal"
+        "menu": "Navegación principal",
+        "cooperativas": "Quiénes somos"
       },
       "hero": {
         "titulo1": "Del micelio a la cosecha.",
         "titulo2": "Cada lote, bajo control.",
-        "bajada": "Kallampa es el sistema de gestión para cultivos de hongos: producción, control de contaminación, clonación, trazabilidad, costos y el clima de tus invernaderos, en un solo lugar."
+        "bajada": "Kallampa es el sistema de gestión para cultivos de hongos: producción, control de contaminación, clonación, trazabilidad, costos y el clima de tus invernaderos, en un solo lugar.",
+        "autoria": "Hecho por las cooperativas de trabajo Teo y Lawal, de productor a productor.",
+        "cta": "Pedir el control de clima"
       },
       "panel": {
-        "titulo": "Invernadero 02",
+        "titulo": "Invernadero de ejemplo",
         "sub": "Ostra rosada · Fructificación · día 6",
         "automatico": "Automático",
         "humedad": "Humedad",
@@ -365,12 +368,12 @@
         "extractor": "Extractor",
         "calefactor": "Calefactor",
         "enEspera": "En espera",
-        "aria": "Ejemplo de panel de un invernadero con lecturas en vivo"
+        "aria": "Ejemplo de panel de un invernadero con lecturas en vivo",
+        "proximamente": "Próximamente"
       },
       "traz": {
-        "kicker": "Trazabilidad",
         "titulo": "Un lote, de la cepa a la venta.",
-        "lote": "Lote OST-L-2026-007",
+        "lote": "Lote de ejemplo OST-L-2026-007",
         "especie": "Pleurotus djamor",
         "etapas": {
           "cepa": "Cepa",
@@ -392,34 +395,34 @@
         }
       },
       "modulos": {
-        "kicker": "Módulos",
         "titulo": "Todo el ciclo del cultivo, conectado.",
         "produccion": {
           "titulo": "Producción",
-          "texto": "Planificá lotes por especie y sustrato, registrá cada etapa y proyectá las cosechas de la semana. El rendimiento y la eficiencia biológica se calculan solos."
+          "texto": "Registrá cada lote por especie, grano y sustrato, seguí sus etapas con las fechas esperadas y cargá cada oleada. El rendimiento y la eficiencia biológica se calculan solos."
         },
         "contaminacion": {
           "titulo": "Control de contaminación",
-          "texto": "Marcá bolsas o frascos contaminados desde el celular, identificá el agente y rastreá su origen hasta el lote de sustrato o la esterilización que falló.",
-          "alerta": "Bolsa 14 · Trichoderma",
-          "origen": "Autoclave #2 · 08:40"
+          "texto": "Marcá frascos y recipientes contaminados, con el motivo, y seguí cada uno hasta su lote y su frasco de origen.",
+          "alerta": "R14 · Trichoderma",
+          "origen": "Origen: frasco F03",
+          "proximamente": "registrar el agente y la tanda de esterilización, y ver dónde se repite."
         },
         "clonacion": {
-          "titulo": "Clonación y cepas",
-          "texto": "Un árbol genealógico por cepa: de la placa madre a cada generación de clones, con su rendimiento real para decidir cuál seguir propagando.",
+          "titulo": "Clonación y micelio",
+          "texto": "Cloná desde placas, micelio comprado o frascos de grano, generá micelio líquido y seguí el árbol lote → clonación → lote de cada cultivo.",
           "madre": "Madre",
           "placa": "placa 01",
-          "enPrueba": "en prueba"
+          "enPrueba": "en prueba",
+          "proximamente": "generaciones por cepa con su rendimiento, para decidir cuál seguir propagando."
         },
         "costos": {
-          "titulo": "Gastos y precios",
-          "texto": "Sustrato, energía, mano de obra y mermas se asignan a cada lote. Conocé tu costo real por kilo y fijá precios con el margen que necesitás.",
+          "titulo": "Costos y ventas",
+          "texto": "El grano y el sustrato de cada lote suman el costo total y el costo por kilo. Con las ventas y las mermas cargadas, ves el margen real.",
           "costoKg": "Costo por kg · OST-L-2026-007",
           "sustrato": "Sustrato",
-          "energia": "Energía",
-          "manoDeObra": "Mano de obra",
-          "mermas": "Mermas",
-          "precioSugerido": "Precio sugerido (margen 45 %)"
+          "proximamente": "energía, mano de obra e insumos asignados a cada lote.",
+          "grano": "Grano",
+          "precioVenta": "Precio promedio de venta"
         },
         "lotes": {
           "shiitake": "Shiitake",
@@ -428,19 +431,20 @@
           "incubacion": "Incubación",
           "fructificacion": "Fructificación",
           "inoculacion": "Inoculación"
-        }
+        },
+        "nota": "Las muestras usan datos de ejemplo.",
+        "proximamente": "Próximamente"
       },
       "auto": {
-        "kicker": "Automatización",
-        "titulo": "Tus invernaderos se ajustan solos.",
-        "texto": "Conectá sensores de humedad, temperatura y CO₂ y definí reglas por etapa. Kallampa enciende nebulizadores, extractores y calefactores, y te avisa cuando algo sale del rango.",
+        "titulo": "Calefacción y humedad, bajo control.",
+        "texto": "Instalamos controladores propios con ESP32 que prenden la calefacción y la humidificación según los rangos configurados. En Kallampa ves la temperatura, la humedad y cuánto estuvo prendido cada equipo, con su tabla de ciclos.",
         "tagHumedad": "Humedad relativa",
         "tagTemperatura": "Temperatura",
         "tagCo2": "CO₂",
         "tagAlertas": "Alertas",
         "si": "Si",
         "activarRegla": "Activar regla: {regla}",
-        "reglasActivas": "{n, plural, one {# regla activa} other {# reglas activas}} · última acción hace 2 min",
+        "reglasActivas": "{n, plural, one {# regla activa} other {# reglas activas}}",
         "reglas": {
           "hrAccion": "Nebulizador 30 s",
           "hrMeta": "Fructificación · cada 5 min",
@@ -450,15 +454,17 @@
           "tBajaMeta": "Todas las etapas",
           "tAltaAccion": "Alerta por WhatsApp",
           "tAltaMeta": "Incubación"
-        }
+        },
+        "proximamente": "Próximamente",
+        "reglasTitulo": "Reglas por etapa desde el panel",
+        "reglasTexto": "Así vas a poder definirlas, con sensores de CO₂ y avisos por WhatsApp."
       },
       "contacto": {
-        "kicker": "Automatización de invernaderos",
         "titulo": "Instalamos el control de clima en tu invernadero.",
-        "texto": "La automatización requiere sensores y controladores en el lugar. Contanos sobre tu cultivo y te contactamos para evaluar la instalación.",
+        "texto": "El control de clima necesita controladores y sensores en el lugar. Contanos sobre tu cultivo y te contactamos para evaluar la instalación.",
         "paso1": "Visita técnica y medición del espacio",
-        "paso2": "Instalación de sensores y actuadores",
-        "paso3": "Configuración de reglas por etapa en tu panel",
+        "paso2": "Instalación de los controladores ESP32 con sus sensores de temperatura y humedad",
+        "paso3": "Configuración de los rangos y conexión con tus gráficos en Kallampa",
         "nombre": "Nombre",
         "nombrePh": "Tu nombre",
         "correo": "Correo",
@@ -466,14 +472,14 @@
         "telefono": "Teléfono",
         "telefonoPh": "+54 …",
         "invernaderos": "Invernaderos",
-        "invernaderosPh": "2",
+        "invernaderosPh": "Ej.: 2",
         "superficie": "Superficie aprox.",
-        "superficiePh": "120 m²",
+        "superficiePh": "Ej.: 120 m²",
         "mensaje": "Mensaje",
         "mensajePh": "Especies, etapa que querés automatizar, ubicación…",
-        "enviar": "Contactar",
+        "enviar": "Enviar consulta",
         "enviando": "Enviando…",
-        "enviado": "Enviado, te contactamos",
+        "enviado": "Recibimos tu consulta, te vamos a contactar.",
         "error": "No se pudo enviar. Probá de nuevo en un rato.",
         "nombreRequerido": "Ingresá tu nombre.",
         "correoInvalido": "Ingresá un correo válido."
@@ -481,6 +487,13 @@
       "footer": {
         "desarrollado": "Desarrollado de forma intercooperativa por",
         "copyright": "© 2026 Kallampa"
+      },
+      "coop": {
+        "titulo1": "Hecho por dos",
+        "titulo2": "cooperativas de trabajo.",
+        "texto": "Kallampa nace de nuestro propio cultivo de hongos. Lo usamos todos los días en el laboratorio y en la carpa, y lo desarrollamos en forma intercooperativa.",
+        "texto2": "Los controladores de clima también son propios, y los instalamos nosotros.",
+        "tipo": "Cooperativa de trabajo"
       }
     },
     "herramientas": {

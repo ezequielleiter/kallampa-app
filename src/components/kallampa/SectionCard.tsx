@@ -25,7 +25,7 @@ export function SectionCard({
   return (
     <section
       className={cn(
-        "rounded-lg bg-surface-card px-5 py-4 shadow-sm",
+        "rounded-lg bg-surface-card px-4 py-4 shadow-sm sm:px-5",
         highlight && "shadow-[0_0_0_1px_var(--color-accent)]",
         className
       )}

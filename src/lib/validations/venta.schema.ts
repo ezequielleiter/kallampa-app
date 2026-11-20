@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validations/zod";
 
 const objectIdString = z.string().min(1, "id_requerido:Id requerido");
 

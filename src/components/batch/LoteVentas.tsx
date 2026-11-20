@@ -69,8 +69,10 @@ export function LoteVentas({ batch, onChanged }: LoteVentasProps) {
           <Fila
             label={t("margen")}
             hint={t("margenHint")}
-            valor={fmt.money(comercial.margen)}
-            className={cn(comercial.margen < 0 && "text-danger-text")}
+            valor={comercial.ingresos > 0 ? fmt.money(comercial.margen) : t("sinVentasAun")}
+            className={cn(
+              comercial.ingresos > 0 ? comercial.margen < 0 && "text-danger-text" : "text-text-subtle"
+            )}
           />
           <Fila
             label={t("precioPromedio")}

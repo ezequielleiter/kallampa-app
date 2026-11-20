@@ -25,14 +25,12 @@ export default function ClonacionDetailPage() {
   const params = useParams<{ id: string }>();
   const t = useTranslations("pages.clonacionDetalle");
   const tList = useTranslations("pages.clonacion");
-  const tNav = useTranslations("nav");
   const tOrigen = useTranslations("estados.origenProceso");
   const fmt = useFormat();
   const [clonacion, setClonacion] = useState<ClonacionDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   useBreadcrumbs([
-    { label: tNav("micelio"), href: "/clonacion" },
     { label: tList("title"), href: "/clonacion" },
     ...(clonacion ? [{ label: clonacion.numeroLote }] : []),
   ]);

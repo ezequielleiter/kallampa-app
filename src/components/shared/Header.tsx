@@ -1,10 +1,10 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { CaretRightIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { CaretRightIcon, ListIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import type { JarSearchResult } from "@/lib/types";
@@ -12,6 +12,9 @@ import { inputClassName } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useBreadcrumbsState, type Crumb } from "@/components/shared/Breadcrumbs";
 import { navLinkForPath } from "@/components/shared/nav";
+import { SidebarContent } from "@/components/shared/Sidebar";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 // Topbar del panel: ruta (breadcrumbs) a la izquierda y busqueda por N° de
 // guia a la derecha. Pegajosa, fondo al 88% + blur de 8px.
@@ -53,17 +56,18 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-30 flex min-h-(--topbar-height) shrink-0 items-center justify-between gap-4 border-b border-divider bg-bg/88 px-4 py-3 backdrop-blur-[8px] sm:px-6">
+      <MobileNav />
       <nav
         aria-label={tCommon("breadcrumb")}
-        className="flex min-w-0 items-center gap-1.5 text-[13px] text-text-subtle"
+        className="flex min-w-0 flex-1 items-center gap-1.5 text-[13px] text-text-subtle"
       >
         {crumbs.map((c, i) => {
           const last = i === crumbs.length - 1;
           return (
             <Fragment key={`${c.label}-${i}`}>
-              {i > 0 && <CaretRightIcon className="size-[11px] shrink-0" />}
+              {i > 0 && <CaretRightIcon className="hidden size-[11px] shrink-0 md:block" />}
               {c.href && !last ? (
-                <Link href={c.href} className="whitespace-nowrap hover:text-foreground">
+                <Link href={c.href} className="hidden whitespace-nowrap hover:text-foreground md:inline">
                   {c.label}
                 </Link>
               ) : (
@@ -78,7 +82,7 @@ export function Header() {
           );
         })}
       </nav>
-      <form onSubmit={handleSearch} role="search" className="relative w-44 shrink-0 sm:w-[260px]">
+      <form onSubmit={handleSearch} role="search" className="relative w-40 shrink-0 sm:w-[260px]">
         <MagnifyingGlassIcon className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-text-subtle" />
         <input
           value={numeroGuia}
@@ -91,5 +95,37 @@ export function Header() {
         />
       </form>
     </header>
+  );
+}
+
+/** Boton de menu + Sheet con la navegacion, solo debajo de md. */
+function MobileNav() {
+  const t = useTranslations("nav");
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  // Cerrar al navegar.
+  useEffect(() => {
+    void Promise.resolve().then(() => setOpen(false));
+  }, [pathname]);
+
+  return (
+    <>
+      <Button
+        variant="ghost"
+        size="icon"
+        aria-label={t("openMenu")}
+        className="-ml-1.5 shrink-0 text-text-muted hover:text-foreground md:hidden"
+        onClick={() => setOpen(true)}
+      >
+        <ListIcon className="size-5" />
+      </Button>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="left" className="w-72 gap-0.5 px-2.5 py-4">
+          <SheetTitle className="sr-only">{t("openMenu")}</SheetTitle>
+          <SidebarContent />
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }

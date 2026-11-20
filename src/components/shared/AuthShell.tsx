@@ -49,6 +49,7 @@ export function AuthShell({
             ]}
           />
         </div>
+        <p className="m-0 text-center text-[12.5px] text-text-subtle">{tCommon("hechoPor")}</p>
       </div>
     </div>
   );

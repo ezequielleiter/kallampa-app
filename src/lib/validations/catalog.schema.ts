@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validations/zod";
 
 // Schema generico reutilizado por los catalogos simples (GrainType, SubstrateType)
 export const catalogCreateSchema = z.object({

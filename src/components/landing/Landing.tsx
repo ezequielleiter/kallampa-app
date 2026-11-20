@@ -9,6 +9,7 @@ import { Pipeline } from "./Pipeline";
 import { Modules } from "./Modules";
 import { Automation } from "./Automation";
 import { ContactSection } from "./ContactSection";
+import { Cooperativas } from "./Cooperativas";
 import { LandingFooter } from "./LandingFooter";
 
 /**
@@ -36,6 +37,17 @@ export function Landing() {
             >
               {t("bajada")}
             </p>
+            <div
+              className="landing-rise mt-8 flex flex-wrap items-center gap-x-5 gap-y-4"
+              style={{ animationDelay: ".25s" }}
+            >
+              <a href="#contacto" className="landing-btn landing-btn-solid">
+                {t("cta")}
+              </a>
+              <a href="#cooperativas" className="max-w-[34ch] text-[13.5px] leading-5">
+                {t("autoria")}
+              </a>
+            </div>
           </div>
           <GreenhousePanel />
         </div>
@@ -44,6 +56,7 @@ export function Landing() {
       <Pipeline />
       <Modules />
       <Automation />
+      <Cooperativas />
       <ContactSection />
       <LandingFooter />
     </div>

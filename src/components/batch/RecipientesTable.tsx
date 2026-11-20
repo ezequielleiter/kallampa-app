@@ -65,6 +65,49 @@ export function RecipientesTable({
     estado: EstadoObjetivo;
   } | null>(null);
 
+  function acciones(r: Recipiente) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("accionesDe", { codigo: r.numeroSeguimiento })}
+              className="text-text-muted hover:text-foreground"
+            >
+              <DotsThreeIcon weight="bold" />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end" className="min-w-52">
+          {r.estado === "incubando" && (
+            <DropdownMenuItem onClick={() => setFructificarTarget(r)}>
+              <ArrowRightIcon /> {t("pasarAFructificacion")}
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem
+            onClick={() => setEstadoTarget({ recipiente: r, estado: "finalizado" })}
+          >
+            <CheckIcon /> {t("marcarFinalizado")}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => setEstadoTarget({ recipiente: r, estado: "contaminado" })}
+          >
+            <WarningCircleIcon /> {t("marcarContaminado")}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            variant="destructive"
+            onClick={() => setEstadoTarget({ recipiente: r, estado: "descartado" })}
+          >
+            <TrashIcon /> {t("marcarDescartado")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+
   return (
     <SectionCard
       number="02"
@@ -79,95 +122,93 @@ export function RecipientesTable({
       {recipientes.length === 0 ? (
         <EmptyState>{t("emptyState")}</EmptyState>
       ) : (
-        <Table minWidth={720}>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("numeroSeguimiento")}</TableHead>
-              <TableHead>{t("origen")}</TableHead>
-              <TableHead>{t("sustrato")}</TableHead>
-              <TableHead className="text-right">{t("peso")}</TableHead>
-              <TableHead>{t("estado")}</TableHead>
-              <TableHead>{t("dias")}</TableHead>
-              <TableHead className="w-10">
-                <span className="sr-only">{t("acciones")}</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <>
+          {/* Celular: una tarjeta por recipiente en vez de 7 columnas. */}
+          <ul className="m-0 flex list-none flex-col gap-2 p-0 md:hidden">
             {recipientes.map((r) => {
               const esTerminal = RECIPIENTE_ESTADOS_TERMINALES.includes(r.estado);
               const dias = diasIncubacion(r);
               const demorado = r.estado === "incubando" && alertaRecipiente(r).demorado;
               return (
-                <TableRow key={r._id}>
-                  <TableCell>{r.numeroSeguimiento}</TableCell>
-                  <TableCell className="max-w-48 truncate text-text-muted">
-                    {getOrigenFrascosLabel(r)}
-                  </TableCell>
-                  <TableCell>{nombreSustrato(r)}</TableCell>
-                  <TableCell className="text-right">{fmt.kg(r.pesoSustratoKg)}</TableCell>
-                  <TableCell>
-                    <StatusTag kind="recipiente" estado={r.estado} />
-                  </TableCell>
-                  <TableCell>
-                    {dias !== null ? (
-                      <ProgressDays
-                        value={dias}
-                        total={r.diasEsperadosIncubacion}
-                        estado={r.estado === "incubando" ? "incubando" : "finalizado"}
-                        late={demorado}
-                      />
-                    ) : (
-                      <span className="text-text-subtle">—</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {!esTerminal && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          render={
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label={t("accionesDe", { codigo: r.numeroSeguimiento })}
-                              className="text-text-muted hover:text-foreground"
-                            >
-                              <DotsThreeIcon weight="bold" />
-                            </Button>
-                          }
-                        />
-                        <DropdownMenuContent align="end" className="min-w-52">
-                          {r.estado === "incubando" && (
-                            <DropdownMenuItem onClick={() => setFructificarTarget(r)}>
-                              <ArrowRightIcon /> {t("pasarAFructificacion")}
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem
-                            onClick={() => setEstadoTarget({ recipiente: r, estado: "finalizado" })}
-                          >
-                            <CheckIcon /> {t("marcarFinalizado")}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onClick={() => setEstadoTarget({ recipiente: r, estado: "contaminado" })}
-                          >
-                            <WarningCircleIcon /> {t("marcarContaminado")}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onClick={() => setEstadoTarget({ recipiente: r, estado: "descartado" })}
-                          >
-                            <TrashIcon /> {t("marcarDescartado")}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </TableCell>
-                </TableRow>
+                <li
+                  key={r._id}
+                  className="flex flex-col gap-2 rounded-md bg-surface-inset px-3.5 py-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <span className="text-[13.5px] font-medium tabular-nums">
+                        {r.numeroSeguimiento}
+                      </span>
+                      <StatusTag kind="recipiente" estado={r.estado} />
+                    </div>
+                    {!esTerminal && acciones(r)}
+                  </div>
+                  <p className="m-0 text-[12.5px] text-text-subtle tabular-nums">
+                    {nombreSustrato(r)} · {fmt.kg(r.pesoSustratoKg)} · {getOrigenFrascosLabel(r)}
+                  </p>
+                  {dias !== null && (
+                    <ProgressDays
+                      value={dias}
+                      total={r.diasEsperadosIncubacion}
+                      estado={r.estado === "incubando" ? "incubando" : "finalizado"}
+                      late={demorado}
+                    />
+                  )}
+                </li>
               );
             })}
-          </TableBody>
-        </Table>
+          </ul>
+          <Table minWidth={720} containerClassName="hidden md:block">
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("numeroSeguimiento")}</TableHead>
+                <TableHead>{t("origen")}</TableHead>
+                <TableHead>{t("sustrato")}</TableHead>
+                <TableHead className="text-right">{t("peso")}</TableHead>
+                <TableHead>{t("estado")}</TableHead>
+                <TableHead>{t("dias")}</TableHead>
+                <TableHead className="w-10">
+                  <span className="sr-only">{t("acciones")}</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {recipientes.map((r) => {
+                const esTerminal = RECIPIENTE_ESTADOS_TERMINALES.includes(r.estado);
+                const dias = diasIncubacion(r);
+                const demorado = r.estado === "incubando" && alertaRecipiente(r).demorado;
+                return (
+                  <TableRow key={r._id}>
+                    <TableCell>{r.numeroSeguimiento}</TableCell>
+                    <TableCell className="max-w-48 truncate text-text-muted">
+                      {getOrigenFrascosLabel(r)}
+                    </TableCell>
+                    <TableCell>{nombreSustrato(r)}</TableCell>
+                    <TableCell className="text-right">{fmt.kg(r.pesoSustratoKg)}</TableCell>
+                    <TableCell>
+                      <StatusTag kind="recipiente" estado={r.estado} />
+                    </TableCell>
+                    <TableCell>
+                      {dias !== null ? (
+                        <ProgressDays
+                          value={dias}
+                          total={r.diasEsperadosIncubacion}
+                          estado={r.estado === "incubando" ? "incubando" : "finalizado"}
+                          late={demorado}
+                        />
+                      ) : (
+                        <span className="text-text-subtle">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {!esTerminal && acciones(r)}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </>
       )}
 
       <NuevoRecipienteSheet

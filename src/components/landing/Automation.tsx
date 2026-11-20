@@ -3,8 +3,12 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowRightIcon } from "@phosphor-icons/react";
+import { ProximamenteTag } from "./Modules";
 
-/** Seccion "Automatizacion": reglas de ejemplo por etapa (interactivas, sin guardar). */
+/**
+ * Seccion "Control de clima": lo que hacen hoy los controladores ESP32 y, aparte,
+ * las reglas por etapa que vienen (interactivas, sin guardar).
+ */
 export function Automation() {
   const t = useTranslations("pages.landing.auto");
   const [activas, setActivas] = useState([true, true, true, false]);
@@ -19,19 +23,33 @@ export function Automation() {
     <section id="invernaderos" className="landing-wrap scroll-mt-4 pt-10 pb-[clamp(72px,9vw,112px)]">
       <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] items-center gap-x-[clamp(32px,6vw,96px)] gap-y-10 border-t border-neutral-800 pt-14">
         <div className="landing-reveal">
-          <div className="landing-kicker text-accent">{t("kicker")}</div>
           <h2 className="landing-h2">{t("titulo")}</h2>
           <p className="mt-4 mb-0 max-w-[46ch] text-[15.5px] leading-[26px] text-text/78">{t("texto")}</p>
           <div className="mt-5 flex flex-wrap gap-2">
-            {[t("tagHumedad"), t("tagTemperatura"), t("tagCo2"), t("tagAlertas")].map((tag) => (
+            {[t("tagHumedad"), t("tagTemperatura")].map((tag) => (
               <span key={tag} className="rounded-[6px] bg-neutral-800 px-2.5 py-[3px] text-[11px] tracking-[0.02em] text-neutral-100">
                 {tag}
+              </span>
+            ))}
+            {[t("tagCo2"), t("tagAlertas")].map((tag) => (
+              <span
+                key={tag}
+                className="rounded-[6px] border border-dashed border-neutral-600 px-2.5 py-[2px] text-xs tracking-[0.02em] text-text/64"
+              >
+                {tag} · {t("proximamente")}
               </span>
             ))}
           </div>
         </div>
 
         <div className="landing-reveal rounded-lg bg-surface px-[18px] py-1.5 shadow-md">
+          <div className="border-b border-divider pt-3 pb-3.5">
+            <div className="flex flex-wrap items-center gap-2 text-[13.5px] font-medium">
+              <ProximamenteTag>{t("proximamente")}</ProximamenteTag>
+              {t("reglasTitulo")}
+            </div>
+            <p className="mt-1 mb-0 text-xs text-text/60">{t("reglasTexto")}</p>
+          </div>
           {reglas.map(([cond, accion, meta], i) => {
             const on = activas[i];
             return (

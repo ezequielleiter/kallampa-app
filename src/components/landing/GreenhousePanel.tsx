@@ -66,12 +66,12 @@ export function GreenhousePanel() {
     label: string;
     value: string;
     unit: string;
-    target: string;
+    target: string | null;
     s: ReturnType<typeof spark>;
   }[] = [
     { icon: DropIcon, label: t("humedad"), value: fmt.number(last(hum), 1), unit: "% HR", target: "85–92 %", s: spark(hum, 80, 96, 85, 92) },
     { icon: ThermometerSimpleIcon, label: t("temperatura"), value: fmt.number(last(temp), 1), unit: "°C", target: "20–23 °C", s: spark(temp, 18.5, 24.5, 20, 23) },
-    { icon: WindIcon, label: t("co2"), value: fmt.number(last(co2), 0), unit: "ppm", target: "< 900 ppm", s: spark(co2, 550, 1050, 600, 900) },
+    { icon: WindIcon, label: t("co2"), value: fmt.number(last(co2), 0), unit: "ppm", target: null, s: spark(co2, 550, 1050, 600, 900) },
   ];
 
   const muted = "text-text/62";
@@ -105,7 +105,9 @@ export function GreenhousePanel() {
               <span className="text-[26px] font-medium tracking-[-0.01em]">{r.value}</span>
               <span className={`text-[13px] ${muted}`}>{r.unit}</span>
             </div>
-            <div className="mt-0.5 text-xs text-text/55">{t("objetivo", { v: r.target })}</div>
+            <div className="mt-0.5 text-xs text-text/55">
+              {r.target ? t("objetivo", { v: r.target }) : t("proximamente")}
+            </div>
           </div>
           <svg viewBox="0 0 120 36" width="120" height="36" aria-hidden="true" className="overflow-visible">
             <rect x="0" y={r.s.bandY} width="120" height={r.s.bandH} fill="var(--color-accent-900)" opacity=".7" />
@@ -122,9 +124,9 @@ export function GreenhousePanel() {
           estado={t("encendido")}
         />
         <Actuador
-          icon={<FanIcon className="size-[18px] text-accent animate-[k-spin_1.8s_linear_infinite]" />}
+          icon={<FanIcon className="size-[18px] text-neutral-400" />}
           nombre={t("extractor")}
-          estado="40 %"
+          estado={t("proximamente")}
         />
         <Actuador
           icon={<ThermometerSimpleIcon className="size-[18px] text-neutral-400" />}

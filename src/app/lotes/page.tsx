@@ -30,13 +30,12 @@ type Filtro = "todos" | EstadoDerivado;
 export default function Home() {
   const router = useRouter();
   const t = useTranslations("pages.lotes");
-  const tNav = useTranslations("nav");
   const fmt = useFormat();
   const [batches, setBatches] = useState<BatchListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState<Filtro>("todos");
 
-  useBreadcrumbs([{ label: tNav("produccion"), href: "/lotes" }, { label: t("title") }]);
+  useBreadcrumbs([{ label: t("title") }]);
 
   const cargar = useCallback(async () => {
     setLoading(true);

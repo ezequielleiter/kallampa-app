@@ -135,11 +135,15 @@ export function BatchHeader({
             ? [
                 {
                   label: t("margen"),
-                  value: (
-                    <span className={batch.comercial.margen < 0 ? "text-danger-text" : undefined}>
-                      {fmt.money(batch.comercial.margen)}
-                    </span>
-                  ),
+                  // Sin ventas el margen es solo -costos: no es una perdida todavia.
+                  value:
+                    batch.comercial.ingresos > 0 ? (
+                      <span className={batch.comercial.margen < 0 ? "text-danger-text" : undefined}>
+                        {fmt.money(batch.comercial.margen)}
+                      </span>
+                    ) : (
+                      <span className="text-text-subtle">{t("sinVentasAun")}</span>
+                    ),
                   note: t("margenNote"),
                 },
               ]

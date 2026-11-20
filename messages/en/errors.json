@@ -119,6 +119,10 @@
     "precio_invalido": "The price can't be negative",
     "fecha_invalida": "Invalid date",
     "medio_pago_invalido": "Invalid payment method",
-    "motivo_merma_invalido": "Invalid reason"
+    "motivo_merma_invalido": "Invalid reason",
+    "sin_conexion": "Couldn’t reach the server. Check your connection and try again.",
+    "respuesta_invalida": "The server didn’t respond as expected. Try again in a moment.",
+    "campo_requerido": "This field is required",
+    "valor_invalido": "Check this value"
   }
 }

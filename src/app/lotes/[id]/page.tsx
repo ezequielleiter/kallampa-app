@@ -35,14 +35,12 @@ export default function BatchDetailPage() {
   const params = useParams<{ id: string }>();
   const t = useTranslations("pages.loteDetalle");
   const tLotes = useTranslations("pages.lotes");
-  const tNav = useTranslations("nav");
   const fmt = useFormat();
   const [batch, setBatch] = useState<BatchDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"prod" | "traz">("prod");
 
   useBreadcrumbs([
-    { label: tNav("produccion"), href: "/lotes" },
     { label: tLotes("title"), href: "/lotes" },
     { label: batch?.numeroLote ?? "…" },
   ]);

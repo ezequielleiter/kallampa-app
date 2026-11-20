@@ -19,6 +19,7 @@ import { EmptyState } from "@/components/kallampa/PageHeader";
 import { useFormat } from "@/components/kallampa/useFormat";
 import { alertaRecipiente } from "@/lib/recipiente-utils";
 import type { Recipiente } from "@/lib/types";
+import { codigoCorto } from "./lote-view";
 
 interface FructificacionSectionProps {
   recipientes: Recipiente[];
@@ -40,12 +41,12 @@ export function FructificacionSection({ recipientes }: FructificacionSectionProp
       {enFructificacion.length === 0 ? (
         <EmptyState>{t("emptyState")}</EmptyState>
       ) : (
-        <Table minWidth={560}>
+        <Table minWidth={300}>
           <TableHeader>
             <TableRow>
               <TableHead>{t("numeroSeguimiento")}</TableHead>
-              <TableHead>{t("estado")}</TableHead>
-              <TableHead>{t("inicioFructificacion")}</TableHead>
+              <TableHead className="hidden sm:table-cell">{t("estado")}</TableHead>
+              <TableHead className="hidden sm:table-cell">{t("inicioFructificacion")}</TableHead>
               <TableHead>{t("dias")}</TableHead>
               <TableHead className="text-right">
                 <span className="sr-only">{t("acciones")}</span>
@@ -57,11 +58,16 @@ export function FructificacionSection({ recipientes }: FructificacionSectionProp
               const alerta = alertaRecipiente(r);
               return (
                 <TableRow key={r._id}>
-                  <TableCell>{r.numeroSeguimiento}</TableCell>
                   <TableCell>
+                    <span className="sm:hidden">{codigoCorto(r.numeroSeguimiento)}</span>
+                    <span className="hidden sm:inline">{r.numeroSeguimiento}</span>
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <StatusTag kind="recipiente" estado={r.estado} />
                   </TableCell>
-                  <TableCell>{fmt.fecha(r.fechaInicioFructificacion)}</TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    {fmt.fecha(r.fechaInicioFructificacion)}
+                  </TableCell>
                   <TableCell>
                     {r.estado === "fructificando" &&
                     alerta.diasTranscurridos !== null &&
@@ -81,9 +87,10 @@ export function FructificacionSection({ recipientes }: FructificacionSectionProp
                       <Button
                         variant="ghost"
                         size="sm"
+                        aria-label={t("clonar")}
                         render={<Link href={`/clonacion/nueva?origenRecipienteId=${r._id}`} />}
                       >
-                        <GitBranchIcon /> {t("clonar")}
+                        <GitBranchIcon /> <span className="hidden sm:inline">{t("clonar")}</span>
                       </Button>
                     )}
                   </TableCell>

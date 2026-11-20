@@ -10,19 +10,34 @@ export function Modules() {
   const t = useTranslations("pages.landing.modulos");
   return (
     <section id="modulos" className="landing-wrap scroll-mt-4 pt-[clamp(72px,9vw,112px)] pb-10">
-      <div className="landing-kicker text-accent">{t("kicker")}</div>
-      <h2 className="landing-h2 mb-6 max-w-[22ch]">{t("titulo")}</h2>
+      <h2 className="landing-h2 max-w-[22ch]">{t("titulo")}</h2>
+      <p className="mt-3 mb-6 text-[13.5px] text-text/60">{t("nota")}</p>
 
       <Fila numero="01" titulo={t("produccion.titulo")} texto={t("produccion.texto")}>
         <Produccion />
       </Fila>
-      <Fila numero="02" titulo={t("contaminacion.titulo")} texto={t("contaminacion.texto")}>
+      <Fila
+        numero="02"
+        titulo={t("contaminacion.titulo")}
+        texto={t("contaminacion.texto")}
+        proximamente={t("contaminacion.proximamente")}
+      >
         <Contaminacion />
       </Fila>
-      <Fila numero="03" titulo={t("clonacion.titulo")} texto={t("clonacion.texto")}>
+      <Fila
+        numero="03"
+        titulo={t("clonacion.titulo")}
+        texto={t("clonacion.texto")}
+        proximamente={t("clonacion.proximamente")}
+      >
         <Linaje />
       </Fila>
-      <Fila numero="04" titulo={t("costos.titulo")} texto={t("costos.texto")}>
+      <Fila
+        numero="04"
+        titulo={t("costos.titulo")}
+        texto={t("costos.texto")}
+        proximamente={t("costos.proximamente")}
+      >
         <Costos />
       </Fila>
     </section>
@@ -33,13 +48,17 @@ function Fila({
   numero,
   titulo,
   texto,
+  proximamente,
   children,
 }: {
   numero: string;
   titulo: string;
   texto: string;
+  /** Lo que todavia no esta hecho, dicho aparte para no prometerlo como actual. */
+  proximamente?: string;
   children: ReactNode;
 }) {
+  const t = useTranslations("pages.landing.modulos");
   return (
     <div className="landing-reveal grid grid-cols-[repeat(auto-fit,minmax(min(100%,340px),1fr))] items-center gap-x-[clamp(32px,6vw,96px)] gap-y-6 border-t border-neutral-800 py-10">
       <div className="grid grid-cols-[48px_minmax(0,1fr)] gap-x-4 gap-y-1">
@@ -47,10 +66,23 @@ function Fila({
         <div>
           <h3 className="m-0 text-2xl font-medium tracking-[-0.01em]">{titulo}</h3>
           <p className="mt-2.5 mb-0 max-w-[46ch] text-[15.5px] leading-[26px] text-text/78">{texto}</p>
+          {proximamente && (
+            <p className="mt-3 mb-0 max-w-[46ch] text-[13.5px] leading-[22px] text-text/62">
+              <ProximamenteTag>{t("proximamente")}</ProximamenteTag> {proximamente}
+            </p>
+          )}
         </div>
       </div>
       <div aria-hidden="true">{children}</div>
     </div>
+  );
+}
+
+export function ProximamenteTag({ children }: { children: ReactNode }) {
+  return (
+    <span className="mr-1 inline-block rounded-[6px] border border-neutral-600 px-2 py-px text-xs tracking-[0.02em] text-text/72">
+      {children}
+    </span>
   );
 }
 
@@ -157,10 +189,8 @@ function Costos() {
   const t = useTranslations("pages.landing.modulos.costos");
   const fmt = useFormat();
   const costos: [string, number][] = [
-    [t("sustrato"), 38],
-    [t("energia"), 27],
-    [t("manoDeObra"), 24],
-    [t("mermas"), 11],
+    [t("grano"), 54],
+    [t("sustrato"), 46],
   ];
   return (
     <Tarjeta>
@@ -189,7 +219,7 @@ function Costos() {
         ))}
       </div>
       <div className="flex justify-between border-t border-divider pt-2.5 text-[12.5px]">
-        <span className="text-text/64">{t("precioSugerido")}</span>
+        <span className="text-text/64">{t("precioVenta")}</span>
         <span className="text-accent-200 tabular-nums">{fmt.money(6.95, 2)} / kg</span>
       </div>
     </Tarjeta>

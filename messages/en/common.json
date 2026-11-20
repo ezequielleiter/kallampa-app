@@ -7,11 +7,12 @@
     "optional": "optional",
     "breadcrumb": "Breadcrumb",
     "actions": "Actions",
-    "user": "User"
+    "user": "User",
+    "hechoPor": "Made by the Teo and Lawal worker cooperatives"
   },
   "nav": {
-    "produccion": "Production",
-    "micelio": "Mycelium",
+    "produccion": "Batches",
+    "micelio": "Clonings",
     "invernaderos": "Greenhouses",
     "calendario": "Calendar",
     "trazabilidad": "Traceability",
@@ -22,7 +23,13 @@
     "herramientas": "Tools",
     "settings": "Settings",
     "logout": "Log out",
-    "ventas": "Sales"
+    "ventas": "Sales",
+    "openMenu": "Open menu",
+    "grupos": {
+      "cultivo": "Growing",
+      "seguimiento": "Tracking",
+      "recursos": "Resources"
+    }
   },
   "auth": {
     "login": {

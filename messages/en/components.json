@@ -8,7 +8,7 @@
       "inoculadoEl": "Inoculated on",
       "frascos": "{count, plural, one {# jar} other {# jars}}",
       "desdeMicelioLiquido": "from liquid mycelium",
-      "alertas": "{count, plural, one {# alert} other {# alerts}}",
+      "alertas": "{count, plural, one {# overdue} other {# overdue}}",
       "pesoCosechado": "Harvested weight",
       "eficienciaBiologica": "Biological efficiency",
       "costoTotal": "Total cost",
@@ -22,7 +22,8 @@
       "metaIncubacion": "{count, plural, =0 {No containers} one {# container} other {# containers}}",
       "metaFructificacion": "{count} fruiting",
       "margen": "Margin",
-      "margenNote": "revenue − costs"
+      "margenNote": "revenue − costs",
+      "sinVentasAun": "No sales yet"
     },
     "lotePendientes": {
       "title": "Pending",
@@ -115,7 +116,7 @@
     },
     "jarsGrid": {
       "successMessage": "{codigo} marked as {estado}",
-      "errorMessage": "Could not update the jar",
+      "errorMessage": "Couldn’t update the jar. Try again.",
       "emptyState": "This batch has no jars.",
       "numeroGuia": "Tracking No. (spawn)",
       "estado": "Status",
@@ -134,7 +135,9 @@
       "confirmEliminarTitle": "Delete jar {codigo}?",
       "confirmEliminarDescription": "It is subtracted from the batch's jar count. The other jars keep their numbers.",
       "eliminadoMessage": "{codigo} deleted",
-      "eliminarErrorMessage": "Could not delete the jar"
+      "eliminarErrorMessage": "Could not delete the jar",
+      "deshacer": "Undo",
+      "deshechoMessage": "{codigo} is back to {estado}"
     },
     "nuevoRecipienteSheet": {
       "loadJarsError": "Could not load the jars",
@@ -353,7 +356,8 @@
       "margenTotal": "Margin",
       "kgVendidos": "Kg sold",
       "stockDisponible": "Available stock",
-      "saldoPorCobrar": "To collect"
+      "saldoPorCobrar": "To collect",
+      "sinVentasAun": "No sales yet"
     },
     "loteComparisonTable": {
       "lote": "Batch",
@@ -653,7 +657,8 @@
       "consumidorFinal": "Walk-in customer",
       "pendiente": "Pending",
       "registrarVenta": "Record sale",
-      "sinStockHint": "No stock available to sell."
+      "sinStockHint": "No stock available to sell.",
+      "sinVentasAun": "No sales yet"
     },
     "calculadoraTachos": {
       "totalLabel": "Inoculated substrate",

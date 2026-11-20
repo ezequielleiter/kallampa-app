@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validations/zod";
 
 const objectIdString = z.string().min(1, "id_requerido:Id requerido");
 
@@ -31,6 +31,8 @@ export const createBatchSchema = z
     message:
       "hongo_o_frasco_liquido_origen_requerido:Elegí un tipo de hongo o un frasco de micelio líquido de origen",
     path: ["fungusTypeId"],
+    // Correr aunque fallen otros campos, para mostrar todos los errores juntos.
+    when: (p) => typeof p.value === "object" && p.value !== null,
   });
 export type CreateBatchInput = z.infer<typeof createBatchSchema>;
 

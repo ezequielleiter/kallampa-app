@@ -30,7 +30,6 @@ export function Pipeline({ velocidadSeg = 1.6 }: { velocidadSeg?: number }) {
       <div className="landing-wrap">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-x-10 gap-y-4">
           <div>
-            <div className="landing-kicker text-text/64">{t("kicker")}</div>
             <h2 className="landing-h2">{t("titulo")}</h2>
           </div>
           <div className="flex items-center gap-2.5 text-[13px] text-text/72 tabular-nums">

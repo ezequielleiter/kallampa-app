@@ -1,3 +1,4 @@
+import { WarningCircleIcon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { statusTone } from "./StatusTag";
 
@@ -38,10 +39,12 @@ export function ProgressDays({
       </span>
       <span
         className={cn(
-          "text-xs tabular-nums",
+          "inline-flex items-center gap-1 text-xs tabular-nums",
           late ? "text-danger-text" : "text-text-muted"
         )}
       >
+        {/* Demorado no depende solo del color. */}
+        {late && <WarningCircleIcon aria-hidden="true" className="size-3.5 shrink-0" />}
         {value} / {total}
       </span>
     </div>

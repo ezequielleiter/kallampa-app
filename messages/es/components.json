@@ -8,7 +8,7 @@
       "inoculadoEl": "Inoculado el",
       "frascos": "{count, plural, one {# frasco} other {# frascos}}",
       "desdeMicelioLiquido": "desde micelio líquido",
-      "alertas": "{count, plural, one {# alerta} other {# alertas}}",
+      "alertas": "{count, plural, one {# demorado} other {# demorados}}",
       "pesoCosechado": "Peso cosechado",
       "eficienciaBiologica": "Eficiencia biológica",
       "costoTotal": "Costo total",
@@ -22,7 +22,8 @@
       "metaIncubacion": "{count, plural, =0 {Sin recipientes} one {# recipiente} other {# recipientes}}",
       "metaFructificacion": "{count} fructificando",
       "margen": "Margen",
-      "margenNote": "ingresos − costos"
+      "margenNote": "ingresos − costos",
+      "sinVentasAun": "Sin ventas aún"
     },
     "lotePendientes": {
       "title": "Pendientes",
@@ -115,7 +116,7 @@
     },
     "jarsGrid": {
       "successMessage": "{codigo} marcado como {estado}",
-      "errorMessage": "No se pudo actualizar el frasco",
+      "errorMessage": "No se pudo actualizar el frasco. Probá de nuevo.",
       "emptyState": "Este lote no tiene frascos.",
       "numeroGuia": "N° de guía (spawn)",
       "estado": "Estado",
@@ -134,7 +135,9 @@
       "confirmEliminarTitle": "¿Eliminar el frasco {codigo}?",
       "confirmEliminarDescription": "Se descuenta de la cantidad de frascos del lote. Los demás frascos mantienen su número.",
       "eliminadoMessage": "{codigo} eliminado",
-      "eliminarErrorMessage": "No se pudo eliminar el frasco"
+      "eliminarErrorMessage": "No se pudo eliminar el frasco",
+      "deshacer": "Deshacer",
+      "deshechoMessage": "{codigo} volvió a {estado}"
     },
     "nuevoRecipienteSheet": {
       "loadJarsError": "No se pudieron cargar los frascos",
@@ -353,7 +356,8 @@
       "margenTotal": "Margen",
       "kgVendidos": "Kg vendidos",
       "stockDisponible": "Stock disponible",
-      "saldoPorCobrar": "Por cobrar"
+      "saldoPorCobrar": "Por cobrar",
+      "sinVentasAun": "Sin ventas aún"
     },
     "loteComparisonTable": {
       "lote": "Lote",
@@ -653,7 +657,8 @@
       "consumidorFinal": "Consumidor final",
       "pendiente": "Pendiente",
       "registrarVenta": "Registrar venta",
-      "sinStockHint": "No hay stock disponible para vender."
+      "sinStockHint": "No hay stock disponible para vender.",
+      "sinVentasAun": "Sin ventas aún"
     },
     "calculadoraTachos": {
       "totalLabel": "Sustrato con micelio",

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validations/zod";
 
 // Formulario publico de la landing. Todo con topes de largo: el endpoint no
 // requiere cuenta. `sitio` es un campo trampa (oculto para personas): si

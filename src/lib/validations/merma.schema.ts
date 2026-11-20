@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validations/zod";
 import { notasOpcional } from "@/lib/validations/venta.schema";
 
 export const MOTIVOS_MERMA = ["vencido", "regalado", "consumo_propio", "otro"] as const;

@@ -30,11 +30,14 @@ export function KpiCards({ kpis }: KpiCardsProps) {
     { label: t("ingresosTotal"), value: fmt.money(kpis.ingresosTotal) },
     {
       label: t("margenTotal"),
-      value: (
-        <span className={kpis.margenTotal < 0 ? "text-danger-text" : undefined}>
-          {fmt.money(kpis.margenTotal)}
-        </span>
-      ),
+      value:
+        kpis.ingresosTotal > 0 ? (
+          <span className={kpis.margenTotal < 0 ? "text-danger-text" : undefined}>
+            {fmt.money(kpis.margenTotal)}
+          </span>
+        ) : (
+          <span className="text-text-subtle">{t("sinVentasAun")}</span>
+        ),
     },
     { label: t("kgVendidos"), value: fmt.kg(kpis.kgVendidos, 1) },
     { label: t("stockDisponible"), value: fmt.kg(kpis.stockDisponibleKg, 1) },

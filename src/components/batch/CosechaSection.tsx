@@ -122,8 +122,8 @@ function RecipienteCosecha({
           </span>
         </div>
         {puedeAgregar && (
-          <div className="flex flex-wrap gap-1.5">
-            <Button size="sm" onClick={() => setDialogTarget("new")}>
+          <div className="flex w-full flex-wrap gap-1.5 sm:w-auto">
+            <Button size="sm" className="flex-1 sm:flex-none" onClick={() => setDialogTarget("new")}>
               <PlusIcon /> {t("addOleada")}
             </Button>
             <Button size="sm" variant="outline" onClick={() => setFinalizarOpen(true)}>
@@ -136,13 +136,13 @@ function RecipienteCosecha({
       {oleadas.length === 0 ? (
         <p className="mt-2.5 mb-0 text-[12.5px] text-text-subtle">{t("emptyOleadas")}</p>
       ) : (
-        <Table minWidth={420} containerClassName="mt-1.5">
+        <Table minWidth={280} containerClassName="mt-1.5">
           <TableHeader>
             <TableRow>
               <TableHead>{t("oleada")}</TableHead>
               <TableHead>{t("fecha")}</TableHead>
               <TableHead className="text-right">{t("peso")}</TableHead>
-              <TableHead>{t("notas")}</TableHead>
+              <TableHead className="hidden sm:table-cell">{t("notas")}</TableHead>
               <TableHead className="w-[68px]">
                 <span className="sr-only">{t("acciones")}</span>
               </TableHead>
@@ -154,7 +154,9 @@ function RecipienteCosecha({
                 <TableCell>{t("ordinal", { n: i + 1 })}</TableCell>
                 <TableCell>{fmt.fecha(oleada.fecha)}</TableCell>
                 <TableCell className="text-right">{fmt.kg(oleada.pesoKg)}</TableCell>
-                <TableCell className="max-w-48 truncate text-text-muted">{oleada.notas}</TableCell>
+                <TableCell className="hidden max-w-48 truncate text-text-muted sm:table-cell">
+                  {oleada.notas}
+                </TableCell>
                 <TableCell className="text-right">
                   <div className="inline-flex gap-0.5">
                     <Button

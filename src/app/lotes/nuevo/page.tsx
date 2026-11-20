@@ -42,7 +42,6 @@ export default function NuevoLotePage() {
   const router = useRouter();
   const t = useTranslations("pages.loteNuevo");
   const tLotes = useTranslations("pages.lotes");
-  const tNav = useTranslations("nav");
   const [origen, setOrigen] = useState<OrigenLote>("hongo");
   const [fungusTypes, setFungusTypes] = useState<FungusType[]>([]);
   const [grainTypes, setGrainTypes] = useState<GrainType[]>([]);
@@ -61,7 +60,6 @@ export default function NuevoLotePage() {
   });
 
   useBreadcrumbs([
-    { label: tNav("produccion"), href: "/lotes" },
     { label: tLotes("title"), href: "/lotes" },
     { label: t("title") },
   ]);
