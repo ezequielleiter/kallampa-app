@@ -108,7 +108,8 @@ describe("builders", () => {
     expect(q).toContain("range(start: -24h)");
   });
   it("actuadores pivotea por _start y reinicios agrupa por id antes de difference", () => {
-    expect(fluxActuadores24h("b", ["0c2cc8"])).toContain('rowKey: ["_start"]');
+    expect(fluxActuadores24h("b", ["0c2cc8"])).toContain('group(columns: ["id", "_field"])');
+    expect(fluxActuadores24h("b", ["0c2cc8"])).toContain('rowKey: ["id"]');
     const q = fluxReinicios24h("b", ["0c2cc8"]);
     expect(q.indexOf('group(columns: ["id"])')).toBeGreaterThan(-1);
     expect(q.indexOf('group(columns: ["id"])')).toBeLessThan(q.indexOf("difference()"));

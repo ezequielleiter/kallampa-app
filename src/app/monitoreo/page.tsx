@@ -39,7 +39,10 @@ export default function MonitoreoPage() {
       sync();
     });
     document.addEventListener("fullscreenchange", sync);
-    return () => document.removeEventListener("fullscreenchange", sync);
+    return () => {
+      document.removeEventListener("fullscreenchange", sync);
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    };
   }, []);
 
   const alternarPantallaCompleta = () => {

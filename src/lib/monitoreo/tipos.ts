@@ -62,7 +62,7 @@ export interface EquipoResumen {
   dispositivoId: string; nombre: string; influxId: string | null;
   conexion: Conexion;
   ultimoEstado: number | null; // epoch ms del ultimo `estado`
-  vaciandoCola: boolean; // pendientes > 0
+  vaciandoCola: boolean; // pendientes > 1 (los equipos reportan 1 por la muestra en vuelo)
   ahora: { t: number | null; temperatura: number | null; humedad: number | null };
   rangoTemp: RangoObjetivo; rangoHum: RangoObjetivo;
   fueraTemp: "alta" | "baja" | null; fueraHum: "alta" | "baja" | null;

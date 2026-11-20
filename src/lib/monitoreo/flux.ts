@@ -112,7 +112,7 @@ export const fluxAmbiente24h = (bucket: string, ids: string[]) =>
   `${baseMulti(bucket, ids, "ambiente")}\n  |> aggregateWindow(every: 5m, fn: mean, createEmpty: false)\n  ${PIVOT}`;
 
 export const fluxActuadores24h = (bucket: string, ids: string[]) =>
-  `${baseMulti(bucket, ids, "actuadores")}\n  |> sum()\n  |> pivot(rowKey: ["_start"], columnKey: ["_field"], valueColumn: "_value")`; // sum() descarta _time
+  `${baseMulti(bucket, ids, "actuadores")}\n  |> group(columns: ["id", "_field"])\n  |> sum()\n  |> pivot(rowKey: ["id"], columnKey: ["_field"], valueColumn: "_value")`; // agrupa por id para sumar renombres de device; sum() descarta _time
 
 export const fluxReinicios24h = (bucket: string, ids: string[]) =>
   `${baseMulti(bucket, ids, "estado")}

@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
     const desde = new Date(Date.now() - 30 * DIA_MS);
 
     const [batches, jars, recipientes] = await Promise.all([
+      // shortcut: carga todos los frascos/recipientes del usuario cada 60 s, pasar a $group por estado si crece el volumen
       Batch.find({ userId }).populate("fungusTypeId", "nombre").lean(),
       Jar.find({ userId }).lean(),
       Recipiente.find({ userId }).lean(),
