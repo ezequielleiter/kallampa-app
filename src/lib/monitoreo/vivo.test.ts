@@ -51,8 +51,10 @@ describe("parseSensors", () => {
     expect(parseSensors({ ...FRUCT, ok: "si" })).toBeNull();
     expect(parseSensors(null)).toBeNull();
   });
-  it("numeros invalidos quedan en null", () => {
-    expect(parseSensors({ ...FRUCT, temperature: "x" })!.temperature).toBeNull();
+  it("lectura con tipo invalido es falla; null (sensor sin lectura) se acepta", () => {
+    expect(parseSensors({ ...FRUCT, temperature: "x" })).toBeNull();
+    expect(parseSensors({ ...FRUCT, humidity: "23.4" })).toBeNull();
+    expect(parseSensors({ ...FRUCT, ok: false, temperature: null, humidity: null })!.temperature).toBeNull();
   });
 });
 

@@ -29,6 +29,8 @@ export function parseSensors(json: unknown): SensorsVivo | null {
   if (json == null || typeof json !== "object" || Array.isArray(json)) return null;
   const o = json as Record<string, unknown>;
   for (const k of ["ok", "humidifier", "heater", "extractor"]) if (typeof o[k] !== "boolean") return null;
+  // Lectura: numero o null (sensor sin lectura); cualquier otro tipo es una respuesta rota.
+  for (const k of ["temperature", "humidity"]) if (o[k] != null && num(o[k]) == null) return null;
   const water = o.water;
   return {
     temperature: num(o.temperature),
