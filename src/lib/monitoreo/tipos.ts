@@ -52,3 +52,28 @@ export interface EquipoInflux {
 }
 
 export const INFLUX_ID_RE = /^[0-9a-f]{6}$/;
+
+export type Conexion = "conectado" | "desconectado" | "sin_datos" | "sin_influx";
+export interface RangoObjetivo { min: number | null; max: number | null }
+export interface Aparato { on: boolean | null; potencia: number | null; aprendiendo: boolean }
+export type Alarma = "agua_vacia" | "sensor_falla" | "wifi_debil";
+export interface Stats { min: number; max: number; prom: number }
+export interface EquipoResumen {
+  dispositivoId: string; nombre: string; influxId: string | null;
+  conexion: Conexion;
+  ultimoEstado: number | null; // epoch ms del ultimo `estado`
+  vaciandoCola: boolean; // pendientes > 0
+  ahora: { t: number | null; temperatura: number | null; humedad: number | null };
+  rangoTemp: RangoObjetivo; rangoHum: RangoObjetivo;
+  fueraTemp: "alta" | "baja" | null; fueraHum: "alta" | "baja" | null;
+  aparatos: { humidificador: Aparato; calefaccion: Aparato; extractor: Aparato };
+  alarmas: Alarma[];
+  dia: {
+    temp: Stats | null; hum: Stats | null;
+    enRangoPct: { temp: number | null; hum: number | null };
+    usoPct: { humidificador: number; calefaccion: number; extractor: number };
+    reinicios: number; ultimoReset: string | null; fw: string | null; rssi: number | null;
+  };
+}
+export interface InvernaderoMonitoreo { _id: string; nombre: string; equipos: EquipoResumen[] }
+export interface ResumenMonitoreo { invernaderos: InvernaderoMonitoreo[]; generado: number }
