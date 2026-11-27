@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { CaretDownIcon, CaretUpIcon, DropIcon, FanIcon, FlameIcon, WarningCircleIcon, type Icon } from "@phosphor-icons/react";
+import { CaretDownIcon, CaretUpIcon, ChartLineIcon, DropIcon, FanIcon, FlameIcon, WarningCircleIcon, type Icon } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/button";
 import { useFormat } from "@/components/kallampa/useFormat";
 import { cn } from "@/lib/utils";
 import type { Aparato, EquipoResumen, RangoObjetivo } from "@/lib/monitoreo/tipos";
@@ -158,13 +159,22 @@ export function EquipoCard({
       )}
 
       {conexion !== "sin_influx" && (
-        <footer className="flex flex-wrap gap-x-3 gap-y-0.5 border-t border-divider px-4 py-2 font-tele text-xs text-text-subtle tabular-nums">
+        <footer className="flex flex-wrap items-center gap-x-3 gap-y-0.5 border-t border-divider px-4 py-2 font-tele text-xs text-text-subtle tabular-nums">
           {dia.temp && <span>{t("sala.t24", { min: fmt.number(dia.temp.min, 1), max: fmt.number(dia.temp.max, 1) })}</span>}
           {dia.hum && <span>{t("sala.h24", { min: fmt.number(dia.hum.min, 1), max: fmt.number(dia.hum.max, 1) })}</span>}
           <span>{t("reinicios", { count: dia.reinicios })}</span>
           {dia.rssi != null && <span>{t("sala.rssi", { rssi: dia.rssi })}</span>}
           {dia.fw && <span>{t("sala.fw", { fw: dia.fw.split(" ")[0] })}</span>}
           {equipo.vaciandoCola && <span>{t("sala.cola")}</span>}
+          <Button
+            variant="outline"
+            size="xs"
+            className="ml-auto font-sans"
+            render={<Link href={`/monitoreo/${invernadero._id}?dispositivo=${equipo.dispositivoId}`} />}
+          >
+            <ChartLineIcon aria-hidden="true" />
+            {t("verMonitoreo")}
+          </Button>
         </footer>
       )}
     </article>
