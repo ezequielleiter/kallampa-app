@@ -24,14 +24,14 @@ function Contenido() {
   const t = useTranslations("pages.monitoreo");
   const { id } = useParams<{ id: string }>();
   const dispositivo = useSearchParams().get("dispositivo") ?? undefined;
-  const [estado, setEstado] = useState<{ data: Invernadero | null; cargando: boolean }>({ data: null, cargando: true });
+  const [estado, setEstado] = useState<{ data: Invernadero | null; error?: string; cargando: boolean }>({ data: null, cargando: true });
 
   useEffect(() => {
     let vivo = true;
     void Promise.resolve().then(() =>
       apiFetch<Invernadero>(`/api/invernaderos/${id}`).then(
         (data) => vivo && setEstado({ data, cargando: false }),
-        () => vivo && setEstado({ data: null, cargando: false })
+        (err) => vivo && setEstado({ data: null, error: err instanceof Error ? err.message : undefined, cargando: false })
       )
     );
     return () => {
@@ -60,7 +60,7 @@ function Contenido() {
         {estado.cargando ? (
           <Aviso>{t("cargando")}</Aviso>
         ) : !inv ? (
-          <Aviso>{t("detalle.noEncontrado")}</Aviso>
+          <Aviso>{estado.error ?? t("detalle.noEncontrado")}</Aviso>
         ) : !conInflux ? (
           <Aviso>
             {t("detalle.sinInflux")}{" "}
