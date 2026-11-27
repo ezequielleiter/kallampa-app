@@ -60,3 +60,11 @@
   font-size: 12px;
   color: var(--color-text-subtle);
 }
+/* Desde md la figura se achica con el alto de la ventana para que la pantalla entre sin scroll
+   (~210 px = margen de pagina, encabezado, relleno de la tarjeta y la pista de abajo). */
+@media (min-width: 768px) {
+  .fr-tarjeta .fructificacion {
+    width: min(100%, calc((100dvh - 210px) * 640 / 600));
+    margin-inline: auto;
+  }
+}

@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { ArrowLeftIcon, WifiHighIcon } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/kallampa/Logo";
+import { SegmentedControl } from "@/components/kallampa/SegmentedControl";
 import { MonitoreoPanel } from "@/components/monitoreo/MonitoreoPanel";
 import { EquipoCard } from "@/components/monitoreo/vista/EquipoCard";
 import { useResumenEnVivo } from "@/components/monitoreo/vista/useResumenEnVivo";
@@ -21,10 +22,11 @@ import type { Invernadero } from "@/lib/types";
 /** Monitoreo de un invernadero: figura en vivo (si su modelo tiene), tarjeta del equipo y graficas. */
 export function MonitoreoInvernadero({ arte }: { arte: Partial<Record<ModeloInvernadero, ArteFigura>> }) {
   const t = useTranslations("pages.monitoreo");
+  const tc = useTranslations("components.monitoreo");
   const { id } = useParams<{ id: string }>();
   const inicial = useSearchParams().get("dispositivo") ?? undefined;
   const [carga, setCarga] = useState<{ data: Invernadero | null; error?: string; cargando: boolean }>({ data: null, cargando: true });
-  const [elegido, setElegido] = useState<string | undefined>(inicial);
+  const [elegidoManual, setElegido] = useState<string | undefined>(inicial);
   const { resumen, ahora, permiso, activo, conectar, vivo, enVivo } = useResumenEnVivo();
 
   useEffect(() => {
@@ -42,12 +44,15 @@ export function MonitoreoInvernadero({ arte }: { arte: Partial<Record<ModeloInve
 
   const inv = carga.data;
   const conInflux = inv?.dispositivos?.some((d) => d.influxId) ?? false;
+  const vinculados = inv?.dispositivos?.filter((d) => d.influxId) ?? [];
+  const elegido = (vinculados.find((d) => d._id === elegidoManual) ?? vinculados[0])?._id;
   const equipos = resumen?.invernaderos.find((i) => i._id === id)?.equipos ?? [];
   const equipo = equipos.find((e) => e.dispositivoId === elegido) ?? null;
   const arteFigura = inv?.modelo ? arte[inv.modelo] : undefined;
 
   return (
-    <div className="flex min-h-dvh flex-col gap-3 p-4">
+    // Con figura la pantalla entra entera en el alto de la ventana (desde md).
+    <div className={cn("flex min-h-dvh flex-col gap-3 p-4", arteFigura && "md:h-dvh md:min-h-0")}>
       <header className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <div className="flex min-w-0 items-center gap-2.5">
           <Logo size={24} wordmark={false} />
@@ -61,13 +66,16 @@ export function MonitoreoInvernadero({ arte }: { arte: Partial<Record<ModeloInve
           </Button>
         )}
         {permiso === "denied" && <p className="m-0 max-w-md text-xs text-danger-text">{t("vivo.denegado")}</p>}
+        {arteFigura && vinculados.length > 1 && elegido && (
+          <SegmentedControl aria-label={tc("dispositivo")} value={elegido} onChange={setElegido} options={vinculados.map((d) => ({ value: d._id, label: d.nombre }))} />
+        )}
         <Button variant="outline" size="sm" className="ml-auto" render={<Link href="/monitoreo" />}>
           <ArrowLeftIcon aria-hidden="true" />
           {t("detalle.volver")}
         </Button>
       </header>
 
-      <main className="flex min-w-0 flex-col gap-3">
+      <main className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
         {carga.cargando ? (
           <Aviso>{t("cargando")}</Aviso>
         ) : !inv ? (
@@ -82,7 +90,7 @@ export function MonitoreoInvernadero({ arte }: { arte: Partial<Record<ModeloInve
         ) : (
           <>
             {(arteFigura || equipo) && (
-              <div className={cn("grid items-start gap-3", arteFigura && "md:grid-cols-[2fr_1fr]")}>
+              <div className={cn("grid items-start gap-3", arteFigura && "md:min-h-0 md:flex-1 md:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)]")}>
                 {arteFigura && (
                   <FiguraInvernadero modelo={inv.modelo} arte={arteFigura} estado={estadoFigura(equipo, equipo ? enVivo(equipo.dispositivoId) : false)} nombre={inv.nombre} />
                 )}
@@ -97,7 +105,8 @@ export function MonitoreoInvernadero({ arte }: { arte: Partial<Record<ModeloInve
                 )}
               </div>
             )}
-            <MonitoreoPanel invernadero={inv} number="01" dispositivoInicial={inicial} onDispositivoChange={setElegido} />
+            {/* Sin figura queda el panel de graficas, que trae su propio selector de equipo. */}
+            {!arteFigura && <MonitoreoPanel invernadero={inv} number="01" dispositivoInicial={inicial} onDispositivoChange={setElegido} />}
           </>
         )}
       </main>
