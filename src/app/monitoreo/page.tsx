@@ -10,12 +10,10 @@ import { AlertasPanel } from "@/components/monitoreo/vista/AlertasPanel";
 import { EquipoCard } from "@/components/monitoreo/vista/EquipoCard";
 import { InventarioVivo } from "@/components/monitoreo/vista/InventarioVivo";
 import { LotesActivos } from "@/components/monitoreo/vista/LotesActivos";
-import { useEnVivo } from "@/components/monitoreo/vista/useEnVivo";
+import { useResumenEnVivo } from "@/components/monitoreo/vista/useResumenEnVivo";
 import { useHace } from "@/components/monitoreo/vista/useHace";
-import { aplicarVivo } from "@/lib/monitoreo/vivo";
 import { apiFetch } from "@/lib/api-client";
 import { cn } from "@/lib/utils";
-import type { EquipoResumen, ResumenMonitoreo } from "@/lib/monitoreo/tipos";
 import type { GestionResumen } from "@/lib/types";
 
 const REFRESCO_MS = 60_000;
@@ -32,9 +30,9 @@ const visible = () => document.visibilityState === "visible";
 export default function MonitoreoPage() {
   const t = useTranslations("pages.monitoreo");
   const hace = useHace();
-  const [resumen, setResumen] = useState<Carga<ResumenMonitoreo>>({ data: null, error: null });
+  const { resumen: resumenVivo, error: resumenError, at: resumenAt, ahora, permiso, activo, conectar, vivo, enVivo } =
+    useResumenEnVivo();
   const [gestion, setGestion] = useState<Carga<GestionResumen>>({ data: null, error: null });
-  const [ahora, setAhora] = useState<number | null>(null);
   const [fullscreenOk, setFullscreenOk] = useState(false);
   const [pantallaCompleta, setPantallaCompleta] = useState(false);
 
@@ -57,60 +55,31 @@ export default function MonitoreoPage() {
     p.catch(() => {});
   };
 
-  const cargar = useCallback(() => {
-    const mensaje = (err: unknown) => (err instanceof Error ? err.message : t("errorGenerico"));
-    apiFetch<ResumenMonitoreo>("/api/monitoreo/resumen").then(
-      (data) => {
-        const at = Date.now();
-        setResumen({ data, error: null, at });
-        setAhora(at);
-      },
-      (err) => setResumen((p) => ({ ...p, error: mensaje(err) }))
-    );
+  const cargarGestion = useCallback(() => {
     apiFetch<GestionResumen>("/api/monitoreo/gestion").then(
-      (data) => {
-        const at = Date.now();
-        setGestion({ data, error: null, at });
-        setAhora(at);
-      },
-      (err) => setGestion((p) => ({ ...p, error: mensaje(err) }))
+      (data) => setGestion({ data, error: null, at: Date.now() }),
+      (err) => setGestion((p) => ({ ...p, error: err instanceof Error ? err.message : t("errorGenerico") }))
     );
   }, [t]);
 
   useEffect(() => {
-    void Promise.resolve().then(cargar);
+    void Promise.resolve().then(cargarGestion);
     // Con la pestaña oculta no se pide nada; al volver se refresca enseguida.
-    const id = setInterval(() => {
-      setAhora(Date.now());
-      if (visible()) cargar();
-    }, REFRESCO_MS);
-    const alVolver = () => visible() && cargar();
+    const id = setInterval(() => visible() && cargarGestion(), REFRESCO_MS);
+    const alVolver = () => visible() && cargarGestion();
     document.addEventListener("visibilitychange", alVolver);
     return () => {
       clearInterval(id);
       document.removeEventListener("visibilitychange", alVolver);
     };
-  }, [cargar]);
+  }, [cargarGestion]);
 
   // El encabezado sigue a los equipos; gestion solo si el resumen nunca cargo.
-  const actualizado = resumen.at ?? gestion.at ?? null;
-  const base = (resumen.data?.invernaderos ?? []).flatMap((inv) =>
+  const actualizado = resumenAt ?? gestion.at ?? null;
+  const resumen = { data: resumenVivo, error: resumenError };
+  const equipos = (resumenVivo?.invernaderos ?? []).flatMap((inv) =>
     inv.equipos.map((e) => ({ equipo: e, invernadero: { _id: inv._id, nombre: inv.nombre } }))
   );
-  const { permiso, activo, conectar, vivo } = useEnVivo(
-    base.map(({ equipo }) => ({ dispositivoId: equipo.dispositivoId, dominio: equipo.dominio }))
-  );
-  // Lo que responde el equipo en vivo pisa lo "ahora" de Influx; si no responde, queda Influx.
-  const mezclar = (e: EquipoResumen) => {
-    const s = vivo[e.dispositivoId]?.sensors;
-    return s ? aplicarVivo(e, s) : e;
-  };
-  const equipos = base.map((x) => ({ ...x, equipo: mezclar(x.equipo) }));
-  const resumenVivo: ResumenMonitoreo | null = resumen.data && {
-    ...resumen.data,
-    invernaderos: resumen.data.invernaderos.map((inv) => ({ ...inv, equipos: inv.equipos.map(mezclar) })),
-  };
-  const enVivo = (id: string) => vivo[id]?.sensors != null;
   const conInflux = equipos.filter((x) => x.equipo.conexion !== "sin_influx" || enVivo(x.equipo.dispositivoId));
   const enLinea = conInflux.filter((x) => x.equipo.conexion === "conectado" || enVivo(x.equipo.dispositivoId)).length;
 
