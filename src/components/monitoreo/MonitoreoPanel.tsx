@@ -42,11 +42,14 @@ export function MonitoreoPanel({
   invernadero,
   number,
   dispositivoInicial,
+  onDispositivoChange,
 }: {
   invernadero: Invernadero;
   number: string;
   /** Dispositivo elegido al abrir; si no existe o no tiene Influx se usa el primero. */
   dispositivoInicial?: string;
+  /** Avisa el dispositivo elegido (al abrir y cada vez que cambia el selector). */
+  onDispositivoChange?: (id: string) => void;
 }) {
   const t = useTranslations("components.monitoreo");
   const fmt = useFormat();
@@ -62,6 +65,11 @@ export function MonitoreoPanel({
 
   const dispositivo: Dispositivo | undefined =
     vinculados.find((d) => d._id === dispositivoId) ?? vinculados[0];
+
+  const elegido = dispositivo?._id;
+  useEffect(() => {
+    if (elegido) onDispositivoChange?.(elegido);
+  }, [elegido, onDispositivoChange]);
 
   useEffect(() => {
     if (!dispositivo) return;
