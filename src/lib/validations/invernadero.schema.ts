@@ -1,4 +1,5 @@
 import { z } from "@/lib/validations/zod";
+import { MODELOS_INVERNADERO } from "@/lib/invernadero-modelos";
 
 const medidaSchema = z
   .number("numero_positivo_requerido:Debe ser un número positivo")
@@ -6,6 +7,8 @@ const medidaSchema = z
 
 // Positivo opcional "borrable": en el PATCH `null` elimina el valor.
 const positivoOpcional = z.union([medidaSchema, z.null()]);
+// Modelo armado (habilita la figura en vivo); `null` lo borra.
+const modeloSchema = z.enum(MODELOS_INVERNADERO, "modelo_invalido:Modelo de invernadero inválido").nullable();
 
 export const createInvernaderoSchema = z.object({
   nombre: z.string().trim().min(1, "nombre_requerido:El nombre es requerido"),
@@ -16,6 +19,7 @@ export const createInvernaderoSchema = z.object({
   // Precio del kWh del proveedor de electricidad (para estimar el costo de
   // la calefaccion).
   precioKwh: positivoOpcional.optional(),
+  modelo: modeloSchema.optional(),
 });
 export type CreateInvernaderoInput = z.infer<typeof createInvernaderoSchema>;
 
@@ -26,6 +30,7 @@ export const updateInvernaderoSchema = z.object({
   profundidadM: medidaSchema.optional(),
   notas: z.string().trim().optional(),
   precioKwh: positivoOpcional.optional(),
+  modelo: modeloSchema.optional(),
   activo: z.boolean().optional(),
 });
 export type UpdateInvernaderoInput = z.infer<typeof updateInvernaderoSchema>;

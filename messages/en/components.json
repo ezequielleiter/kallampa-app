@@ -401,7 +401,13 @@
       "guardar": "Save changes",
       "createdMessage": "{nombre} created",
       "updatedMessage": "{nombre} saved",
-      "errorMessage": "Couldn't save the greenhouse"
+      "errorMessage": "Couldn't save the greenhouse",
+      "modelo": "Greenhouse model",
+      "modeloNinguno": "No model",
+      "modeloHint": "If it matches a built one, the live drawing shows in monitoring.",
+      "modelos": {
+        "kallampa_fructificacion_1": "Kallampa fruiting 1"
+      }
     },
     "dispositivoFormDialog": {
       "newTitle": "Add device",

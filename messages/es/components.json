@@ -401,7 +401,13 @@
       "guardar": "Guardar cambios",
       "createdMessage": "{nombre} creado",
       "updatedMessage": "{nombre} guardado",
-      "errorMessage": "No se pudo guardar el invernadero"
+      "errorMessage": "No se pudo guardar el invernadero",
+      "modelo": "Modelo de invernadero",
+      "modeloNinguno": "Sin modelo",
+      "modeloHint": "Si coincide con uno armado, se ve el dibujo en vivo en el monitoreo.",
+      "modelos": {
+        "kallampa_fructificacion_1": "Kallampa fructificación 1"
+      }
     },
     "dispositivoFormDialog": {
       "newTitle": "Agregar dispositivo",

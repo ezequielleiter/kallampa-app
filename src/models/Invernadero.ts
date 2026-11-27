@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model, Types } from "mongoose";
+import { MODELOS_INVERNADERO, type ModeloInvernadero } from "@/lib/invernadero-modelos";
 
 // Dispositivo de monitoreo (microcontrolador) asociado al invernadero. La
 // app NO se comunica con el: solo guarda su dominio en la red local para
@@ -32,6 +33,7 @@ export interface InvernaderoDoc extends Document {
   notas?: string;
   // Precio del kWh del proveedor de electricidad.
   precioKwh?: number;
+  modelo?: ModeloInvernadero;
   activo: boolean;
   dispositivos: Types.DocumentArray<Dispositivo>;
   createdAt: Date;
@@ -67,6 +69,7 @@ const invernaderoSchema = new Schema<InvernaderoDoc>(
     profundidadM: medida,
     notas: { type: String },
     precioKwh: { type: Number },
+    modelo: { type: String, enum: MODELOS_INVERNADERO },
     activo: { type: Boolean, default: true },
     dispositivos: { type: [dispositivoSchema], default: [] },
   },
