@@ -37,7 +37,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  if (pathname && SIN_MARCO.includes(pathname)) {
+  if (pathname && SIN_MARCO.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
     return <main className="flex min-h-dvh min-w-0 flex-col">{children}</main>;
   }
 

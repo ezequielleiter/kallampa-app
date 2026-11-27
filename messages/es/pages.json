@@ -674,6 +674,13 @@
         "extPausa": "en pausa",
         "extEsperando": "esperando humedad",
         "extCambia": "cambia en {t}"
+      },
+      "verMonitoreo": "Monitoreo",
+      "detalle": {
+        "titulo": "Monitoreo",
+        "volver": "Vista en vivo",
+        "noEncontrado": "No se encontró el invernadero.",
+        "sinInflux": "Este invernadero no tiene equipos vinculados a InfluxDB."
       }
     }
   }

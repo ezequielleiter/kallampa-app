@@ -41,14 +41,17 @@ type Estado =
 export function MonitoreoPanel({
   invernadero,
   number,
+  dispositivoInicial,
 }: {
   invernadero: Invernadero;
   number: string;
+  /** Dispositivo elegido al abrir; si no existe o no tiene Influx se usa el primero. */
+  dispositivoInicial?: string;
 }) {
   const t = useTranslations("components.monitoreo");
   const fmt = useFormat();
   const vinculados = (invernadero.dispositivos ?? []).filter((d) => d.influxId);
-  const [dispositivoId, setDispositivoId] = useState(vinculados[0]?._id);
+  const [dispositivoId, setDispositivoId] = useState(dispositivoInicial ?? vinculados[0]?._id);
   const [tipo, setTipo] = useState<TipoSerie>("calefaccion");
   const [range, setRange] = useState<Rango>("24h");
   const [estado, setEstado] = useState<Estado>({ tipo: "cargando" });

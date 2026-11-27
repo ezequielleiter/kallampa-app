@@ -674,6 +674,13 @@
         "extPausa": "paused",
         "extEsperando": "waiting for humidity",
         "extCambia": "changes in {t}"
+      },
+      "verMonitoreo": "Monitoring",
+      "detalle": {
+        "titulo": "Monitoring",
+        "volver": "Live view",
+        "noEncontrado": "Greenhouse not found.",
+        "sinInflux": "This greenhouse has no devices linked to InfluxDB."
       }
     }
   }
