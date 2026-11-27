@@ -117,6 +117,7 @@
     "venta_sin_items": "Add at least one batch",
     "kg_invalido": "Kg must be greater than 0",
     "precio_invalido": "The price can't be negative",
+    "modelo_invalido": "Invalid greenhouse model",
     "fecha_invalida": "Invalid date",
     "medio_pago_invalido": "Invalid payment method",
     "motivo_merma_invalido": "Invalid reason",

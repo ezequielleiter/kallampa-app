@@ -12,6 +12,7 @@ import type {
   LotePillTipo,
 } from "@/lib/constants";
 import type { AgregadoCatalogo, ResumenLote, ResumenClonacion } from "@/lib/metrics";
+import type { ModeloInvernadero } from "@/lib/invernadero-modelos";
 
 // v2: 3 campos (antes 4, se elimina "cosecha"; "crecimientoSustrato" pasa a
 // llamarse "incubacion" porque ahora describe la etapa de los recipientes).
@@ -85,6 +86,8 @@ export interface Invernadero {
   notas?: string;
   /** Precio del kWh del proveedor de electricidad. */
   precioKwh?: number;
+  /** Modelo armado; si tiene figura, se dibuja en vivo en el monitoreo. */
+  modelo?: ModeloInvernadero;
   activo: boolean;
   dispositivos: Dispositivo[];
   createdAt?: string;

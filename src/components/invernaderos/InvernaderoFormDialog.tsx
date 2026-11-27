@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import { toast } from "sonner";
@@ -15,6 +15,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MODELOS_INVERNADERO } from "@/lib/invernadero-modelos";
 import { Field } from "@/components/kallampa/Field";
 import { useFormat } from "@/components/kallampa/useFormat";
 import { useAppLocale } from "@/components/shared/LocaleProvider";
@@ -67,6 +69,7 @@ export function InvernaderoFormDialog({
       largoM: medidaInicial(invernadero?.largoM) as unknown as number,
       profundidadM: medidaInicial(invernadero?.profundidadM) as unknown as number,
       precioKwh: medidaInicial(invernadero?.precioKwh) as unknown as number,
+      modelo: invernadero?.modelo ?? null,
     },
   });
 
@@ -168,6 +171,36 @@ export function InvernaderoFormDialog({
               aria-invalid={!!errors.precioKwh}
               // Vacio → null: en la edicion borra el precio cargado.
               {...register("precioKwh", { setValueAs: (v) => parseMedida(v) ?? null })}
+            />
+          </Field>
+
+          <Field label={t("modelo")} optional hint={t("modeloHint")}>
+            <Controller
+              control={control}
+              name="modelo"
+              render={({ field }) => (
+                <Select
+                  items={[
+                    { label: t("modeloNinguno"), value: null },
+                    ...MODELOS_INVERNADERO.map((m) => ({ label: t(`modelos.${m}`), value: m })),
+                  ]}
+                  value={field.value ?? null}
+                  // null = sin modelo: en la edicion borra el cargado.
+                  onValueChange={(v) => field.onChange(v ?? null)}
+                >
+                  <SelectTrigger className="w-full" aria-label={t("modelo")}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>{t("modeloNinguno")}</SelectItem>
+                    {MODELOS_INVERNADERO.map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {t(`modelos.${m}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             />
           </Field>
 

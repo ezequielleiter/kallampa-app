@@ -681,6 +681,15 @@
         "volver": "Live view",
         "noEncontrado": "Greenhouse not found.",
         "sinInflux": "This greenhouse has no devices linked to InfluxDB."
+      },
+      "figura": {
+        "pista": "Live every 3 s when the device is on your network; otherwise every minute.",
+        "lectura": "Humidifier {hum} · Extractor {ext} · {temp} °C · {humedad} %",
+        "sinDatos": "No live data from the device",
+        "prendido": "on",
+        "apagado": "off",
+        "sinDato": "—",
+        "fig": "Fig 01"
       }
     }
   }

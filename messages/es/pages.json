@@ -681,6 +681,15 @@
         "volver": "Vista en vivo",
         "noEncontrado": "No se encontró el invernadero.",
         "sinInflux": "Este invernadero no tiene equipos vinculados a InfluxDB."
+      },
+      "figura": {
+        "pista": "En vivo cada 3 s si el equipo está en tu red; si no, cada minuto.",
+        "lectura": "Humidificador {hum} · Extractor {ext} · {temp} °C · {humedad} %",
+        "sinDatos": "Sin datos en vivo del equipo",
+        "prendido": "prendido",
+        "apagado": "apagado",
+        "sinDato": "—",
+        "fig": "Fig 01"
       }
     }
   }

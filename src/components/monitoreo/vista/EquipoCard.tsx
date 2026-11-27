@@ -41,12 +41,15 @@ export function EquipoCard({
   invernadero,
   ahora,
   vivo,
+  enlace = true,
 }: {
   equipo: EquipoResumen;
   invernadero: { _id: string; nombre: string };
   ahora: number;
   /** Sondeo local del equipo; null = no se esta sondeando (se ve solo Influx). */
   vivo: Vivo | null;
+  /** Boton "Monitoreo" en el pie (se oculta en la propia pagina de monitoreo). */
+  enlace?: boolean;
 }) {
   const t = useTranslations("pages.monitoreo");
   const fmt = useFormat();
@@ -166,15 +169,17 @@ export function EquipoCard({
           {dia.rssi != null && <span>{t("sala.rssi", { rssi: dia.rssi })}</span>}
           {dia.fw && <span>{t("sala.fw", { fw: dia.fw.split(" ")[0] })}</span>}
           {equipo.vaciandoCola && <span>{t("sala.cola")}</span>}
-          <Button
-            variant="outline"
-            size="xs"
-            className="ml-auto font-sans"
-            render={<Link href={`/monitoreo/${invernadero._id}?dispositivo=${equipo.dispositivoId}`} />}
-          >
-            <ChartLineIcon aria-hidden="true" />
-            {t("verMonitoreo")}
-          </Button>
+          {enlace && (
+            <Button
+              variant="outline"
+              size="xs"
+              className="ml-auto font-sans"
+              render={<Link href={`/monitoreo/${invernadero._id}?dispositivo=${equipo.dispositivoId}`} />}
+            >
+              <ChartLineIcon aria-hidden="true" />
+              {t("verMonitoreo")}
+            </Button>
+          )}
         </footer>
       )}
     </article>

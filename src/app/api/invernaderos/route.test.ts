@@ -90,6 +90,33 @@ describe("invernaderos", () => {
     expect(json.data.activo).toBe(false);
   });
 
+  it("guarda, valida y borra el modelo de invernadero", async () => {
+    const creado = await callRoute(POST, {
+      method: "POST",
+      headers,
+      body: { nombre: "Carpa modelo", altoM: 2, largoM: 2, profundidadM: 2, modelo: "kallampa_fructificacion_1" },
+    });
+    expect(creado.status).toBe(201);
+    expect(creado.json.data.modelo).toBe("kallampa_fructificacion_1");
+    const id = creado.json.data._id;
+
+    const invalido = await callRoute(PATCH, { method: "PATCH", headers, params: { id }, body: { modelo: "otro" } });
+    expect(invalido.status).toBe(400);
+
+    const borrado = await callRoute(PATCH, { method: "PATCH", headers, params: { id }, body: { modelo: null } });
+    expect(borrado.status).toBe(200);
+    expect(borrado.json.data.modelo).toBeUndefined();
+    expect(borrado.json.data.nombre).toBe("Carpa modelo");
+
+    const sinModelo = await callRoute(POST, {
+      method: "POST",
+      headers,
+      body: { nombre: "Carpa sin modelo", altoM: 2, largoM: 2, profundidadM: 2 },
+    });
+    expect(sinModelo.status).toBe(201);
+    expect(sinModelo.json.data.modelo).toBeUndefined();
+  });
+
   it("guarda, edita y borra el precio del kWh", async () => {
     const creado = await callRoute(POST, {
       method: "POST",
