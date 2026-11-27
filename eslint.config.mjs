@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Sistema de diseño de referencia (Claude Design): no es código de la app.
     "kallampa-ds/**",
+    // Kit copiado de la skill anatomy: se actualiza copiando, no se edita.
+    "src/components/iso/**",
   ]),
 ]);
 

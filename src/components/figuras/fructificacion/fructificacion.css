@@ -1,0 +1,21 @@
+/* Tokens de la figura del invernadero de fructificacion (solo tema oscuro). */
+.fructificacion {
+  --fr-plastico: rgb(186 214 205 / 0.07);
+  --fr-plastico-borde: rgb(186 214 205 / 0.28);
+  --fr-hueco: #07090c;
+}
+.fructificacion .fr-plastico {
+  fill: var(--fr-plastico);
+  stroke: var(--fr-plastico-borde);
+  stroke-width: 0.6;
+  stroke-linejoin: round;
+}
+.fructificacion .fr-hueco {
+  fill: var(--fr-hueco);
+}
+.fructificacion .fr-cubo {
+  fill: var(--anatomy-mid, #8a8f96);
+}
+.fructificacion .fr-rotor {
+  stroke-width: 0.9;
+}
