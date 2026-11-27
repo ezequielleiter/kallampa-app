@@ -470,5 +470,21 @@ export const ADELANTE =
   Ln(puerta, { tone: "lo" }) +
   Dots([tirador], { size: 0.8, tone: "mid" });
 
+// Respaldo sin WebGL: volutas de niebla y hilos de aire con trazos que avanzan.
+// Cada linea nace en su boca y termina libre (se desvanece en el aire).
+const voluta = (desde: P3, hacia: (s: number) => P3, largo: number) =>
+  Ln(path(Array.from({ length: 13 }, (_, i) => hacia((i / 12) * largo)).map((q) => G.add3(desde, q))), { tone: "mid", flow: true, free: "end" });
+export const RESPALDO =
+  `<g class="fr-respaldo" data-fx="niebla">` +
+  [-1.6, 0, 1.6]
+    .map((dx, i) => voluta(CODO.boca, (s) => [dx * (1 + s / 18), -s, -0.004 * s * s - i * 0.8], 40 + i * 6))
+    .join("") +
+  `</g><g class="fr-respaldo" data-fx="aire">` +
+  [-9, 0, 9]
+    .map((dx, i) => Ln(path([[T.x + dx * 1.6, T.boca + 34, T.z + 4 + i * 3], [T.x + dx * 0.5, T.boca + 12, T.z + 1], [T.x, T.boca + 0.5, T.z]]), { tone: "mid", flow: true, free: "start" }))
+    .join("") +
+  [-5, 0, 5].map((dx) => voluta([T.x, T.afuera - 0.5, T.z], (s) => [dx * (s / 30), -s, dx * 0.1 * (s / 30)], 46)).join("") +
+  `</g>`;
+
 export { WIDTH, HEIGHT, R as RECORDER };
 export const TF_TURBINA = TF;
